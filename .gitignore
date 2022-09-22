@@ -333,3 +333,5 @@ CTestTestfile.cmake
 *.su
 *.idb
 *.pdb
+
+.idea/

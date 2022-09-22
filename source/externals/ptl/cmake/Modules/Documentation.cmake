@@ -193,7 +193,7 @@ ENDMACRO(GENERATE_DOCUMENTATION)
 
 #------------------------------------------------------------------------------#
 # Macro to generate PDF manual from LaTeX using pdflatex
-# assumes manual is in ${CMAKE_SOURCE_DIR}/doc
+# assumes manual is in ${Geant4_SOURCE_DIR}/doc
 MACRO(GENERATE_MANUAL MANUAL_TEX MANUAL_BUILD_PATH EXTRA_FILES_TO_COPY)
 
     find_program(PDFLATEX pdflatex)
@@ -202,18 +202,18 @@ MACRO(GENERATE_MANUAL MANUAL_TEX MANUAL_BUILD_PATH EXTRA_FILES_TO_COPY)
         # name with no path is given
         set(MANUAL_NAME ${MANUAL_TEX})
         # set to full path
-        set(MANUAL_BUILD_PATH ${CMAKE_BINARY_DIR}/${MANUAL_BUILD_PATH})
+        set(MANUAL_BUILD_PATH ${Geant4_BINARY_DIR}/${MANUAL_BUILD_PATH})
 
-        if(NOT EXISTS ${CMAKE_SOURCE_DIR}/doc/${MANUAL_TEX})
-            message(FATAL_ERROR "LaTeX of manual for ${PROJECT_NAME} is not in ${CMAKE_SOURCE_DIR}/doc")
+        if(NOT EXISTS ${Geant4_SOURCE_DIR}/doc/${MANUAL_TEX})
+            message(FATAL_ERROR "LaTeX of manual for ${PROJECT_NAME} is not in ${Geant4_SOURCE_DIR}/doc")
         endif()
 
-        configure_file(${CMAKE_SOURCE_DIR}/doc/${MANUAL_TEX}
+        configure_file(${Geant4_SOURCE_DIR}/doc/${MANUAL_TEX}
                        ${MANUAL_BUILD_PATH}/${MANUAL_NAME}
                        COPYONLY)
 
         foreach(_file ${EXTRA_FILES_TO_COPY})
-            configure_file(${CMAKE_SOURCE_DIR}/doc/${_file}
+            configure_file(${Geant4_SOURCE_DIR}/doc/${_file}
                            ${MANUAL_BUILD_PATH}/${_file}
                            COPYONLY)
         endforeach()

@@ -683,7 +683,7 @@ macro(_g4tc_configure_build_tree_scripts SCRIPT_NAME)
 
     # Configure the file - goes straight into the binary dir
     configure_file(
-      ${CMAKE_SOURCE_DIR}/cmake/Templates/geant4make-skeleton.in
+      ${Geant4_SOURCE_DIR}/cmake/Templates/geant4make-skeleton.in
       ${PROJECT_BINARY_DIR}/${SCRIPT_NAME}${GEANT4_TC_SHELL_EXTENSION}
       @ONLY
       )
@@ -704,7 +704,7 @@ macro(_g4tc_configure_install_tree_scripts CONFIGURE_DESTINATION SCRIPT_NAME INS
 
     # Configure the file
     configure_file(
-      ${CMAKE_SOURCE_DIR}/cmake/Templates/geant4make-skeleton.in
+      ${Geant4_SOURCE_DIR}/cmake/Templates/geant4make-skeleton.in
       ${CONFIGURE_DESTINATION}/${SCRIPT_NAME}${GEANT4_TC_SHELL_EXTENSION}
       @ONLY
       )
@@ -824,7 +824,7 @@ set(TOOLS_FONT_PATH "\"`cd \$geant4make_root/../fonts > /dev/null ; pwd`\"")
 
 # - Configure the shell scripts for the INSTALL TREE
 _g4tc_configure_install_tree_scripts(
-    ${CMAKE_BINARY_DIR}/InstallTreeFiles
+    ${Geant4_BINARY_DIR}/InstallTreeFiles
     geant4make
     ${CMAKE_INSTALL_DATADIR}/geant4make
     )
@@ -987,7 +987,7 @@ foreach(_shell IN LISTS shells_list)
 
     # Configure the file
     configure_file(
-      ${CMAKE_SOURCE_DIR}/cmake/Templates/geant4-env-skeleton.in
+      ${Geant4_SOURCE_DIR}/cmake/Templates/geant4-env-skeleton.in
       ${PROJECT_BINARY_DIR}/InstallTreeFiles/${_scriptfullname}
       @ONLY
       )
@@ -1030,7 +1030,7 @@ foreach(_shell IN LISTS shells_list)
    set(GEANT4_ENV_TOOLS_FONT_PATH "rem no configuration required")
 
    configure_file(
-     ${CMAKE_SOURCE_DIR}/cmake/Templates/geant4-bat-skeleton.in
+     ${Geant4_SOURCE_DIR}/cmake/Templates/geant4-bat-skeleton.in
      ${PROJECT_BINARY_DIR}/InstallTreeFiles/${_scriptfullname}
      @ONLY
       )

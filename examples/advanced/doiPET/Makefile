@@ -48,10 +48,10 @@ RM = /usr/local/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/abdellaa/src/geant4/geant4-install/share/Geant4-10.2.3/examples/basic/B3
+Geant4_SOURCE_DIR = /home/abdellaa/src/geant4/geant4-install/share/Geant4-10.2.3/examples/basic/B3
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/abdellaa/src/geant4/geant4-install/share/Geant4-10.2.3/examples/basic/B3/B3a
+Geant4_BINARY_DIR = /home/abdellaa/src/geant4/geant4-install/share/Geant4-10.2.3/examples/basic/B3/B3a
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -82,7 +82,7 @@ edit_cache/fast: edit_cache
 # Special rule for the target rebuild_cache
 rebuild_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
-	/usr/local/bin/cmake -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+	/usr/local/bin/cmake -H$(Geant4_SOURCE_DIR) -B$(Geant4_BINARY_DIR)
 .PHONY : rebuild_cache
 
 # Special rule for the target rebuild_cache
@@ -153,7 +153,7 @@ preinstall/fast:
 
 # clear depends
 depend:
-	$(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
+	$(CMAKE_COMMAND) -H$(Geant4_SOURCE_DIR) -B$(Geant4_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
 
 #=============================================================================
@@ -249,6 +249,6 @@ help:
 # No rule that depends on this can have commands that come from listfiles
 # because they might be regenerated.
 cmake_check_build_system:
-	$(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
+	$(CMAKE_COMMAND) -H$(Geant4_SOURCE_DIR) -B$(Geant4_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
 .PHONY : cmake_check_build_system
 
