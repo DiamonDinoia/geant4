@@ -73,7 +73,7 @@ committal in the CVS repository !
   Addressing CLHEP JIRA ticket #156.
 
 10 June 2020 - J. Madsen (externals-V10-06-02)
-- Migrated PTL's used of Geant4_BINARY_DIR to PROJECT_BINARY_DIR
+- Migrated PTL's used of CMAKE_BINARY_DIR to PROJECT_BINARY_DIR
 - Fixed PTLConfig.cmake.in for testing
 - Reduced cmake to 3.8 to match Geant4
 
