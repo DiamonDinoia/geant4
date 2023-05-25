@@ -26,7 +26,8 @@
 //   Chaos, Solitons & Fractals, Volume 91, (2016) pp. 33-38
 //   http://dx.doi.org/10.1016/j.chaos.2016.05.003
 //
-
+// Original implementation by Konstantin Savvidy - Copyright 2004-2017
+// Updated by Marco Barbone -- 2023
 
 #include "CLHEP/Random/MixMaxRng.h"
 #include "CLHEP/Random/engineIDulong.h"
@@ -152,7 +153,7 @@ namespace {
 
     std::vector<unsigned long> MixMaxRng::put () const {
         // The code below assumes that unsigned long is at least 64 bits
-        static_assert(sizeof(unsigned long) >= sizeof(uint64_t), "sizeof(unsigned long) != sizeof(uint64_t)");
+        static_assert(sizeof(unsigned long) >= sizeof(uint64_t), "sizeof(unsigned long) >= sizeof(uint64_t)");
 
         std::vector<unsigned long> v;
         v.push_back(engineIDulong<MixMaxRng>());

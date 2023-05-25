@@ -26,7 +26,8 @@
 //   Chaos, Solitons & Fractals, Volume 91, (2016) pp. 33-38
 //   http://dx.doi.org/10.1016/j.chaos.2016.05.003
 //
-
+// Original implementation by Konstantin Savvidy - Copyright 2004-2017
+// Updated by Marco Barbone -- 2023
 #ifndef MixMaxRng_h
 #define MixMaxRng_h 1
 

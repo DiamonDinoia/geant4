@@ -1,6 +1,33 @@
 //
-// Created by mbarbone on 11/3/22.
+// -*- C++ -*-
 //
+// -----------------------------------------------------------------------
+//                          HEP Random
+//                       --- mixmax ---
+//                       class header file
+// -----------------------------------------------------------------------
+//
+// This file interfaces the MixMax PseudoRandom Number Generator
+// proposed by:
+//
+// G.K.Savvidy and N.G.Ter-Arutyunian,
+//   On the Monte Carlo simulation of physical systems,
+//   J.Comput.Phys. 97, 566 (1991);
+//   Preprint EPI-865-16-86, Yerevan, Jan. 1986
+//   http://dx.doi.org/10.1016/0021-9991(91)90015-D
+//
+// K.Savvidy
+//   "The MIXMAX random number generator"
+//   Comp. Phys. Commun. (2015)
+//   http://dx.doi.org/10.1016/j.cpc.2015.06.003
+//
+// K.Savvidy and G.Savvidy
+//   "Spectrum and Entropy of C-systems. MIXMAX random number generator"
+//   Chaos, Solitons & Fractals, Volume 91, (2016) pp. 33-38
+//   http://dx.doi.org/10.1016/j.chaos.2016.05.003
+//
+// Original implementation by Konstantin Savvidy - Copyright 2004-2017
+// Updated by Marco Barbone -- 2023
 
 #ifndef MIXMAX_INCLUDE_MIXMAXRNG_H_
 #define MIXMAX_INCLUDE_MIXMAXRNG_H_
