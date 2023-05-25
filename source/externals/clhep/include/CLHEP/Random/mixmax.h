@@ -147,7 +147,7 @@ class MixMaxEngine {
     MIXMAX_HOST_AND_DEVICE
     MIXMAX_CONSTEXPR MixMaxEngine& operator=(MixMaxEngine const& other) = default;
 
-  protected:
+protected:
     MIXMAX_HOST_AND_DEVICE
     void applyBigSkip(std::uint32_t clusterID, std::uint32_t machineID, std::uint32_t runID,
                       std::uint32_t streamID) noexcept {
@@ -239,7 +239,32 @@ class MixMaxEngine {
         m_Counter    = N;
     }
 
-   private:
+    const uint64_t *getState() const {
+        return m_State;
+    }
+
+    uint64_t getSumOverNew() const {
+        return m_SumOverNew;
+    }
+
+    uint8_t getCounter() const {
+        return m_Counter;
+    }
+
+    void setSetState(const uint64_t *mState) {
+        for (int i = 0; i < N; ++i) {
+            m_State[i] = mState[i];
+        }
+    }
+
+    void setSumOverNew(uint64_t mSumOverNew) {
+        m_SumOverNew = mSumOverNew;
+    }
+
+    void setCounter(uint8_t mCounter) {
+        m_Counter = mCounter;
+    }
+
     // Constants
     static constexpr double INV_MERSBASE{0.43368086899420177360298E-18};
     // The state is M-1 because the last element is stored in the variable m_SumOverNew outside the vector
@@ -247,6 +272,8 @@ class MixMaxEngine {
     static constexpr std::uint8_t  N{M - 1};
     static constexpr std::uint8_t  BITS{61U};
     static constexpr std::uint64_t M61{0x1FFFFFFFFFFFFFFF};
+
+private:
     // RNG state
     std::uint64_t m_State[N];
     std::uint64_t m_SumOverNew;

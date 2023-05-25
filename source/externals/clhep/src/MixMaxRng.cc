@@ -109,7 +109,6 @@ namespace {
         std::ifstream inFile(filename, std::ios::in);
         if (!inFile.good()) {
             throw std::runtime_error("MixMaxRng::restoreStatus(): cannot open file " + std::string(filename));
-            return;
         }
         std::string line;
         std::getline(inFile, line);
@@ -133,6 +132,63 @@ namespace {
 
     std::string MixMaxRng::engineName() {
         return "MixMaxRng";
+    }
+
+    std::ostream& MixMaxRng::put(std::ostream& os) const {
+        os << "MixMaxRng " << std::endl;
+        os << static_cast<const MIXMAX::MixMaxRng17*>(this) << std::endl;
+        return os;
+    }
+
+    std::istream& MixMaxRng::get(std::istream& is) {
+        is >> *static_cast<MIXMAX::MixMaxRng17*>(this);
+        return is;
+    }
+
+    std::istream& MixMaxRng::getState ( std::istream& is ) {
+        is >> *static_cast<MIXMAX::MixMaxRng17 *>(this);
+        return is;
+    }
+
+    std::vector<unsigned long> MixMaxRng::put () const {
+        // The code below assumes that unsigned long is at least 64 bits
+        static_assert(sizeof(unsigned long) >= sizeof(uint64_t), "sizeof(unsigned long) != sizeof(uint64_t)");
+
+        std::vector<unsigned long> v;
+        v.push_back(engineIDulong<MixMaxRng>());
+        // push the state in the vector
+        for (int i = 0; i <  MIXMAX::MixMaxRng17::N; ++i) {
+            v.push_back(MIXMAX::MixMaxRng17::getState()[i]);
+        }
+        v.push_back(MIXMAX::MixMaxRng17::getSumOverNew());
+        v.push_back(MIXMAX::MixMaxRng17::getCounter());
+        return v;
+    }
+
+    constexpr unsigned int MixMaxRng::VECTOR_STATE_SIZE() {
+        return 1 + MIXMAX::MixMaxRng17::N + 1 + 1;
+    }
+
+    bool MixMaxRng::getState(const std::vector<unsigned long> &v) {
+        if(v.size() != VECTOR_STATE_SIZE()) {
+            std::cerr <<"\nMixMaxRng::getState(): vector has wrong length - state unchanged\n";
+            return false;
+        }
+
+        const auto checksum = v[0];
+        if(checksum != engineIDulong<MixMaxRng>()) {
+            std::cerr <<"\nMixMaxRng::getState(): vector has wrong engine id\n";
+            return false;
+        }
+
+        MIXMAX::MixMaxRng17::setSetState(&v[1]);
+        MIXMAX::MixMaxRng17::setSumOverNew(v[MIXMAX::MixMaxRng17::N + 1]);
+        MIXMAX::MixMaxRng17::setCounter(v[MIXMAX::MixMaxRng17::N + 2]);
+        return true;
+    }
+
+    bool MixMaxRng::get(const std::vector<unsigned long> &v) {
+        return getState(v);
     }
 
 }  // namespace CLHEP

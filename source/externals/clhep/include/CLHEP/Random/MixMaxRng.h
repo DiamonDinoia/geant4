@@ -42,15 +42,23 @@ public:
     MixMaxRng();
 
     explicit MixMaxRng(uint64_t seed);
+
     explicit MixMaxRng(uint64_t seed, uint64_t stream);
+
     MixMaxRng(uint32_t clusterId, uint32_t machineId, uint32_t runId, uint32_t streamId);
+
     MixMaxRng(const uint64_t *state, uint64_t sumOverNew, uint32_t counter);
+
     MixMaxRng(const MixMaxRng &rhs) = default;
+
     MixMaxRng(MixMaxRng &&rhs) = default;
+
     explicit MixMaxRng(const MIXMAX::MixMaxRng17 &other);
+
     explicit MixMaxRng(MIXMAX::MixMaxRng17 &&other);
 
     MixMaxRng &operator=(const MixMaxRng &rhs) = default;
+
     MixMaxRng &operator=(MixMaxRng &&rhs) = default;
 
     double flat() override;
@@ -81,8 +89,22 @@ public:
     std::string name() const override;
     // Returns the engine name.
 
-    static std::string engineName() ;
+    static std::string engineName();
 
+    std::ostream &put(std::ostream &os) const override;
+
+    std::istream &get(std::istream &is) override;
+
+    std::istream &getState(std::istream &is) override;
+
+    std::vector<unsigned long> put() const;
+
+    bool getState(const std::vector<unsigned long> &v);
+
+    bool get(const std::vector<unsigned long> &v);
+
+private:
+    static constexpr unsigned int VECTOR_STATE_SIZE();
 };
 
 }  // namespace CLHEP
