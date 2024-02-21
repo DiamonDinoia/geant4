@@ -416,6 +416,7 @@ function(geant4_install_dataset _name _destination _timeout)
   ExternalProject_add(${_name}
     PREFIX Externals/${_name}-${_ds_version}
     SOURCE_DIR ${GEANT4_BUILD_FULL_DATADIR}/${_ds_dir}
+    BUILD_IN_SOURCE ON
     URL ${_ds_url}
     URL_MD5 ${_ds_md5sum}
     TIMEOUT ${_timeout}
