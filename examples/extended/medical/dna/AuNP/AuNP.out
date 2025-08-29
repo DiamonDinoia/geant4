@@ -11,7 +11,7 @@ Environment variable "G4FORCE_RUN_MANAGER_TYPE" enabled with value == Serial. Fo
 
 
 **************************************************************
- Geant4 version Name: geant4-11-02-patch-01    (16-February-2024)
+ Geant4 version Name: geant4-11-03-ref-06    (30-June-2025)
                        Copyright : Geant4 Collaboration
                       References : NIM A 506 (2003), 250-303
                                  : IEEE-TNS 53 (2006), 270-278
@@ -55,6 +55,12 @@ PhysicsList::SetCuts:CutLength : 100000 fm
 
 
 =========================================================
+G4DNASamplingTable::LoadData from file:
+/dna/sigmadiff_ionisation_e_born.dat
+    Nenergy= 83 NmaxT= 151
+G4DNASamplingTable::LoadData from file:
+/dna/sigmadiff_ionisation_p_born.dat
+    Nenergy= 31 NmaxT= 151
 PhysicsList::SetCuts:CutLength : 100000 fm 
 =======================================================================
 ======                 Electromagnetic Physics Parameters      ========
@@ -77,10 +83,13 @@ Bremsstrahlung energy threshold above which
   primary e+- is added to the list of secondary    100 TeV
 Bremsstrahlung energy threshold above which primary
   muon/hadron is added to the list of secondary    100 TeV
+Positron annihilation at rest model                SimplePositronium
+Enable 3 gamma annihilation on fly                 0
 Lowest triplet kinetic energy                      1 MeV
 Enable sampling of gamma linear polarisation       0
 5D gamma conversion model type                     0
 5D gamma conversion model on isolated ion          0
+Use RiGe 5D e+e- pair production model by muons    0
 Livermore data directory                           epics_2017
 =======================================================================
 ======                 Ionisation Parameters                   ========
@@ -200,7 +209,6 @@ DNASancheExcitationModel : Emin=    0 eV  Emax=  100 eV
 e-_G4DNABremsstrahlung:  for e-  XStype:4  SubType=3
       dE/dx and range tables from 100 eV  to 100 TeV in 84 bins
       Lambda tables from threshold to 100 TeV, 7 bins/decade, spline: 1
-      StepFunction=(0.2, 1 mm), integ: 4, fluct: 1, linLossLim= 0.01
       LPM flag: 1 for E > 1 GeV,  VertexHighEnergyTh(GeV)= 100000
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
              eBremSB : Emin=    0 eV  Emax=    1 GeV  ModifiedTsai

@@ -150,14 +150,16 @@ G4EmUtility::FindCrossSectionMax(G4VDiscreteProcess* p,
                                  const G4ParticleDefinition* part)
 {
   std::vector<G4double>* ptr = nullptr;
-  if(nullptr == p || nullptr == part) { return ptr; }
-  /*
-  G4cout << "G4EmUtility::FindCrossSectionMax for "
-	 << p->GetProcessName() << " and " << part->GetParticleName() << G4endl;
-  */
+  if (nullptr == p || nullptr == part) { return ptr; }
+
   G4EmParameters* theParameters = G4EmParameters::Instance();
-  G4double tmin = theParameters->MinKinEnergy();
-  G4double tmax = theParameters->MaxKinEnergy();
+  const G4double tmin = theParameters->MinKinEnergy();
+  const G4double tmax = theParameters->MaxKinEnergy();
+  const G4double ee = G4Log(tmax/tmin);
+  const G4double scale = theParameters->NumberOfBinsPerDecade()/g4log10;
+  G4int nbin = static_cast<G4int>(ee*scale);
+  nbin = std::max(nbin, 4);
+  G4double x = G4Exp(ee/(G4double)nbin);
 
   const G4ProductionCutsTable* theCoupleTable=
         G4ProductionCutsTable::GetProductionCutsTable();
@@ -166,39 +168,28 @@ G4EmUtility::FindCrossSectionMax(G4VDiscreteProcess* p,
   ptr->resize(n, DBL_MAX);
 
   G4bool isPeak = false;
-  G4double scale = theParameters->NumberOfBinsPerDecade()/g4log10;
-
-  G4double e, sig, ee, x, sm, em, emin, emax;
 
   // first loop on existing vectors
-  for (std::size_t i=0; i<n; ++i) {
-    auto couple = theCoupleTable->GetMaterialCutsCouple((G4int)i);
-    emin = std::max(p->MinPrimaryEnergy(part, couple->GetMaterial()), tmin);
-    emax = std::max(tmax, 2*emin);
-    ee = G4Log(emax/emin);
-
-    G4int nbin = G4lrint(ee*scale);
-    if(nbin < 4) { nbin = 4; }
-    x = G4Exp(ee/nbin);
-    sm = 0.0;
-    em = 0.0;
-    e = emin;
-    for(G4int j=0; j<=nbin; ++j) {
-      sig = p->GetCrossSection(e, couple);
-      if(sig >= sm) {
+  const G4int nn = static_cast<G4int>(n);
+  for (G4int i=0; i<nn; ++i) {
+    G4double sm = 0.0;
+    G4double em = 0.0;
+    G4double e = tmin;
+    for (G4int j=0; j<=nbin; ++j) {
+      G4double sig = p->GetCrossSection(e, theCoupleTable->GetMaterialCutsCouple(i));
+      if (sig >= sm) {
 	em = e;
 	sm = sig;
-	e = (j+1 < nbin) ? e*x : emax;
+	e = (j+1 < nbin) ? e*x : tmax;
       } else {
 	isPeak = true;
 	(*ptr)[i] = em;
 	break;
       }
     }
-    //G4cout << i << ".  em=" << em << " sm=" << sm << G4endl;
   }
   // there is no peak for any couple
-  if(!isPeak) {
+  if (!isPeak) {
     delete ptr;
     ptr = nullptr;
   }
@@ -297,6 +288,7 @@ G4EmUtility::FillPeaksStructure(G4PhysicsTable* p, G4LossTableBuilder* bld)
   }
   // case of no 1st peak in all vectors
   if(!isDeep) {
+    for (G4int k=0; k<n; ++k) { delete (*ptr)[k]; }
     delete ptr;
     ptr = nullptr;
     return ptr;
@@ -390,6 +382,32 @@ void G4EmUtility::InitialiseElementSelectors(G4VEmModel* mod,
     */
   }
   mod->SetElementSelectors(elmSelectors);
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....
+
+void G4EmUtility::FillFluctFlags(std::vector<std::pair<G4String, G4bool> >& reg,
+		    	         std::vector<G4bool>* flags)
+{
+  G4RegionStore* regStore = G4RegionStore::GetInstance();
+  G4ProductionCutsTable* theCoupleTable=
+    G4ProductionCutsTable::GetProductionCutsTable();
+  std::size_t numOfCouples = theCoupleTable->GetTableSize();
+  for (std::size_t i = 0; i < numOfCouples; ++i) {
+    auto couple = theCoupleTable->GetMaterialCutsCouple((G4int)i);
+    auto mat = const_cast<G4Material*>(couple->GetMaterial());
+    for (auto const& r : reg) {
+      const G4String& rname = r.first;
+      G4Region* region = regStore->GetRegion(rname, false);
+      if (nullptr != region) {
+	auto couple1 = region->FindCouple(mat);
+	if (couple1 == couple) {
+	  (*flags)[couple->GetIndex()] = r.second;
+	  break;
+	}
+      }
+    }
+  }
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....

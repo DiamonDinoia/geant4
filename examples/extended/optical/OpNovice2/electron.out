@@ -11,7 +11,7 @@ Environment variable "G4FORCE_RUN_MANAGER_TYPE" enabled with value == Serial. Fo
 
 
 **************************************************************
- Geant4 version Name: geant4-11-02-patch-01    (16-February-2024)
+ Geant4 version Name: geant4-11-03-ref-06    (30-June-2025)
                        Copyright : Geant4 Collaboration
                       References : NIM A 506 (2003), 250-303
                                  : IEEE-TNS 53 (2006), 270-278
@@ -31,28 +31,35 @@ Registered graphics systems are:
   ASCIITree (ATree)
   DAWNFILE (DAWNFILE)
   G4HepRepFile (HepRepFile)
-  RayTracer (RayTracer)
+  RayTracer (RT)
   VRML2FILE (VRML2FILE)
   gMocrenFile (gMocrenFile)
-  TOOLSSG_OFFSCREEN (TSG_OFFSCREEN)
   TOOLSSG_OFFSCREEN (TSG_OFFSCREEN, TSG_FILE)
   OpenGLImmediateQt (OGLIQt, OGLI)
-  OpenGLStoredQt (OGLSQt, OGL, OGLS)
+  OpenGLStoredQt (OGLSQt, OGLS)
   OpenGLImmediateXm (OGLIXm, OGLIQt_FALLBACK)
   OpenGLStoredXm (OGLSXm, OGLSQt_FALLBACK)
   OpenGLImmediateX (OGLIX, OGLIQt_FALLBACK, OGLIXm_FALLBACK)
   OpenGLStoredX (OGLSX, OGLSQt_FALLBACK, OGLSXm_FALLBACK)
-  RayTracerX (RayTracerX)
+  RayTracerX (RTX)
+  RayTracerQt (RTQt)
   Qt3D (Qt3D)
   TOOLSSG_X11_GLES (TSG_X11_GLES, TSGX11, TSG_XT_GLES_FALLBACK)
+  TOOLSSG_X11_ZB (TSG_X11_ZB, TSGX11ZB)
   TOOLSSG_XT_GLES (TSG_XT_GLES, TSGXt, TSG_QT_GLES_FALLBACK)
   TOOLSSG_XT_ZB (TSG_XT_ZB, TSGXtZB)
-  TOOLSSG_QT_GLES (TSG_QT_GLES, TSGQt, TSG)
+  TOOLSSG_QT_GLES (TSG_QT_GLES, TSGQt, TSG, OGL)
   TOOLSSG_QT_ZB (TSG_QT_ZB, TSGQtZB)
-Default graphics system is: TSG_OFFSCREEN (based on batch session).
-Default window size hint is: 600x600-0+0 (based on G4VisManager initialisation).
-Note: Parameters specified on the command line will override these defaults.
-      Use "vis/open" without parameters to get these defaults.
+You may choose a graphics system (driver) with a parameter of
+the command "/vis/open" or "/vis/sceneHandler/create",
+or you may omit the driver parameter and choose at run time:
+- by argument in the construction of G4VisExecutive
+- by environment variable "G4VIS_DEFAULT_DRIVER"
+- by entry in "~/.g4session"
+- by build flags.
+- Note: This feature is not allowed in batch mode.
+For further information see "examples/basic/B1/exampleB1.cc"
+and "vis.mac".
 
 Registering model factories...
 
@@ -810,10 +817,13 @@ Bremsstrahlung energy threshold above which
   primary e+- is added to the list of secondary    100 TeV
 Bremsstrahlung energy threshold above which primary
   muon/hadron is added to the list of secondary    100 TeV
+Positron annihilation at rest model                AllisonPositronium
+Enable 3 gamma annihilation on fly                 1
 Lowest triplet kinetic energy                      1 MeV
 Enable sampling of gamma linear polarisation       0
 5D gamma conversion model type                     0
 5D gamma conversion model on isolated ion          0
+Use RiGe 5D e+e- pair production model by muons    0
 Livermore data directory                           epics_2017
 =======================================================================
 ======                 Ionisation Parameters                   ========
@@ -963,9 +973,9 @@ ePairProd:  for e+  XStype:1  SubType=4
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
            ePairProd : Emin=    0 eV  Emax=  100 TeV  ModifiedMephi
 
-annihil:  for e+ XStype:2 SubType=5 BuildTable=0
+annihil:  for e+ XStype:2 SubType=5 AtRestModel:Allison BuildTable=0
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
-            eplus2gg : Emin=    0 eV  Emax=  100 TeV
+    eplusTo2or3gamma : Emin=    0 eV  Emax=  100 TeV
 
 CoulombScat:  for e+ XStype:1 SubType=1 BuildTable=1
       Lambda table from 100 MeV to 100 TeV, 20 bins/decade, spline: 0
@@ -1508,7 +1518,8 @@ CoulombScat:  for pi- XStype:1 SubType=1 BuildTable=1
 =======================================================================
 ======       Geant4 Native Pre-compound Model Parameters       ========
 =======================================================================
-Type of pre-compound inverse x-section              3
+Type of pre-compound model                          0
+Type of pre-compound inverse x-section              1
 Pre-compound model active                           1
 Pre-compound excitation low energy                  100 keV
 Pre-compound excitation high energy                 30 MeV
@@ -1524,16 +1535,17 @@ Use HETC submodel for pre-compound model            0
 Type of de-excitation inverse x-section             3
 Type of de-excitation factory                       Evaporation+GEM
 Number of de-excitation channels                    68
+Type of Fermi BreakUp model                         ModelVI
 Min excitation energy                               10 eV 
 Min energy per nucleon for multifragmentation       200 GeV
 Limit excitation energy for Fermi BreakUp           20 MeV
 Level density (1/MeV)                               0.075
 Use simple level density model                      1
-Use discrete excitation energy of the residual      1
+Use discrete excitation energy of the residual      0
 Time limit for long lived isomeres                  1 ns 
 Isomer production flag                              1
 Internal e- conversion flag                         1
-Store e- internal conversion data                   0
+Store e- internal conversion data                   1
 Correlated gamma emission flag                      0
 Max 2J for sampling of angular correlations         10
 =======================================================================
@@ -1556,8 +1568,6 @@ Index : 1     used in the geometry : Yes
 
 ==================================================================
 
-G4VisManager: Using G4TrajectoryDrawByCharge as fallback trajectory model.
-See commands in /vis/modeling/trajectories/ for other options.
 ### Run 0 starts.
 ... set ntuple merging row mode : row-wise - done
 ... create file : electron.root - done
@@ -1567,7 +1577,7 @@ See commands in /vis/modeling/trajectories/ for other options.
  Run terminated.
 Run Summary
   Number of events processed : 100
-  User=2.500000s Real=2.512848s Sys=0.000000s
+  User=1.260000s Real=1.265634s Sys=0.000000s
 
     Run Summary
 ---------------------------------
@@ -1576,11 +1586,11 @@ Number of events: 100
 Material of world: G4_AIR
 Material of tank:  G4_BGO
 
-Average energy of Cerenkov photons created per event: 2.4e+02 eV.
-Average number of Cerenkov photons created per event: 46
+Average energy of Cerenkov photons created per event: 2.2e+02 eV.
+Average number of Cerenkov photons created per event: 43
  Average energy per photon: 5.2 eV.
-Average energy of scintillation photons created per event: 1.7e+04 eV.
-Average number of scintillation photons created per event: 3.1e+03
+Average energy of scintillation photons created per event: 1.6e+04 eV.
+Average number of scintillation photons created per event: 3e+03
  Average energy per photon: 5.4 eV.
 Average number of photons absorbed by WLS per event: 0 
 Average number of photons created by WLS per event: 0
@@ -1588,45 +1598,38 @@ Average energy of WLS photons created per event: 0 eV.
 Average number of photons absorbed by WLS2 per event: 0 
 Average number of photons created by WLS2 per event: 0
 Average energy of WLS2 photons created per event: 0 eV.
-Average number of OpRayleigh per event:   5.9e+03
-Average number of OpAbsorption per event: 3e+03
+Average number of OpRayleigh per event:   4.6e+03
+Average number of OpAbsorption per event: 2.9e+03
 
 Surface events (on +X surface, maximum one per photon) this run:
 # of primary particles:         1e+02
-OpAbsorption before surface:   174523
-Total # of surface events:     140768
+OpAbsorption before surface:   159264
+Total # of surface events:     142423
 
 Surface events by process:
-  Transmission:                 14111
-  Fresnel refraction:            4905
-  Lambertian reflection:        75801
-  Lobe reflection:              10106
-  Spike reflection:             10838
-  Backscattering:               10947
-  Absorption:                   12632
-  Detection:                     1428
- Sum:                          140768
+  Transmission:                 14273
+  Fresnel refraction:           46449
+  Lambertian reflection:        47882
+  Lobe reflection:               6014
+  Spike reflection:              6764
+  Backscattering:                6866
+  Absorption:                   12805
+  Detection:                     1370
+ Sum:                          142423
  Unaccounted for:                   0
 ---------------------------------
 
  Histogram statistics for the entire run:
 
- Cerenkov spectrum: mean = 5.16763 eV rms = 1.70628 eV.
- Scintillation spectrum: mean = 5.43459 eV rms = 1.66517 eV.
- Scintillation time: mean = 48.3451 ns rms = 46.907 ns.
+ Cerenkov spectrum: mean = 5.1769 eV rms = 1.71874 eV.
+ Scintillation spectrum: mean = 5.43182 eV rms = 1.66615 eV.
+ Scintillation time: mean = 48.2966 ns rms = 46.8436 ns.
 
 ... write file : electron.root - done
 ... close file : electron.root - done
-There are histograms that can be viewed with visualization:
-  27 h1 histograms(s)
-  List them with "/analysis/list".
-  View them immediately with "/vis/plot" or "/vis/reviewPlots".
-  But...there are no entries. To make your histograms available for
-  plotting in this UI session, use CloseFile(false) in your
-  EndOfRunAction and Reset() in your BeginOfRunAction.
 Graphics systems deleted.
 Visualization Manager deleting...
 ================== Deleting memory pools ===================
 Number of memory pools allocated: 10 of which, static: 0
-Dynamic pools deleted: 10 / Total memory freed: 0.43 MB
+Dynamic pools deleted: 10 / Total memory freed: 0.41 MB
 ============================================================

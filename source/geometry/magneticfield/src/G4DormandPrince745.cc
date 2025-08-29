@@ -57,12 +57,20 @@
 
 using namespace field_utils;
 
-const G4String G4DormandPrince745::gStepperType =
-     G4String("G4DormandPrince745: 5th order");
+// Name of this steppers
+const G4String& G4DormandPrince745::StepperType() const
+{
+  static G4String _stepperType("G4DormandPrince745: 5th order");
+  return _stepperType;
+}
 
-const G4String G4DormandPrince745::gStepperDescription= G4String(
-   "Embedeed 5th order Runge-Kutta stepper - 7 stages, FSAL, Interpolating.");
-
+// Description of this steppers - plus details of its implementation
+const G4String& G4DormandPrince745::StepperDescription() const
+{
+  static G4String _stepperDescription(
+    "Embedeed 5th order Runge-Kutta stepper - 7 stages, FSAL, Interpolating.");
+  return _stepperDescription;
+}
 
 G4DormandPrince745::G4DormandPrince745(G4EquationOfMotion* equation,
                                        G4int noIntegrationVariables)
@@ -130,7 +138,7 @@ void G4DormandPrince745::Stepper(const G4double yInput[],
         dc7 = -(- 1.0 / 40.0);
     
     const G4int numberOfVariables = GetNumberOfVariables();
-    State yTemp;
+    State yTemp = {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.};
     
     // The number of variables to be integrated over
     //
@@ -304,7 +312,7 @@ void G4DormandPrince745::SetupInterpolation5thOrder()
                    b98 = -805.0 / 4104.0;
     
     const G4int numberOfVariables = GetNumberOfVariables();
-    State yTemp;
+    State yTemp = {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.};
 
     // Evaluate the extra stages
     //

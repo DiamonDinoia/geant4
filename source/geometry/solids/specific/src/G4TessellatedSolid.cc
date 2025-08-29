@@ -58,13 +58,13 @@
 #include <stack>
 
 #include "geomdefs.hh"
-#include "Randomize.hh"
 #include "G4SystemOfUnits.hh"
 #include "G4PhysicalConstants.hh"
 #include "G4GeometryTolerance.hh"
 #include "G4VoxelLimits.hh"
 #include "G4AffineTransform.hh"
 #include "G4BoundingEnvelope.hh"
+#include "G4QuickRand.hh"
 
 #include "G4VGraphicsScene.hh"
 #include "G4VisExtent.hh"
@@ -681,7 +681,7 @@ G4int G4TessellatedSolid::CheckStructure() const
     nedge += facet.GetNumberOfVertices();
     volume += facet.GetArea()*(facet.GetVertex(0).dot(facet.GetSurfaceNormal()));
   }
-  G4int ivolume = static_cast<G4int>(volume <= 0.);
+  auto  ivolume = static_cast<G4int>(volume <= 0.);
 
   // Create sorted vector of edges
   //
@@ -695,7 +695,7 @@ G4int G4TessellatedSolid::CheckStructure() const
     {
       int64_t i1 = facet.GetVertexIndex((k == 0) ? nnode - 1 : k - 1);
       int64_t i2 = facet.GetVertexIndex(k);
-      int64_t inverse = static_cast<int64_t>(i2 > i1);
+      auto  inverse = static_cast<int64_t>(i2 > i1);
       if (inverse != 0) std::swap(i1, i2);
       iedge[kk++] = i1*1000000000 + i2*2 + inverse;
     }
@@ -1750,6 +1750,15 @@ G4GeometryType G4TessellatedSolid::GetEntityType () const
 
 ///////////////////////////////////////////////////////////////////////////////
 //
+// IsFaceted
+//
+G4bool G4TessellatedSolid::IsFaceted () const
+{
+  return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//
 std::ostream &G4TessellatedSolid::StreamInfo(std::ostream &os) const
 {
   os << G4endl;
@@ -2150,7 +2159,7 @@ G4ThreeVector G4TessellatedSolid::GetPointOnSurface() const
 {
   // Select randomly a facet and return a random point on it
 
-  auto i = (G4int) G4RandFlat::shoot(0., fFacets.size());
+  auto i = (G4int)(fFacets.size()*G4QuickRand());
   return fFacets[i]->GetPointOnFace();
 }
 

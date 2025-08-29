@@ -35,8 +35,9 @@
 #ifndef CHEM5_ScoreSpecies_h
 #define CHEM5_ScoreSpecies_h 1
 
-#include "G4VPrimitiveScorer.hh"
 #include "G4THitsMap.hh"
+#include "G4VPrimitiveScorer.hh"
+
 #include <set>
 
 class G4MolecularConfiguration;
@@ -48,92 +49,77 @@ class G4MolecularConfiguration;
 // produced after irradiation in a water volume
 //
 // Created: 2018-09-20  by J. Ramos-Mendez based on chem4 from
-//                         M. Karamitros 
+//                         M. Karamitros
 
 class ScoreSpecies : public G4VPrimitiveScorer
 {
-public:
-  ScoreSpecies(G4String name, G4int depth=0);
+  public:
+    explicit ScoreSpecies(G4String name, G4int depth = 0);
 
-  virtual ~ScoreSpecies();
-  
-  /** Add a time at which the number of species should be recorded.
-      Default times are set up to 1 microsecond.*/
-  inline void AddTimeToRecord(double time)
-  {
-    fTimeToRecord.insert(time);
-  }
-  
-  /**  Remove all times to record, must be reset by user.*/
-  inline void ClearTimeToRecord()
-  {
-    fTimeToRecord.clear();
-  }
+    ~ScoreSpecies() override = default;
 
-  /** Get number of recorded events*/
-  inline int GetNumberOfRecordedEvents() const
-  {
-    return fNEvent;
-  }
-  
-  /** Write results to an text file*/
-  void ASCII();
-  
-  struct SpeciesInfo
-  {
-    SpeciesInfo()
+    /** Add a time at which the number of species should be recorded.
+        Default times are set up to 1 microsecond.*/
+    inline void AddTimeToRecord(double time) { fTimeToRecord.insert(time); }
+
+    /**  Remove all times to record, must be reset by user.*/
+    inline void ClearTimeToRecord() { fTimeToRecord.clear(); }
+
+    /** Get number of recorded events*/
+    inline G4int GetNumberOfRecordedEvents() const { return fNEvent; }
+
+    /** Write results to an text file*/
+    void ASCII();
+
+    struct SpeciesInfo
     {
-      fNumber = 0;
-      fG = 0.;
-      fG2 = 0.;
-    }
-    SpeciesInfo(const SpeciesInfo& right) // Species A(B);
-    {
-      fNumber = right.fNumber;
-      fG = right.fG;
-      fG2 = right.fG2;
-    }
-    SpeciesInfo& operator=(const SpeciesInfo& right) // A = B
-    {
-      if(&right == this) return *this;
-      fNumber = right.fNumber;
-      fG = right.fG;
-      fG2 = right.fG2;
-      return *this;
-    }
-    int fNumber;
-    double fG;
-    double fG2;
-  };
-  
-private:
-  typedef const G4MolecularConfiguration Species;
-  typedef std::map<Species*, SpeciesInfo>  InnerSpeciesMap;
-  typedef std::map<double, InnerSpeciesMap> SpeciesMap;
-  SpeciesMap fSpeciesInfoPerTime;
+        SpeciesInfo() = default;
+        SpeciesInfo(const SpeciesInfo& right)  // Species A(B);
+        {
+          fNumber = right.fNumber;
+          fG = right.fG;
+          fG2 = right.fG2;
+        }
+        SpeciesInfo& operator=(const SpeciesInfo& right)  // A = B
+        {
+          if (&right == this) return *this;
+          fNumber = right.fNumber;
+          fG = right.fG;
+          fG2 = right.fG2;
+          return *this;
+        }
+        G4int fNumber = 0;
+        G4double fG = 0;
+        G4double fG2 = 0;
+    };
 
-  std::set<G4double> fTimeToRecord;
-  
-  int fNEvent; // number of processed events
-  double fEdep; // total energy deposition
+  private:
+    using Species = const G4MolecularConfiguration;
+    using InnerSpeciesMap = std::map<Species*, SpeciesInfo>;
+    using SpeciesMap = std::map<double, InnerSpeciesMap> ;
+    SpeciesMap fSpeciesInfoPerTime;
 
-protected:
-  virtual G4bool ProcessHits(G4Step*,G4TouchableHistory*);
+    std::set<G4double> fTimeToRecord;
 
-public:
-  virtual void Initialize(G4HCofThisEvent*);
-  virtual void EndOfEvent(G4HCofThisEvent*);
-  virtual void DrawAll();
-  virtual void PrintAll();
-  /** Method used in multithreading mode in order to merge 
-      the results*/
-  virtual void AbsorbResultsFromWorkerScorer(G4VPrimitiveScorer* );
-  virtual void OutputAndClear();
-  
-  SpeciesMap GetSpeciesInfo() {return fSpeciesInfoPerTime;}
+    G4int fNEvent = 0;  // number of processed events
+    G4double fEdep = 0;  // total energy deposition
 
-private:
-  G4int fHCID;
-  G4THitsMap<G4double>* fEvtMap;
+  protected:
+    G4bool ProcessHits(G4Step*, G4TouchableHistory*) override;
+
+  public:
+    void Initialize(G4HCofThisEvent*) override;
+    void EndOfEvent(G4HCofThisEvent*) override;
+    void PrintAll() override;
+    /** Method used in multithreading mode in order to merge
+        the results*/
+    void AbsorbResultsFromWorkerScorer(G4VPrimitiveScorer*);
+    void OutputAndClear();
+
+    SpeciesMap GetSpeciesInfo() { return fSpeciesInfoPerTime; }
+
+  private:
+    G4int fHCID = -1;
+    G4THitsMap<G4double>* fEvtMap = nullptr;
 };
 #endif

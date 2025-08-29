@@ -45,12 +45,15 @@
 class DetectorConstruction;
 class ActionInitialization : public G4VUserActionInitialization
 {
-public:
-  ActionInitialization();
-  virtual ~ActionInitialization();
-  
-  virtual void BuildForMaster() const;
-  virtual void Build() const;
+  public:
+    ActionInitialization();
+    virtual ~ActionInitialization();
+
+    virtual void BuildForMaster() const;
+    virtual void Build() const;
+
+  private:
+    void BuildMoleculeCounter() const;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

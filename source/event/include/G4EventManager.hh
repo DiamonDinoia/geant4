@@ -56,9 +56,6 @@ class G4VUserEventInformation;
 class G4EventManager 
 {
  public:
-  using ProfilerConfig = G4ProfilerConfig<G4ProfileType::Event>;
-
- public:
     static G4EventManager* GetEventManager();
       // This method returns the singleton pointer of G4EventManager.
 
@@ -154,8 +151,12 @@ class G4EventManager
     inline void StoreRandomNumberStatusToG4Event(G4int vl)
       { storetRandomNumberStatusToG4Event = vl; }
 
-    inline void UseSubEventParallelism()
-      { subEventPara = true; }
+    inline void UseSubEventParallelism(G4bool worker = false)
+      {
+        subEventPara = true; 
+        subEventParaWorker = worker;
+      }
+
     G4SubEvent* PopSubEvent(G4int ty);
       // If this method is invoked by the G4RunManager while an event is still 
       // in process. Null is returned if the sub-event does not have enough tracks.
@@ -167,9 +168,15 @@ class G4EventManager
       // deleted after this method. All necessary information in "evt" must
       // be copied into the corresponding master G4Event object.
 
+    G4int StoreSubEvent(G4Event*, G4int&, G4SubEvent*);
+      // This method is exclusively used by G4SubEventTrackStack class to 
+      // store a new G4SubEevnt into the current G4Event, with Mutex lock
+      // shared with above two methods.
+
   private:
 
-    void DoProcessing(G4Event* anEvent);
+    void DoProcessing(G4Event* anEvent,
+           G4TrackVector* trackVector = nullptr, G4bool IDhasAlreadySet= false);
   
   private:
 
@@ -187,6 +194,8 @@ class G4EventManager
     G4bool tracking = false;
     G4bool abortRequested = false;
     G4bool subEventPara = false;
+    G4bool subEventParaWorker = false;
+    G4int evID_inSubEv = -1;
 
     G4EvManMessenger* theMessenger = nullptr;
 
@@ -199,9 +208,6 @@ class G4EventManager
     G4String randomNumberStatusToG4Event;
 
     G4StateManager* stateManager = nullptr;
-
- private:
-  std::unique_ptr<ProfilerConfig> eventProfiler;
 };
 
 #endif

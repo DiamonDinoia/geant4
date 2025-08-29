@@ -242,9 +242,21 @@ public: // With description
   // G4VTrajectory::ShowTrajectory for an example of the use of
   // G4Atts.
 
-  const std::map<G4int,G4int>& GetNumberOfTouchables() const {return fNTouchables;}
-  // Total number of touchables drawn at each depth
-  
+  const std::map<G4int,G4int>& GetMapOfDrawnTouchables() const {return fMapDrawnTouchables;}
+  // Number of touchables drawn at each depth.
+
+  G4int GetTotalDrawnTouchables () {return fTotalDrawnTouchables;}
+  // Total number of touchables drawn.
+
+  G4int GetMaxFullDepth () const {return fMaxFullDepth;}
+  // Including base path, i.e., from the world volume
+
+  const std::map<G4int,G4int>& GetMapOfAllTouchables() const {return fMapAllTouchables;}
+  // Number of all touchables at each depth.
+
+  G4int GetTotalAllTouchables () {return fTotalAllTouchables;}
+  // Total number of touchables.
+
   void SetRequestedDepth (G4int requestedDepth) {
     fRequestedDepth = requestedDepth;
   }
@@ -312,7 +324,12 @@ protected:
   G4VSolid*          fpClippingSolid;
   ClippingMode       fClippingMode;
   G4int              fNClippers;     // No of clipping/cutting solids - only 0 or 1 allowed
-  std::map<G4int,G4int> fNTouchables;   // No of touchables at each depth
+  std::map<G4int,G4int> fMapDrawnTouchables;   // No of touchables drawn at each depth
+  G4int              fTotalDrawnTouchables;
+  std::map<G4int,G4int> fMapAllTouchables;   // No of all touchables at each depth
+  G4int              fTotalAllTouchables;
+  G4int              fMaxFullDepth;  // Including base path, i.e., from the world volume
+
 
 private:
 

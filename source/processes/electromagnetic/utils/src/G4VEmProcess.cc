@@ -111,8 +111,7 @@ G4VEmProcess::G4VEmProcess(const G4String& name, G4ProcessType type):
 
 G4VEmProcess::~G4VEmProcess()
 {
-  if(isTheMaster) {
-    delete theData;
+  if (isTheMaster) {
     delete theEnergyOfCrossSectionMax;
   }
   delete modelManager;
@@ -153,7 +152,7 @@ void G4VEmProcess::PreparePhysicsTable(const G4ParticleDefinition& part)
 
     G4String pname = part.GetParticleName();
     if(pname != "deuteron" && pname != "triton" &&
-       pname != "alpha" && pname != "alpha+" &&
+       pname != "He3" && pname != "alpha" && pname != "alpha+" &&
        pname != "helium" && pname != "hydrogen") {
 
       particle = G4GenericIon::GenericIon();
@@ -272,8 +271,14 @@ void G4VEmProcess::StreamInfo(std::ostream& out,
   }
   if(fXSType != fEmNoIntegral)  { out << " XStype:" << fXSType; }
   if(applyCuts) { out << " applyCuts:1 "; }
-  out << " SubType=" << GetProcessSubType();
-  if(biasFactor != 1.0) { out << "  BiasingFactor= " << biasFactor; }
+  G4int subtype = GetProcessSubType();
+  out << " SubType=" << subtype;
+  if (subtype == fAnnihilation) {
+    G4int mod = theParameters->PositronAtRestModelType();
+    const G4String namp[2] = {"Simple", "Allison"};
+    out << " AtRestModel:" << namp[mod];
+  }
+  if(biasFactor != 1.0) { out << "  BiasingFactor=" << biasFactor; }
   out << " BuildTable=" << buildLambdaTable << G4endl;
   if(buildLambdaTable) {
     if(particle == &part) { 
@@ -347,6 +352,10 @@ void G4VEmProcess::StartTracking(G4Track* track)
       biasManager->ResetForcedInteraction(); 
     }
   }
+  for (G4int i=0; i<numberOfModels; ++i) {
+    auto ptr = GetModelByIndex(i);
+    ptr->StartTracking(track);
+  }
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -363,6 +372,9 @@ G4double G4VEmProcess::PostStepGetPhysicalInteractionLength(
   preStepKinEnergy = track.GetKineticEnergy();
   const G4double scaledEnergy = preStepKinEnergy*massRatio;
   SelectModel(scaledEnergy, currentCoupleIndex);
+
+  // In models applied to ions the dynamic charge is needed
+  if (isIon) { currentModel->ChargeSquareRatio(track); }
   /*
   G4cout << "PostStepGetPhysicalInteractionLength: idx= " << currentCoupleIndex
          << "  couple: " << currentCouple << G4endl;
@@ -554,7 +566,7 @@ G4VParticleChange* G4VEmProcess::PostStepDoIt(const G4Track& track,
     G4double time = track.GetGlobalTime();
 
     G4int n1(0), n2(0);
-    if(num > mainSecondaries) { 
+    if(num0 > mainSecondaries) { 
       currentModel->FillNumberOfSecondaries(n1, n2);
     }
      
@@ -608,7 +620,7 @@ G4VParticleChange* G4VEmProcess::PostStepDoIt(const G4Track& track,
                 t->SetCreatorModelID(augerID);
               }
             } else {
-              t->SetCreatorModelID(secID);
+              t->SetCreatorModelID(biasID);
             }
           }
           /* 

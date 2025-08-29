@@ -6,6 +6,58 @@ It must **not** be used as a substitute for writing good git commit messages!
 
 -------------------------------------------------------------------------------
 
+## 2025-03-06 John Allison (visQt3D-V11-03-02)
+- G4Qt3DViewer:
+  - Implement CompareForTransientsRedraw().
+  - Take advantage of ProcessTransients(), which reconstructs that part of
+    the graphical database for transient objects, e.g., trajectories,
+    without reconstructing the "permanent" (run-duration) objects, e.g.,
+    the detector. In other words, something short of a complete "kernel
+    visit". For example, if the time window changes.
+  - Maximises the efficiency of the recently implemented "generic" time
+    windowing.
+
+## 2025-02-13 John Allison (visQt3D-V11-03-01)
+- G4Qt3DViewer.cc: CompareForKernelVisit:
+  - Cause kernel visit if viewer start/end time changes.
+    - This is to take advantage of the new generic time window - modeling-V11-03-04.
+
+## 2025-01-06 John Allison (visQt3D-V11-03-00)
+- Co-works: visman-V11-03-00, interfaces-V11-03-00, modeling-V11-03-00,
+  opengl-V11-03-00, vis_toolssg-V11-03-00, openinventor-V11-03-00,
+  greps-V11-03-00.
+- Re-instate the transparency slider (see lengthy explanation in management/History).
+- G4Qt3DViewer:
+  - Initiate kernel visit if TransparencyByDepth or its options change.
+
+## 2024-08-14 John Allison (visQt3D-V11-02-03)
+- G4Qt3DViewer:
+  - Resolve the timing issues around switching to the vis sub-thread with the
+    use of G4CONDITIONWAITLAMBDA.
+
+## 2024-07-12 Guy Barrand (visQt3D-V11-02-02)
+- G4Qt3DViewer: implement a resizeEvent() method to avoid a bad aspect ratio at viewer creation.
+- G4Qt3DSceneHandler: in AddPrimitive(G4Polyline), stay with the Qt5 code. The one for Qt6 using
+  Qt3DCore::QGeometryView is crashy.
+- G4Qt3DViewer: in MovingToVisSubThread(), SwitchToMasterThread() protect against nullptr for p1, p2.
+  It permits to avoid crash in case of doing /run/beamOn in vis.mac at startup.
+
+## 2024-05-23 Guy Barrand (visQt3D-V11-02-01)
+- G4Qt3DSceneHandler::EstablishG4Qt3DQEntities(): have a missing:
+   fpPhysicalVolumeObjects.clear();
+  It avoids a crash if doing multiple "/vis/open Qt3D".
+- G4Qt3DViewer destructor: do a setRootEntity(nullptr) to disconnect
+  the G4Qt3DSceneHandler::fpQt3DScene from a viewer.
+- G4Qt3DSceneHandler destructor: clear the fpQt3DScene scene tree.
+  A crash (seen on most platforms) is now avoided here because of the
+  disconnection of the fpQt3DScene in a viewer destructor.
+  (This "scene clearing" assumes that the deletion a G4Qt3DSceneHandler happens after
+  all related viewers are already deleted).
+
+## 2024-03-13 Gabriele Cosmo (visQt3D-V11-02-00)
+- Fixed compilation error on Windows for ambiguous string assignment in
+  G4Qt3DSceneHandler::CreateNewNode().
+
 ## 2023-10-14 John Allison (visQt3D-V11-01-07)
 - G4Qt3DSceneHandler.cc: Add dummy normal line attributes - Qt6 seems to require!!
   - I am puzzled - why do lines need normals?

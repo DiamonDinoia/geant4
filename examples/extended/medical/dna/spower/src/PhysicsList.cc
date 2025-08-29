@@ -23,19 +23,33 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+// This example is provided by the Geant4-DNA collaboration
+// Any report or published results obtained using the Geant4-DNA software
+// shall cite the following Geant4-DNA collaboration publications:
+// Med. Phys. 45 (2018) e722-e739
+// Phys. Med. 31 (2015) 861-874
+// Med. Phys. 37 (2010) 4692-4708
+// Int. J. Model. Simul. Sci. Comput. 1 (2010) 157–178
+//
+// The Geant4-DNA web site is available at http://geant4-dna.org
+//
 /// \file PhysicsList.cc
 /// \brief Implementation of the PhysicsList class
 
 #include "PhysicsList.hh"
+
 #include "PhysicsListMessenger.hh"
+#include "G4EmParameters.hh"
 
 #include "G4EmDNAPhysics_stationary.hh"
 #include "G4EmDNAPhysics_stationary_option2.hh"
 #include "G4EmDNAPhysics_stationary_option4.hh"
 #include "G4EmDNAPhysics_stationary_option6.hh"
-
-#include "G4UnitsTable.hh"
-#include "G4SystemOfUnits.hh"
+#include "G4EmDNAPhysics.hh"
+#include "G4EmDNAPhysics_option2.hh"
+#include "G4EmDNAPhysics_option4.hh"
+#include "G4EmDNAPhysics_option6.hh"
+#include "G4EmDNAPhysics_option8.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -46,7 +60,9 @@ PhysicsList::PhysicsList()
   SetVerboseLevel(1);
 
   // EM physics
-  fEmPhysicsList = new G4EmDNAPhysics_stationary_option2();
+  fEmName = "dna_stat_opt2";
+  fEmPhysicsList = new G4EmDNAPhysics_option2();
+  G4EmParameters::Instance()->SetDNAStationary(true);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -68,12 +84,10 @@ void PhysicsList::ConstructParticle()
 
 void PhysicsList::ConstructProcess()
 {
-  // transportation
-  //
+  // Transportation
   AddTransportation();
-  
-  // electromagnetic physics list
-  //
+
+  // Electromagnetic physics list
   fEmPhysicsList->ConstructProcess();
 }
 
@@ -81,13 +95,38 @@ void PhysicsList::ConstructProcess()
 
 void PhysicsList::AddPhysicsList(const G4String& name)
 {
-  if (verboseLevel>-1) {
+  if (verboseLevel > 0) {
     G4cout << "PhysicsList::AddPhysicsList: <" << name << ">" << G4endl;
   }
 
   if (name == fEmName) return;
 
-  if (name == "dna_stat") {
+  if (name == "dna_opt0") {
+    fEmName = name;
+    delete fEmPhysicsList;
+    fEmPhysicsList = new G4EmDNAPhysics();
+  }
+  else if (name == "dna_opt2") {
+    fEmName = name;
+    delete fEmPhysicsList;
+    fEmPhysicsList = new G4EmDNAPhysics_option2();
+  }
+  else if (name == "dna_opt4") {
+    fEmName = name;
+    delete fEmPhysicsList;
+    fEmPhysicsList = new G4EmDNAPhysics_option4();
+  }
+  else if (name == "dna_opt6") {
+    fEmName = name;
+    delete fEmPhysicsList;
+    fEmPhysicsList = new G4EmDNAPhysics_option6();
+  }
+  else if (name == "dna_opt8") {
+    fEmName = name;
+    delete fEmPhysicsList;
+    fEmPhysicsList = new G4EmDNAPhysics_option8();
+  }
+  else if (name == "dna_stat") {
     fEmName = name;
     delete fEmPhysicsList;
     fEmPhysicsList = new G4EmDNAPhysics_stationary();
@@ -109,7 +148,7 @@ void PhysicsList::AddPhysicsList(const G4String& name)
   }
   else {
     G4cout << "PhysicsList::AddPhysicsList: <" << name << ">"
-           << " is not defined"
-           << G4endl;
+           << " is not defined" << G4endl;
   }
+  G4EmParameters::Instance()->SetDNAStationary(true);
 }

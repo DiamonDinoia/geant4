@@ -85,6 +85,10 @@
 #include "G4RayTracerX.hh" // no_geant4_module_check
 #endif
 
+#ifdef G4VIS_USE_RAYTRACER_QT
+#include "G4RayTracerQt.hh" // no_geant4_module_check
+#endif
+
 #ifdef G4VIS_USE_QT3D
 #include "G4Qt3D.hh" // no_geant4_module_check
 #endif
@@ -138,16 +142,14 @@
 #include "G4VtkQt.hh" // no_geant4_module_check
 #endif
 
-#if defined (G4VIS_USE_OPENGLQT) || (G4VIS_USE_TOOLSSG_QT_GLES)
-#include <QtGlobal>
-#endif
-
 #include "G4UImanager.hh"
 #include "G4UIsession.hh"
 #include "G4UIbatch.hh"
 
 #include <cstdlib>
 #include <sstream>
+
+#define G4warn G4cout
 
 // The inline keyword prevents the compiler making an external
 // reference even though they cannot actually be inlined since they
@@ -160,31 +162,54 @@
 
 inline
 G4VisExecutive::G4VisExecutive(int argc, char** argv, const G4String& system,
-                               const G4String& verbosityString):
+const G4String& verbosityString):
 G4VisManager(verbosityString),
 fSelected(false)
 {
-  if (!fSelected) SetDefaultsByArgument(system);
-  if (!fSelected) SetDefaultsByEnvironment();
-  if (!fSelected) SetDefaultsByFile(argc, argv);
-  if (!fSelected) SetDefaultsByBatch();
-  if (!fSelected) SetDefaultsByBuildFlags();
+  fUserArgc = argc;
+  fUserArgv = argv;
+  fUserSpecifiedSystem = system;
 }
 
 inline
 G4VisExecutive::G4VisExecutive (const G4String& verbosityString):
-G4VisManager(verbosityString),
-fSelected(false)
+G4VisManager(verbosityString)
+, fUserArgc(0)  // >0 if argc is provided by the user...
+, fUserArgv(nullptr)
+, fSelected(false)
+{}
+
+inline
+const G4String& G4VisExecutive::GetDefaultGraphicsSystemName ()
 {
-  if (!fSelected) SetDefaultsByEnvironment();
-  if (!fSelected) SetDefaultsByBatch();
-  if (!fSelected) SetDefaultsByBuildFlags();
+  if (fSelected) return fDefaultGraphicsSystemName;
+  if (fUserArgc > 0)               SetDefaultsByArgument(fUserSpecifiedSystem);
+  if (!fSelected)                  SetDefaultsByEnvironment();
+  if (!fSelected && fUserArgc > 0) SetDefaultsByFile(fUserArgc, fUserArgv);
+  if (!fSelected) {                SetDefaultsByBatch();
+    if (fSelected) {  // No UI session
+      // Deal with this later - the user may have specified a system
+      // on the command line - see G4VisCommandSceneHandlerCreate.
+      return fDefaultGraphicsSystemName;
+    }
+  }
+  if (!fSelected)                  SetDefaultsByBuildFlags();
+  if (GetVerbosity() >= warnings) {
+    G4warn << "Default graphics system is: " << fDefaultGraphicsSystemName
+    << " (based on " << fDefaultGraphicsSystemBasis << ")."
+    << "\nDefault window size hint is: " << fDefaultXGeometryString
+    << " (based on " << fDefaultXGeometryStringBasis << ")."
+    << "\nNote: Parameters specified on the command line will override these defaults."
+    << "\n      Use \"vis/open\" without parameters to get these defaults."
+    << G4endl;
+  }
+  return fDefaultGraphicsSystemName;
 }
 
 inline
 void G4VisExecutive::SetDefaultsByArgument(const G4String& system)
 {
-  // 1st priority: selection by G4VisExecuitive argument
+  // 1st priority: selection by G4VisExecutive argument
   if (!system.empty()) {
     fDefaultGraphicsSystemName = system;
     fDefaultGraphicsSystemBasis = "G4VisExecuitive argument";
@@ -277,10 +302,10 @@ void G4VisExecutive::SetDefaultsByBatch()
   G4UIsession* session = G4UImanager::GetUIpointer()->GetBaseSession();
   if (session == nullptr                   // Usual case - pure batch
   || dynamic_cast<G4UIbatch*>(session)) {  // From a macro from batch
-    // Choose an offscreen or file-writing system
-    fDefaultGraphicsSystemName = "TSG_OFFSCREEN";
-    fDefaultGraphicsSystemBasis = "batch session";
-    fSelected = true;
+    // Actually, in this case, we wish to force the user to specify a driver
+    fDefaultGraphicsSystemName = "NO_UI_SESSION";
+    fDefaultGraphicsSystemBasis = "no UI session";
+    fSelected = true;  // To prevent any further selection
   }
 }
 
@@ -288,14 +313,14 @@ inline
 void G4VisExecutive::SetDefaultsByBuildFlags()
 {
   // 5th, by cpp flags
-#if defined G4VIS_USE_OPENGLQT || G4VIS_USE_OPENGLXM ||\
+#if defined G4VIS_USE_TOOLSSG_QT_GLES || G4VIS_USE_TOOLSSG_X11_GLES ||\
+            G4VIS_USE_TOOLSSG_XT_GLES || G4VIS_USE_TOOLSSG_WINDOWS_GLES
+  fDefaultGraphicsSystemName = "TSG";
+#elif defined G4VIS_USE_OPENGLQT || G4VIS_USE_OPENGLXM ||\
             G4VIS_USE_OPENGLX  || G4VIS_USE_OPENGLWIN32
   fDefaultGraphicsSystemName = "OGL";
 #elif defined G4VIS_USE_OI || G4VIS_USE_OIX
   fDefaultGraphicsSystemName = "OI";
-#elif defined G4VIS_USE_TOOLSSG_QT_GLES || G4VIS_USE_TOOLSSG_X11_GLES ||\
-              G4VIS_USE_TOOLSSG_XT_GLES || G4VIS_USE_TOOLSSG_WINDOWS_GLES
-  fDefaultGraphicsSystemName = "TSG";
 #elif defined G4VIS_USE_VTK || G4VIS_USE_VTK_QT
   fDefaultGraphicsSystemName = "Vtk";
 #elif defined G4VIS_USE_TOOLSSG_QT_ZB || G4VIS_USE_TOOLSSG_X11_ZB ||\
@@ -311,8 +336,8 @@ void G4VisExecutive::SetDefaultsByBuildFlags()
   fSelected = true;
 }
 
-inline void
-G4VisExecutive::RegisterGraphicsSystems () {
+inline
+void G4VisExecutive::RegisterGraphicsSystems () {
 
  // Graphics Systems not needing external packages or libraries...
   RegisterGraphicsSystem (new G4ASCIITree);
@@ -321,7 +346,6 @@ G4VisExecutive::RegisterGraphicsSystems () {
   RegisterGraphicsSystem (new G4RayTracer);
   RegisterGraphicsSystem (new G4VRML2File);
   RegisterGraphicsSystem (new G4GMocrenFile);
-  RegisterGraphicsSystem (new G4ToolsSGOffscreen);
   G4VGraphicsSystem* tsg_offscreen = new G4ToolsSGOffscreen;
   RegisterGraphicsSystem(tsg_offscreen);
   tsg_offscreen->AddNickname("TSG_FILE");
@@ -331,15 +355,12 @@ G4VisExecutive::RegisterGraphicsSystems () {
 // super-abbreviated names and fallback names where approproiate.
 
 #ifdef G4VIS_USE_OPENGLQT
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
   G4VGraphicsSystem* ogliqt = new G4OpenGLImmediateQt;
   G4VGraphicsSystem* oglsqt = new G4OpenGLStoredQt;
   RegisterGraphicsSystem(ogliqt);
   RegisterGraphicsSystem(oglsqt);
   ogliqt->AddNickname("OGLI");
-  oglsqt->AddNickname("OGL");
   oglsqt->AddNickname("OGLS");
-#endif
 #endif
 
 #ifdef G4VIS_USE_OPENGLXM
@@ -352,7 +373,6 @@ G4VisExecutive::RegisterGraphicsSystems () {
   oglsxm->AddNickname("OGLSQt_FALLBACK");
 #  else
   oglixm->AddNickname("OGLI");
-  oglsxm->AddNickname("OGL");
   oglsxm->AddNickname("OGLS");
 #  endif
 #endif
@@ -373,7 +393,6 @@ G4VisExecutive::RegisterGraphicsSystems () {
 #  if defined(G4VIS_USE_OPENGLQT) || (G4VIS_USE_OPENGLXM)
 #  else
   oglix->AddNickname("OGLI");
-  oglsx->AddNickname("OGL");
   oglsx->AddNickname("OGLS");
 #  endif
 #endif
@@ -388,7 +407,6 @@ G4VisExecutive::RegisterGraphicsSystems () {
   oglswin32->AddNickname("OGLSQt_FALLBACK");
 #  else
   ogliwin32->AddNickname("OGLI");
-  oglswin32->AddNickname("OGL");
   oglswin32->AddNickname("OGLS");
 #  endif
 #endif
@@ -417,6 +435,10 @@ G4VisExecutive::RegisterGraphicsSystems () {
 
 #ifdef G4VIS_USE_RAYTRACERX
   RegisterGraphicsSystem(new G4RayTracerX);
+#endif
+
+#ifdef G4VIS_USE_RAYTRACER_QT
+  RegisterGraphicsSystem(new G4RayTracerQt);
 #endif
 
 #ifdef G4VIS_USE_QT3D
@@ -482,30 +504,31 @@ G4VisExecutive::RegisterGraphicsSystems () {
 
 #ifdef G4VIS_USE_TOOLSSG_QT_GLES
   tsg_qt_gles->AddNickname("TSG");
-#  if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
-  if (fVerbosity >= startup) {
-    G4cout << "  Qt6: Asking ToolsSG to stand in for OpenGL" << G4endl;
-    tsg_qt_gles->AddNickname("OGL");
-  }
-#  endif
+  tsg_qt_gles->AddNickname("OGL");
 #elif defined(G4VIS_USE_TOOLSSG_XT_GLES)
   tsg_xt_gles->AddNickname("TSG");
+  tsg_xt_gles->AddNickname("OGL");
 #elif defined(G4VIS_USE_TOOLSSG_X11_GLES)
   tsg_x11_gles->AddNickname("TSG");
+  tsg_x11_gles->AddNickname("OGL");
 #elif defined(G4VIS_USE_TOOLSSG_WINDOWS_GLES)
   tsg_windows_gles->AddNickname("TSG");
+  tsg_windows_gles->AddNickname("OGL");
 #else
 #ifdef G4VIS_USE_TOOLSSG_QT_ZB
   tsg_qt_zb->AddNickname("TSG");
+  tsg_qt_zb->AddNickname("OGL");
 #elif G4VIS_USE_TOOLSSG_WINDOWS_ZB
   tsg_windows_zb->AddNickname("TSG");
+  tsg_windows_zb->AddNickname("OGL");
 #else
   tsg_offscreen->AddNickname("TSG");
+  tsg_offscreen->AddNickname("OGL");
 #endif
 #endif
 
 #ifdef G4VIS_USE_VTK
-  if (fVerbosity >= startup) {
+  if (GetVerbosity() >= startup) {
     G4cout
     << "  VTK: OpenGL-based drivers suppressed because of compatibility issues."
     << G4endl;

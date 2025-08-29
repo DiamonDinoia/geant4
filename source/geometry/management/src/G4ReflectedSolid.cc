@@ -377,6 +377,25 @@ G4ThreeVector G4ReflectedSolid::GetPointOnSurface() const
   return (*fDirectTransform3D)*G4Point3D(p);
 }
 
+//////////////////////////////////////////////////////////////
+//
+// Return the number of constituents used for construction
+// of the solid
+
+G4int G4ReflectedSolid::GetNumOfConstituents() const
+{
+  return fPtrSolid->GetNumOfConstituents();
+}
+
+//////////////////////////////////////////////////////////////
+//
+// Return true if the reflected solid has only planar faces
+
+G4bool G4ReflectedSolid::IsFaceted() const
+{
+  return fPtrSolid->IsFaceted();
+}
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Make a clone of this object
@@ -385,7 +404,6 @@ G4VSolid* G4ReflectedSolid::Clone() const
 {
   return new G4ReflectedSolid(*this);
 }
-
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -436,16 +454,13 @@ G4ReflectedSolid::CreatePolyhedron () const
     polyhedron->Transform(*fDirectTransform3D);
     return polyhedron;
   }
-  else
-  {
-    std::ostringstream message;
-    message << "Solid - " << GetName()
-            << " - original solid has no" << G4endl
-            << "corresponding polyhedron. Returning NULL!";
-    G4Exception("G4ReflectedSolid::CreatePolyhedron()",
-                "GeomMgt1001", JustWarning, message);
-    return nullptr;
-  }
+  std::ostringstream message;
+  message << "Solid - " << GetName()
+          << " - original solid has no" << G4endl
+          << "corresponding polyhedron. Returning NULL!";
+  G4Exception("G4ReflectedSolid::CreatePolyhedron()",
+              "GeomMgt1001", JustWarning, message);
+  return nullptr;
 }
 
 /////////////////////////////////////////////////////////

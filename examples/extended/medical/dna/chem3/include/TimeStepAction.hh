@@ -38,36 +38,38 @@
 #define ITACTION_H
 
 #include "G4UserTimeStepAction.hh"
+class G4MolecularConfiguration;
 
 class TimeStepAction : public G4UserTimeStepAction
 {
-public:
-  TimeStepAction();
-  virtual ~TimeStepAction();
-  TimeStepAction(const TimeStepAction& other);
-  TimeStepAction& operator=(const TimeStepAction& other);
+  public:
+    TimeStepAction();
+    ~TimeStepAction() override = default;
+    TimeStepAction(const TimeStepAction& other) = delete;
+    TimeStepAction& operator=(const TimeStepAction& other) = delete;
 
-  virtual void StartProcessing(){;}
+    void StartProcessing() override { ; }
 
-  /** In this method, the user can use :
-   * G4ITTimeStepper::Instance()->GetGlobalTime(),
-   *    to know the current simulation time
-   * G4ITTimeStepper::Instance()->GetTimeStep(),
-   *    to know the selected minimum time
-   * WARNING :
-   *    The call of this method happens before the call of DoIT methods
-   */
-  virtual void UserPreTimeStepAction(){;}
-  virtual void UserPostTimeStepAction();
+    static void PrintSpecieInfo(G4MolecularConfiguration* molconf);
 
-  /**
-   * Inform about a reaction
-   */
-  virtual void UserReactionAction(const G4Track& /*trackA*/,
-                                  const G4Track& /*trackB*/,
-                                  const std::vector<G4Track*>* /*products*/);
+    /** In this method, the user can use :
+     * G4ITTimeStepper::Instance()->GetGlobalTime(),
+     *    to know the current simulation time
+     * G4ITTimeStepper::Instance()->GetTimeStep(),
+     *    to know the selected minimum time
+     * WARNING :
+     *    The call of this method happens before the call of DoIT methods
+     */
+    void UserPreTimeStepAction() override { ; }
+    void UserPostTimeStepAction() override;
 
-  virtual void EndProcessing(){;}
+    /**
+     * Inform about a reaction
+     */
+    void UserReactionAction(const G4Track& /*trackA*/, const G4Track& /*trackB*/,
+                                    const std::vector<G4Track*>* /*products*/) override;
+
+    void EndProcessing() override { ; }
 };
 
-#endif // ITACTION_H
+#endif  // ITACTION_H

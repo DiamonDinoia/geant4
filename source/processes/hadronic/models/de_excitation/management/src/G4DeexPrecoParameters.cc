@@ -58,16 +58,49 @@ void G4DeexPrecoParameters::SetDefaults()
 
 void G4DeexPrecoParameters::Initialise()
 {
+  // common parameters
+  fVerbose = 1;
   fLevelDensity = 0.075/CLHEP::MeV;
   fR0 = 1.5*CLHEP::fermi;
   fTransitionsR0 = 0.6*CLHEP::fermi;
-  fFBUEnergyLimit = 20.0*CLHEP::MeV; 
-  fFermiEnergy = 35.0*CLHEP::MeV; 
+
+  // preco parameters
   fPrecoLowEnergy = 0.1*CLHEP::MeV;
   fPrecoHighEnergy = 30*CLHEP::MeV;
+  fPhenoFactor = 1.0;
+
+  fPrecoType = 1;
+  fMinZForPreco = 3;
+  fMinAForPreco = 5;
+
+  fNeverGoBack = false;
+  fUseSoftCutoff = false;
+  fUseCEM = true;
+  fUseGNASH = false;
+  fUseHETC = false;
+  fUseAngularGen = true;
+  fPrecoDummy = false;
+
+  // de-exitation parameters 
   fMinExcitation = 10*CLHEP::eV;
+  fNuclearLevelWidth = 0.2*CLHEP::MeV;
+  fFBUEnergyLimit = 20.0*CLHEP::MeV; 
+  fFermiEnergy = 35.0*CLHEP::MeV; 
   fMaxLifeTime = 1*CLHEP::nanosecond;
   fMinExPerNucleounForMF = 200*CLHEP::GeV;
+
+  fDeexChannelType = fCombined;
+  fPreCompoundType = eDefault;
+  fFermiBreakUpType = bModelVI;
+  fDeexType = 3;
+  fTwoJMAX = 10;
+
+  fCorrelatedGamma = false;
+  fStoreAllLevels = true;
+  fInternalConversion = true;
+  fLD = true;  // use simple level density model 
+  fFD = false; // use transition to discrete level 
+  fIsomerFlag = true; // enable isomere production
 }
 
 void G4DeexPrecoParameters::SetLevelDensity(G4double val)
@@ -122,6 +155,12 @@ void G4DeexPrecoParameters::SetMinExcitation(G4double val)
 {
   if(IsLocked() || val < 0.0) { return; }
   fMinExcitation = val;
+}
+
+void G4DeexPrecoParameters::SetNuclearLevelWidth(G4double val)
+{
+  if(IsLocked() || val < 0.0) { return; }
+  fNuclearLevelWidth = val;
 }
 
 void G4DeexPrecoParameters::SetMaxLifeTime(G4double val)
@@ -262,16 +301,31 @@ void G4DeexPrecoParameters::SetDeexChannelsType(G4DeexChannelType val)
   fDeexChannelType = val;
 }
 
+void G4DeexPrecoParameters::SetPreCompoundType(G4PreCompoundType val)
+{
+  if(IsLocked()) { return; }
+  fPreCompoundType = val;
+}
+
+void G4DeexPrecoParameters::SetFermiBreakUpType(G4FermiBreakUpType val)
+{
+  if(IsLocked()) { return; }
+  fFermiBreakUpType = val;
+}
+
 std::ostream& G4DeexPrecoParameters::StreamInfo(std::ostream& os) const
 {
   static const G4String namm[5] = {"Evaporation","GEM","Evaporation+GEM","GEMVI","Dummy"};
-  static const G4int nmm[5] = {8, 68, 68, 31, 0};
+  static const G4int nmm[5] = {8, 68, 68, 83, 0};
+  static const G4String nfbu[3] = {"ModelVI", "ModelAN", "Dummy"};
   G4int idx = fDeexChannelType;
+  G4int jdx = fFermiBreakUpType;
 
   G4long prec = os.precision(5);
   os << "=======================================================================" << "\n";
   os << "======       Geant4 Native Pre-compound Model Parameters       ========" << "\n";
   os << "=======================================================================" << "\n";
+  os << "Type of pre-compound model                          " << fPreCompoundType << "\n";
   os << "Type of pre-compound inverse x-section              " << fPrecoType << "\n";
   os << "Pre-compound model active                           " << (!fPrecoDummy) << "\n";
   os << "Pre-compound excitation low energy                  " 
@@ -290,6 +344,7 @@ std::ostream& G4DeexPrecoParameters::StreamInfo(std::ostream& os) const
   os << "Type of de-excitation inverse x-section             " << fDeexType << "\n";
   os << "Type of de-excitation factory                       " << namm[idx] << "\n";
   os << "Number of de-excitation channels                    " << nmm[idx] << "\n";
+  os << "Type of Fermi BreakUp model                         " << nfbu[jdx] << "\n";
   os << "Min excitation energy                               " 
      << G4BestUnit(fMinExcitation, "Energy") << "\n";
   os << "Min energy per nucleon for multifragmentation       " 

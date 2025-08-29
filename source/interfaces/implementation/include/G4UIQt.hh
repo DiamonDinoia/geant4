@@ -44,6 +44,7 @@ class QLineEdit;
 class G4UIsession;
 class QListWidget;
 class QTreeWidgetItem;
+class QSlider;
 class QTextEdit;
 class QTextBrowser;
 class QLabel;
@@ -79,6 +80,7 @@ class QToolButton;
 //
 // Class description - end :
 
+#if QT_VERSION < 0x060000
 class G4QTabWidget : public QTabWidget
 {
  public:
@@ -99,11 +101,12 @@ class G4QTabWidget : public QTabWidget
   }
   inline QSize sizeHint() const override { return QSize(fPreferedSizeX, fPreferedSizeY); }
 };
+#endif
 
 class G4UIOutputString
 {
  public:
-  G4UIOutputString(QString text, G4String thread = "", G4String outputstream = "info");
+  G4UIOutputString(const QString& text, const G4String& thread = "", const G4String& outputstream = "info");
   inline QString GetOutputList() { return " all info warning error "; };
   QString fText;
   G4String fThread;
@@ -113,7 +116,7 @@ class G4UIOutputString
 class G4UIDockWidget : public QDockWidget
 {
  public:
-  G4UIDockWidget(QString txt);
+  G4UIDockWidget(const QString& txt);
   void closeEvent(QCloseEvent*) override;
 };
 
@@ -242,7 +245,7 @@ class G4UIQt : public QObject, public G4VBasicShell, public G4VInteractiveSessio
 
 public:
   ~G4UIQt() override;
-  void Prompt(G4String);
+  void Prompt(const G4String&);
   void SessionTerminate();
   void PauseSessionStart(const G4String&) override;
   G4int ReceiveG4debug(const G4String&) override;
@@ -250,8 +253,8 @@ public:
   G4int ReceiveG4cerr(const G4String&) override;
   //   G4String GetCommand(Widget);
 
- private:
-  void SecondaryLoop(G4String);  // a VIRER
+private:
+  void SecondaryLoop(const G4String&);  // a VIRER
   void CreateHelpWidget();
   void InitHelpTreeAndVisParametersWidget();
   void FillHelpTree();
@@ -277,6 +280,9 @@ public:
   void SceneTreeItemDoubleClicked(QTreeWidgetItem*);
   void SceneTreeItemExpanded(QTreeWidgetItem*);
   void SceneTreeItemCollapsed(QTreeWidgetItem*);
+  void SliderValueChanged(G4int value);
+  void SliderReleased();
+  void SliderRadioButtonClicked(G4int buttonNo);
   // Class for trapping special mouse events on new scene tree
   struct NewSceneTreeItemTreeWidget: public QTreeWidget {
     void mousePressEvent(QMouseEvent*) override;
@@ -300,12 +306,13 @@ public:
 #endif
   QWidget* CreateVisParametersTBWidget();
   QWidget* CreateHelpTBWidget();
+  QWidget* CreateTimeWindowWidget();
   G4UIDockWidget* CreateCoutTBWidget();
   QWidget* CreateHistoryTBWidget();
   G4UIDockWidget* CreateUITabWidget();
   void CreateViewerWidget();
   void OpenHelpTreeOnCommand(const QString&);
-  QString GetShortCommandPath(QString);
+  QString GetShortCommandPath(QString&);
   QString GetLongCommandPath(QTreeWidgetItem*);
   G4bool IsGUICommand(const G4UIcommand*);
   G4bool CreateVisCommandGroupAndToolBox(G4UIcommand*, QWidget*, G4int, G4bool isDialog);
@@ -319,7 +326,7 @@ public:
   QString FilterOutput(const G4UIOutputString&, const QString&, const QString&);
   G4String GetThreadPrefix();
   G4bool CheckG4EnvironmentVariable(char* txt, char* version);
-  QStandardItemModel* CreateCompleterModel(G4String aCmd);
+  QStandardItemModel* CreateCompleterModel(const G4String& aCmd);
   void CreateEmptyViewerPropertiesWidget();
   void CreateEmptyPickInfosWidget();
 
@@ -337,16 +344,23 @@ public:
   QListWidget* fHistoryTBTableList;
   QTreeWidget* fHelpTreeWidget;
   QWidget* fHelpTBWidget;
+  QWidget* fTimeWindowWidget;
   QWidget* fHistoryTBWidget;
   G4UIDockWidget* fCoutDockWidget;
   G4UIDockWidget* fUIDockWidget;
   QWidget* fSceneTreeWidget;
   QWidget* fNewSceneTreeWidget;
   NewSceneTreeItemTreeWidget* fNewSceneTreeItemTreeWidget;
+  G4int fMaxPVDepth;
+  QSlider* fNewSceneTreeSlider;
   QWidget* fViewerPropertiesWidget;
   QWidget* fPickInfosWidget;
   QLineEdit* fHelpLine;
+#if QT_VERSION < 0x060000
   G4QTabWidget* fViewerTabWidget;
+#else
+  QTabWidget* fViewerTabWidget;
+#endif
   QString fCoutText;
   QTextBrowser* fStartPage;
   QSplitter* fHelpVSplitter;

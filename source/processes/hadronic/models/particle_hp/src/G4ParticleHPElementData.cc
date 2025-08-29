@@ -60,7 +60,8 @@ void G4ParticleHPElementData::Init(G4Element* theElement,
 {
   auto nIso = (G4int)theElement->GetNumberOfIsotopes();
   auto Z = theElement->GetZasInt();
-  theIsotopeWiseData = new G4ParticleHPIsoData[nIso];
+  const std::size_t dsize = nIso > 0 ? nIso : 1;
+  theIsotopeWiseData = new G4ParticleHPIsoData[dsize];
 
   for (G4int i1 = 0; i1 < nIso; ++i1) {
     G4int A = theElement->GetIsotope(i1)->GetN();
@@ -68,11 +69,11 @@ void G4ParticleHPElementData::Init(G4Element* theElement,
     G4double frac = theElement->GetRelativeAbundanceVector()[i1] / CLHEP::perCent;
     UpdateData(A, Z, M, i1, frac, projectile, dataDirVariable);
   }
-  theElasticData->ThinOut(precision);
-  if (projectile == G4Neutron::Neutron()) theInelasticData->ThinOut(precision);
+  //theElasticData->ThinOut(precision);
+  //if (projectile == G4Neutron::Neutron()) theInelasticData->ThinOut(precision);
 
-  theCaptureData->ThinOut(precision);
-  theFissionData->ThinOut(precision);
+  //theCaptureData->ThinOut(precision);
+  //theFissionData->ThinOut(precision);
 }
 
 void G4ParticleHPElementData::UpdateData(G4int A, G4int Z, G4int M, G4int index,

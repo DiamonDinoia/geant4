@@ -25,21 +25,29 @@
 //
 
 #ifndef ChemOxygenWaterBuilder_hh
-#define ChemOxygenWaterBuilder_hh
+#  define ChemOxygenWaterBuilder_hh 1
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+#  include "G4VUserChemistryList.hh"
+#include "G4ChemTimeStepModel.hh"
 
 class G4DNAMolecularReactionTable;
+class G4DNAMolecularReactionData;
 
-class ChemOxygenWaterBuilder {
-public:
-  ChemOxygenWaterBuilder() = default;
+class ChemOxygenWaterBuilder
+{
+  public:
+    ChemOxygenWaterBuilder() = default;
 
-  ~ChemOxygenWaterBuilder() = default;
+    ~ChemOxygenWaterBuilder() = default;
 
-  static void SecondOrderReactionExtended(
-      G4DNAMolecularReactionTable *pReactionTable);
+    static void SecondOrderReactionExtended(G4DNAMolecularReactionTable* pReactionTable);
 
-  static void OxygenScavengerReaction(G4DNAMolecularReactionTable
-                                      *pReactionTable);
+    static void OxygenScavengerReaction(G4DNAMolecularReactionTable* pReactionTable);
+
+    static void CO2ScavengerReaction(G4DNAMolecularReactionTable* pReactionTable);
+
+    static void SetReactionType(G4DNAMolecularReactionData* pData, G4ChemTimeStepModel model);
 };
 
-#endif //
+#endif  //
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....

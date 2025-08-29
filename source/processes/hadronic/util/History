@@ -7,6 +7,52 @@ It must **not** be used as a substitute for writing good git commit messages!
 
 -------------------------------------------------------------------------------
 
+## 2025-05-20 Ben Morgan (hadr-util-V11-03-04)
+- G4HadronicParameters: Implement pretty-print to ostream to allow users to check
+  values at runtime, ala G4EmParameters (request from ATLAS).
+
+## 2025-04-22 Alberto Ribon (hadr-util-V11-03-03)
+- G4HadronicDeveloperParameters : introduced Getter/Setter for selecting the
+  Bertini model behavior as Geant4 version 11.3 (default) or 11.2.
+
+## 2025-03-31 Vladimir Ivanchenko (hadr-util-V11-03-02)
+- G4Nucleus - added move operator suggested by Coverity, make copy constructor and
+    assignment operator default.
+
+## 2025-03-05 Vladimir Ivanchenko (hadr-util-V11-03-01)
+- G4HadronicDeveloperParameters - added limitation of warning printout on
+    change of parameters (NA64 request).
+
+## 2025-01-09 Vladimir Ivanchenko (hadr-util-V11-03-00)
+- G4Fragment - added protection against precision loss in computation of a boost
+    vector at rest
+
+## 2024-10-29 Vladimir Ivanchenko (hadr-util-V11-02-05)
+- G4LegendrePolynomial - optimized implementation by Isaac Kunen GitHub PR #70
+
+## 2024-09-09 Vladimir Ivanchenko (hadr-util-V11-02-04)
+- G4IsotopeList - added table with low-energy threshold energies per atomic number.
+- G4NucleaRadii - added two static function to describe threshold shape by the
+    old parameterisations derived from GHEISHA.
+
+## 2024-08-21 Gabriele Cosmo (hadr-util-V11-02-03)
+- Fixed reported Coverity defects for use of std::move() and const G4String&;
+  in G4HadronicDeveloperParameters use const G4String& and const_iterator.
+
+## 2024-08-02 Alberto Ribon (hadr-util-V11-02-02)
+- G4HadronicParameters : introduced Getter/Setter for selecting the PT table
+  type (a choice between  "calendf"  and  "njoy" ) for the URR treatment of
+  low-energy neutrons.
+  ( Note that this choice must be done at initialization time, therefore it
+    cannot be made via UI command in ParticleHP. )
+
+## 2024-06-06 Vladimir Ivanchenko (hadr-util-V11-02-01)
+- G4HadronicParameters: introduced Getter/Setter of flag of the NUDEX gamma
+  de-excitation module. 
+
+## 2024-02-22 Vladimir Ivanchenko (hadr-util-V11-02-00)
+- G4IsotopeList header with static data is moved into this directory
+
 ## 2023-11-30 Jean-Christophe David (hadr-util-V11-01-08)
 - G4HadronicParameters: added Get/SetMin/MaxEnergyINCLXX_Pbar() getters and
   setters of recommended energy limits in physics lists for the

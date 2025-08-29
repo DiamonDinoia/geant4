@@ -33,15 +33,22 @@
 
 #include "G4VUserParallelWorld.hh"
 
-class GB06ParallelWorldForSlices : public G4VUserParallelWorld {
-public:
-  GB06ParallelWorldForSlices(G4String worldName);
-  ~GB06ParallelWorldForSlices();
-  
-private:
-  virtual void Construct();
-  virtual void ConstructSD();
-  
+class G4LogicalVolume;
+class G4PVReplica;
+
+class GB06ParallelWorldForSlices : public G4VUserParallelWorld
+{
+  public:
+    GB06ParallelWorldForSlices(G4String worldName, G4bool bf);
+    ~GB06ParallelWorldForSlices() override;
+
+  private:
+    void Construct() override;
+    void ConstructSD() override;
+
+    G4LogicalVolume* sliceLogical = nullptr;
+    G4PVReplica* slicePhysical = nullptr;
+    G4bool fBiasingFlag;
 };
 
 #endif

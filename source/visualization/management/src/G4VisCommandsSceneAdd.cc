@@ -448,7 +448,7 @@ void G4VisCommandSceneAddDate::SetNewValue (G4UIcommand*, G4String newValue)
   model->SetGlobalTag("Date");
   model->SetGlobalDescription("Date: " + newValue);
   const G4String& currentSceneName = pScene -> GetName ();
-  G4bool successful = pScene -> AddRunDurationModel (model, warn);
+  G4bool successful = pScene -> AddEndOfEventModel(model, warn);
   if (successful) {
     if (verbosity >= G4VisManager::confirmations) {
       G4cout << "Date has been added to scene \""
@@ -623,6 +623,65 @@ void G4VisCommandSceneAddElectricField::SetNewValue
   CheckSceneAndNotifyHandlers (pScene);
 }
 
+////////////// /vis/scene/add/endOfRunMacro ///////////////////////////////////////
+
+G4VisCommandSceneAddEndOfRunMacro::G4VisCommandSceneAddEndOfRunMacro () {
+  G4bool omitable;
+  fpCommand = new G4UIcmdWithAString ("/vis/scene/add/endOfRunMacro", this);
+  fpCommand -> SetGuidance ("Macro is executed at end of run and when rebuild required.");
+  fpCommand -> SetGuidance
+  ("WARNING: some vis commands in the macro cause recursion."
+   "\n  Stick to simple commmands, e.g., which invoke vis manager Draw() methods.");
+  fpCommand -> SetParameterName ("macro", omitable = false);
+}
+
+G4VisCommandSceneAddEndOfRunMacro::~G4VisCommandSceneAddEndOfRunMacro () {
+  delete fpCommand;
+}
+
+G4String G4VisCommandSceneAddEndOfRunMacro::GetCurrentValue (G4UIcommand*) {
+  return "";
+}
+
+void G4VisCommandSceneAddEndOfRunMacro::SetNewValue (G4UIcommand*, G4String newValue)
+{
+  G4VisManager::Verbosity verbosity = fpVisManager->GetVerbosity();
+  G4bool warn(verbosity >= G4VisManager::warnings);
+
+  G4Scene* pScene = fpVisManager->GetCurrentScene();
+  if (!pScene) {
+    if (verbosity >= G4VisManager::errors) {
+      G4warn <<  "ERROR: No current scene.  Please create one." << G4endl;
+    }
+    return;
+  }
+
+  auto endOfRunMacro = new EndOfRunMacro(newValue);
+  G4VModel* model =
+  new G4CallbackModel<G4VisCommandSceneAddEndOfRunMacro::EndOfRunMacro>(endOfRunMacro);
+  model->SetType("EndOfRunMacro");
+  model->SetGlobalTag("EndOfRunMacro");
+  model->SetGlobalDescription("EndOfRunMacro: " + newValue);
+  const G4String& currentSceneName = pScene -> GetName ();
+  G4bool successful = pScene -> AddEndOfRunModel(model, warn);
+  if (successful) {
+    if (verbosity >= G4VisManager::confirmations) {
+      G4cout << "EndOfRunMacro has been added to scene \""
+      << currentSceneName << "\"."
+      << G4endl;
+    }
+  }
+  else G4VisCommandsSceneAddUnsuccessful(verbosity);
+
+  CheckSceneAndNotifyHandlers (pScene);
+}
+
+void G4VisCommandSceneAddEndOfRunMacro::EndOfRunMacro::operator()
+(G4VGraphicsScene&, const G4ModelingParameters*)
+{
+  G4UImanager::GetUIpointer()->ApplyCommand("/control/execute " + fMacro);
+}
+
 ////////////// /vis/scene/add/eventID ///////////////////////////////////////
 
 G4VisCommandSceneAddEventID::G4VisCommandSceneAddEventID () {
@@ -745,8 +804,7 @@ void G4VisCommandSceneAddEventID::EventID::operator()
       // Only use if NOT reviewing kept events
       if (fpVisManager->GetReviewingKeptEvents()) return;
       const G4int nEvents = currentRun->GetNumberOfEventToBeProcessed();
-      const auto* events = currentRun->GetEventVector();
-      size_t nKeptEvents = events? events->size(): 0;
+      size_t nKeptEvents = (size_t)(currentRun->GetNumberOfKeptEvents());
       oss << "Run " << currentRunID << " (" << nEvents << " event";
       if (nEvents != 1) oss << 's';
       oss << ", " << nKeptEvents << " kept)";
@@ -1883,7 +1941,11 @@ G4VisCommandSceneAddLogo::G4Logo::G4Logo
   G4Tubs tG("tG",ri,ro,d2,0.15*pi,1.85*pi);
   G4Box bG("bG",w2,ro2,d2);
   G4UnionSolid logoG("logoG",&tG,&bG,G4Translate3D(ri+w2,-ro2,0.));
+  // Create with these vis atts (force solid) and current no of sides per circle.
+  G4Polyhedron::SetNumberOfRotationSteps
+  (fpVisManager->GetCurrentViewer()->GetViewParameters().GetNoOfSides());
   fpG = logoG.CreatePolyhedron();
+  G4Polyhedron::ResetNumberOfRotationSteps ();
   fpG->SetVisAttributes(visAtts);
   fpG->Transform(G4Translate3D(-0.55*h,0.,0.));
   fpG->Transform(transform);
@@ -2643,8 +2705,8 @@ void G4VisCommandSceneAddText::SetNewValue (G4UIcommand*, G4String newValue) {
   G4bool successful = pScene -> AddRunDurationModel (model, warn);
   if (successful) {
     if (verbosity >= G4VisManager::confirmations) {
-      G4cout << "Text \"" << text
-	     << "\" has been added to scene \"" << currentSceneName << "\"."
+      G4cout << "Text '" << text
+	     << "' has been added to scene \"" << currentSceneName << "\"."
 	     << G4endl;
     }
   }
@@ -2731,8 +2793,8 @@ void G4VisCommandSceneAddText2D::SetNewValue (G4UIcommand*, G4String newValue) {
   model->SetType("Text2D");
   model->SetGlobalTag("Text2D");
   std::ostringstream oss;
-  oss << "Text2D: \"" << g4text.GetText()
-  << "\" at " << g4text.GetPosition().x() << ',' << g4text.GetPosition().y()
+  oss << "Text2D: '" << g4text.GetText()
+  << "' at " << g4text.GetPosition().x() << ',' << g4text.GetPosition().y()
   << " with size " << g4text.GetScreenSize()
   << " with offsets " << g4text.GetXOffset() << ',' << g4text.GetYOffset();
   model->SetGlobalDescription(oss.str());
@@ -2740,8 +2802,8 @@ void G4VisCommandSceneAddText2D::SetNewValue (G4UIcommand*, G4String newValue) {
   G4bool successful = pScene -> AddRunDurationModel (model, warn);
   if (successful) {
     if (verbosity >= G4VisManager::confirmations) {
-      G4cout << "2D text \"" << text
-	     << "\" has been added to scene \"" << currentSceneName << "\"."
+      G4cout << "2D text '" << text
+	     << "' has been added to scene \"" << currentSceneName << "\"."
 	     << G4endl;
     }
   }
@@ -2939,9 +3001,9 @@ void G4VisCommandSceneAddUserAction::SetNewValue
 
   const std::vector<G4VisManager::UserVisAction>& runDurationUserVisActions =
     fpVisManager->GetRunDurationUserVisActions();
-  for (size_t i = 0; i < runDurationUserVisActions.size(); i++) {
-    const G4String& name = runDurationUserVisActions[i].fName;
-    G4VUserVisAction* visAction = runDurationUserVisActions[i].fpUserVisAction;
+  for (const auto& runDurationUserVisAction : runDurationUserVisActions) {
+    const G4String& name = runDurationUserVisAction.fName;
+    G4VUserVisAction* visAction = runDurationUserVisAction.fpUserVisAction;
     if (newValue == "all" || name.find(newValue) != std::string::npos) {
       any = true;
       AddVisAction(name,visAction,pScene,runDuration,verbosity);
@@ -2950,9 +3012,9 @@ void G4VisCommandSceneAddUserAction::SetNewValue
 
   const std::vector<G4VisManager::UserVisAction>& endOfEventUserVisActions =
     fpVisManager->GetEndOfEventUserVisActions();
-  for (size_t i = 0; i < endOfEventUserVisActions.size(); i++) {
-    const G4String& name = endOfEventUserVisActions[i].fName;
-    G4VUserVisAction* visAction = endOfEventUserVisActions[i].fpUserVisAction;
+  for (const auto& endOfEventUserVisAction : endOfEventUserVisActions) {
+    const G4String& name = endOfEventUserVisAction.fName;
+    G4VUserVisAction* visAction = endOfEventUserVisAction.fpUserVisAction;
     if (newValue == "all" || name.find(newValue) != std::string::npos) {
       any = true;
       AddVisAction(name,visAction,pScene,endOfEvent,verbosity);
@@ -2961,9 +3023,9 @@ void G4VisCommandSceneAddUserAction::SetNewValue
 
   const std::vector<G4VisManager::UserVisAction>& endOfRunUserVisActions =
     fpVisManager->GetEndOfRunUserVisActions();
-  for (size_t i = 0; i < endOfRunUserVisActions.size(); i++) {
-    const G4String& name = endOfRunUserVisActions[i].fName;
-    G4VUserVisAction* visAction = endOfRunUserVisActions[i].fpUserVisAction;
+  for (const auto& endOfRunUserVisAction : endOfRunUserVisActions) {
+    const G4String& name = endOfRunUserVisAction.fName;
+    G4VUserVisAction* visAction = endOfRunUserVisAction.fpUserVisAction;
     if (newValue == "all" || name.find(newValue) != std::string::npos) {
       any = true;
       AddVisAction(name,visAction,pScene,endOfRun,verbosity);

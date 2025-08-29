@@ -29,7 +29,7 @@
 //
 // Wrapper class for G4Trd to make use of VecGeom Trd.
 
-// 13.09.13 G.Cosmo, CERN/PH
+// 13.09.13 G.Cosmo, CERN
 // --------------------------------------------------------------------
 #ifndef G4UTRD_HH
 #define G4UTRD_HH
@@ -47,7 +47,7 @@ class G4UTrd : public G4UAdapter<vecgeom::GenericUnplacedTrd>
   using Shape_t = vecgeom::GenericUnplacedTrd;
   using Base_t  = G4UAdapter<vecgeom::GenericUnplacedTrd>;
 
-  public:  // with description
+  public:
 
     G4UTrd(const G4String& pName,
                  G4double pdx1, G4double pdx2,
@@ -80,6 +80,8 @@ class G4UTrd : public G4UAdapter<vecgeom::GenericUnplacedTrd>
 
     inline G4GeometryType GetEntityType() const override;
 
+    inline G4bool IsFaceted() const override;
+
     void BoundingLimits(G4ThreeVector& pMin, G4ThreeVector& pMax) const override;
 
     G4bool CalculateExtent(const EAxis pAxis,
@@ -88,13 +90,6 @@ class G4UTrd : public G4UAdapter<vecgeom::GenericUnplacedTrd>
                            G4double& pMin, G4double& pMax) const override;
 
     G4Polyhedron* CreatePolyhedron() const override;
-
-  public:  // without description
-
-    G4UTrd(__void__&);
-      // Fake default constructor for usage restricted to direct object
-      // persistency for clients requiring preallocation of memory for
-      // persistifiable objects.
 
     G4UTrd(const G4UTrd& rhs);
     G4UTrd& operator=(const G4UTrd& rhs); 
@@ -108,6 +103,11 @@ class G4UTrd : public G4UAdapter<vecgeom::GenericUnplacedTrd>
 inline G4GeometryType G4UTrd::GetEntityType() const
 {
   return "G4Trd";
+}
+
+inline G4bool G4UTrd::IsFaceted() const
+{
+  return true;
 }
 
 #endif  // G4GEOM_USE_USOLIDS

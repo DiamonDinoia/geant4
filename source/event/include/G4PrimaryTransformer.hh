@@ -40,6 +40,7 @@
 #include "G4ParticleTable.hh"
 #include "G4PrimaryParticle.hh"
 #include "G4DynamicParticle.hh"
+#include "G4ExceptionSeverity.hh"
 
 class G4Event;
 class G4PrimaryVertex;
@@ -57,14 +58,18 @@ class G4PrimaryTransformer
     inline void SetVerboseLevel(G4int vl)
       { verboseLevel = vl; }
 
-    void SetUnknnownParticleDefined(G4bool vl);
-      // By invoking this method, the user can alter the treatment of unknown
-      // particles. The ideal place to invoke this method is in the
-      // BeginOfRunAction().
+    void SetUnknownParticleDefined(G4bool vl);
+    void SetChargedUnknownParticleDefined(G4bool vl);
+      // By invoking these methods, the user can alter the treatment of,
+      // respectively, 'unknown' and 'chargedunknown' particles.
+      // The ideal place to invoke these methods is in the BeginOfRunAction().
 
     inline G4bool GetUnknownParticleDefined() const
       { return unknownParticleDefined; }
 
+    inline G4bool GetChargedUnknownParticleDefined() const
+      { return chargedUnknownParticleDefined; }
+  
   protected:
 
     void GenerateTracks(G4PrimaryVertex* primaryVertex);
@@ -95,12 +100,21 @@ class G4PrimaryTransformer
     G4ParticleTable* particleTable = nullptr;
 
     G4ParticleDefinition* unknown = nullptr;
+    G4ParticleDefinition* chargedunknown = nullptr;
     G4ParticleDefinition* opticalphoton = nullptr;
     G4int verboseLevel = 0;
     G4int trackID = 0;
     G4int nWarn = 0;
     G4bool unknownParticleDefined = false;
+    G4bool chargedUnknownParticleDefined = false;
     G4bool opticalphotonDefined = false;
+
+    static G4double kETolerance;
+    static G4ExceptionSeverity kETSeverity;
+  public:
+    static void SetKETolerance(G4double val, G4ExceptionSeverity sev = JustWarning)
+    { kETolerance = val; kETSeverity = sev; }
+
 };
 
 #endif

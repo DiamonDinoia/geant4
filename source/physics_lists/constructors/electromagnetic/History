@@ -6,17 +6,119 @@ It must **not** be used as a substitute for writing good git commit messages!
 
 -------------------------------------------------------------------------------
 
-## 2024-02-07 Vladimir Ivanchenko (phys-ctor-em-V11-01-14)
+## 2025-06-22 Vladimir Ivanchenko (phys-ctor-em-V11-03-08)
+- G4EmDNABuilder - fixed upper energy limit for ionisation of hydrogen.
+
+## 2025-06-20 Vladimir Ivanchenko (phys-ctor-em-V11-03-07)
+- G4EmDNABuilder - fixed enegy limits for excitation model for light ions,
+  for increase/decrease models. This modification provides a correct
+  printout and does not change any DNA physics result. 
+
+## 2025-06-13 Vladimir Ivanchenko (phys-ctor-em-V11-03-06)
+- G4EmDNABuilder - fixed upper limit of energy increase/decrease processes,
+  they should the same as for ionisation and excitation processes
+
+## 2025-06-05 Vladimir Ivanchenko (phys-ctor-em-V11-03-05)
+- G4EmDNABuilder - for opt8 configuration use the same configuration of
+  models for e- and protons as in opt2.
+- in all DNA constructors the upper limit for DNA models for ions is set 
+  to 300 MeV instead of 400 MeV.
+
+## 2025-05-25 Vladimir Ivanchenko (phys-ctor-em-V11-03-04)
+- G4GeneralGammaProcess - updated destructor according to modification in
+    electromagnetic/utils
+
+## 2025-05-22 Sebastien Incerti (phys-ctor-em-V11-03-03)
+- G4EmDNABuilder - replaced G4DNABornIonisationModel by 
+  G4DNABornIonisationModel1 for proton ionisation
+
+## 2025-05-21 Vladimir Ivanchenko (phys-ctor-em-V11-03-02)
+- G4EmDNAPhysics_option6 - disable "fast" flag in order to have comparisons
+    with Opt4 in the same set of general DNA parameters.
+- G4EmDNAPhysics_stationary_X constructor - added disclaimer saying that
+    these constructors are obsolete.
+
+## 2025-02-12 Vladimir Ivanchenko (phys-ctor-em-V11-03-01)
+- G4EmDNABuilder - use new version of Born ionisation model.
+
+## 2025-02-12 Vladimir Ivanchenko (phys-ctor-em-V11-03-00)
+- G4EmDNABuilder, G4EmDNAPhysicsActivator - introduce usage of the new ion
+  ionisation model in DNA Opt8 physics configuration
+- G4EmDNAPhysics, G4EmDNAPhysics_option2, G4EmDNAPhysics_option4,
+  G4EmDNAPhysics_option6, G4EmDNAPhysics_option8 - update interface to
+  G4EmDNABuilder.
+
+## 2024-10-18 Vladimir Ivanchenko (phys-ctor-em-V11-02-12)
+- G4EmStandardPhysics_option3 - return back positron annihilation lost in
+    previous MR.
+
+## 2024-10-17 Vladimir Ivanchenko (phys-ctor-em-V11-02-11)
+- G4EmStandardPhysics_option3, G4EmStandardPhysics_option4, G4EmLivermorePhysics,
+  G4EmStandardPhysics, G4EmStandardPhysicsWVI - added a possibility to
+  enable/disable 3 gamma annihilation on fly, take into account rename of the
+  model G4eplusTo2GammaOKVIModel -> G4eplusTo2or3GammaModel. By default it is
+  enabled in G4EmStandardPhysics_option4 only. This option is not added to
+  the G4EmPenelopePhysics class, because it has the original Penelope model
+  for annihilation.
+
+## 2024-10-02 Hoang Tran (phys-ctor-em-V11-02-10)
+- Modified the molecule names of OH, HO2, O in MoleculeDefinition.
+  Each molecule configuration has a molecule definition.
+
+## 2024-09-10 Alberto Ribon (phys-ctor-em-V11-02-09)
+- G4ChargedUnknownPhysics : replaced G4hIonisation and G4hMultipleScattering
+  (which use G4ParticleDefinition) with the corresponding new classes
+  G4DynamicParticleIonisation and G4DynamicParticleMSC (which use only
+  G4DynamicParticle), respectively.
+
+## 2024-08-01 Alberto Ribon (phys-ctor-em-V11-02-08)
+- Created new constructor G4ChargedUnknownPhysics, to be used on top on any
+  reference physics list, to assign ionisation and multiple scattering
+  (as well as transportation) processes to charged primary particles with
+  valid PDG code but not known to Geant4.
+  ( This was requested by ATLAS and LHCb. )
+
+## 2024-05-23 Hoang Tran (phys-ctor-em-V11-02-07)
+- Use EmParameters to control chemistry models in G4EmDNAChemistry_option3.
+
+## 2024-05-19 Vladimir Ivanchenko (phys-ctor-em-V11-02-06)
+- G4EmStandardPhysics_option3, G4EmStandardPhysics_option4, G4EmLivermorePhysics,
+  G4EmLivermorePhysics, G4EmDNAPhysics - use fAllisonPositronium type of model
+  for sampling of positron annihilation at rest (as it is in 11.2).
+- G4EmStandardPhysics_option4 - use model alternative model for positron
+  annihilation on fly with 3-gamma annihilation channel enabled.
+
+## 2024-05-04 Vladimir Ivanchenko (phys-ctor-em-V11-02-05)
+- G4GammaGeneralProcess - updated according to change in EM data tables 
+
+## 2024-04-05 Vladimir Ivanchenko (phys-ctor-em-V11-02-04)
+- G4EmDNABuilder - added nuclear stopping process for G4GenericIon below 1 MeV/u.
+- G4EmDNAPhysics, G4EmDNAPhysicsActivator, G4EmDNAPhysics_option2,
+  G4EmDNAPhysics_option4, G4EmDNAPhysics_option6, G4EmDNAPhysics_option8
+    change upper limit for DNA physics of Helium ions from 300 MeV to 400 MeV.
+
+## 2024-04-04 Vladimir Ivanchenko (phys-ctor-em-V11-02-03)
+- G4EmDNAPhysics - define default maximum kinetic energy 600 MeV
+    instead of 300 MeV in order to have standard ionisation and
+    multiple scattering always defined for DNA physics configurations.
+    This allows avoid situations when low-energy ions path DNA region
+    without interaction
+
+## 2024-02-07 Vladimir Ivanchenko (phys-ctor-em-V11-02-02)
 - G4EmStandardPhysics_option3 - return back step limit type to
     fUseDistanceToBoundary and the default RangeFactor 0.04 from 0.03,
     which will allow to restore more accurate distributions for several
     tests for medical benchmark
 
-## 2024-02-04 Vladimir Ivanchenko
+## 2024-02-04 Vladimir Ivanchenko (phys-ctor-em-V11-02-01)
 - G4GammaGeneralProcess - fixed sampling of muon pair production - problem 2543
 
+## 2024-01-27 Vladimir Ivanchenko (phys-ctor-em-V11-02-00)
+- G4EmStandardPhysicsWVI - return back ATIMA model for ionisation and
+    fluctuations of ions in order to make comparisons with other models.
+
 ## 2023-11-09 Hoang Tran (phys-ctor-em-V11-01-13)
-- Correct subtype process of G4LowECapture in G4EmDNABuilder .
+- Correct subtype process of G4LowECapture in G4EmDNABuilder.
 
 ## 2023-11-04 Hoang Tran (phys-ctor-em-V11-01-12)
 - Correct G4EmDNABuilder for proton constructors.

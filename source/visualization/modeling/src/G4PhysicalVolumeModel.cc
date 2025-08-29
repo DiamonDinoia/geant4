@@ -54,6 +54,8 @@
 
 #include <sstream>
 #include <iomanip>
+#include <algorithm>
+#include <cmath>
 
 #define G4warn G4cout
 
@@ -83,6 +85,9 @@ G4PhysicalVolumeModel::G4PhysicalVolumeModel
 , fpClippingSolid    (0)
 , fClippingMode      (subtraction)
 , fNClippers         (0)
+, fTotalDrawnTouchables (0)
+, fTotalAllTouchables(0)
+, fMaxFullDepth      (0)
 {
   fType = "G4PhysicalVolumeModel";
 
@@ -220,13 +225,24 @@ void G4PhysicalVolumeModel::DescribeYourselfTo
 
   G4Transform3D startingTransformation = fTransform;
 
-  fNTouchables.clear();  // Keeps count of touchable drawn at each depth
+  fMapDrawnTouchables.clear();  // Keeps count of touchables drawn at each depth
+  fMapAllTouchables.clear();  // Keeps count of all touchables at each depth
 
   VisitGeometryAndGetVisReps
     (fpTopPV,
      fRequestedDepth,
      startingTransformation,
      sceneHandler);
+
+  fTotalDrawnTouchables = 0;
+  for (const auto& entry : fMapDrawnTouchables) {
+    fTotalDrawnTouchables += entry.second;
+  }
+
+  fTotalAllTouchables = 0;
+  for (const auto& entry : fMapAllTouchables) {
+    fTotalAllTouchables += entry.second;
+  }
 
   // Reset or clear data...
   fCurrentDepth     = 0;
@@ -299,18 +315,18 @@ void G4PhysicalVolumeModel::VisitGeometryAndGetVisReps
     G4VPVParameterisation* pP = pVPV -> GetParameterisation ();
     if (pP) {  // Parametrised volume.
       for (int n = nBegin; n < nEnd; n++) {
-	pSol = pP -> ComputeSolid (n, pVPV);
-	pP -> ComputeTransformation (n, pVPV);
-	pSol -> ComputeDimensions (pP, n, pVPV);
-	pVPV -> SetCopyNo (n);
+        pSol = pP -> ComputeSolid (n, pVPV);
+        pP -> ComputeTransformation (n, pVPV);
+        pSol -> ComputeDimensions (pP, n, pVPV);
+        pVPV -> SetCopyNo (n);
         fCurrentPVCopyNo = n;
-	// Create a touchable of current parent for ComputeMaterial.
-	// fFullPVPath has not been updated yet so at this point it
-	// corresponds to the parent.
-	G4PhysicalVolumeModelTouchable parentTouchable(fFullPVPath);
-	pMaterial = pP -> ComputeMaterial (n, pVPV, &parentTouchable);
-	DescribeAndDescend (pVPV, requestedDepth, pLV, pSol, pMaterial,
-			    theAT, sceneHandler);
+        // Create a touchable of current parent for ComputeMaterial.
+        // fFullPVPath has not been updated yet so at this point it
+        // corresponds to the parent.
+        G4PhysicalVolumeModelTouchable parentTouchable(fFullPVPath);
+        pMaterial = pP -> ComputeMaterial (n, pVPV, &parentTouchable);
+        DescribeAndDescend (pVPV, requestedDepth, pLV, pSol, pMaterial,
+                            theAT, sceneHandler);
       }
     }
     else {  // Plain replicated volume.  From geometry_guide.txt...
@@ -341,64 +357,64 @@ void G4PhysicalVolumeModel::VisitGeometryAndGetVisReps
       G4RotationMatrix* pOriginalRotation = pVPV -> GetRotation ();
       G4double originalRMin = 0., originalRMax = 0.;
       if (axis == kRho && pSol->GetEntityType() == "G4Tubs") {
-	originalRMin = ((G4Tubs*)pSol)->GetInnerRadius();
-	originalRMax = ((G4Tubs*)pSol)->GetOuterRadius();
+        originalRMin = ((G4Tubs*)pSol)->GetInnerRadius();
+        originalRMax = ((G4Tubs*)pSol)->GetOuterRadius();
       }
       G4bool visualisable = true;
       for (int n = nBegin; n < nEnd; n++) {
-	G4ThreeVector translation;  // Identity.
-	G4RotationMatrix rotation;  // Identity - life enough for visualizing.
-	G4RotationMatrix* pRotation = 0;
-	switch (axis) {
-	default:
-	case kXAxis:
-	  translation = G4ThreeVector (-width*(nReplicas-1)*0.5+n*width,0,0);
-	  break;
-	case kYAxis:
-	  translation = G4ThreeVector (0,-width*(nReplicas-1)*0.5+n*width,0);
-	  break;
-	case kZAxis:
-	  translation = G4ThreeVector (0,0,-width*(nReplicas-1)*0.5+n*width);
-	  break;
-	case kRho:
-	  if (pSol->GetEntityType() == "G4Tubs") {
-	    ((G4Tubs*)pSol)->SetInnerRadius(width*n+offset);
-	    ((G4Tubs*)pSol)->SetOuterRadius(width*(n+1)+offset);
-	  } else {
-	    if (fpMP->IsWarning())
-	      G4warn <<
-		"G4PhysicalVolumeModel::VisitGeometryAndGetVisReps: WARNING:"
-		"\n  built-in replicated volumes replicated in radius for "
-		     << pSol->GetEntityType() <<
-		"-type\n  solids (your solid \""
-		     << pSol->GetName() <<
-		"\") are not visualisable."
-		     << G4endl;
-	    visualisable = false;
-	  }
-	  break;
-	case kPhi:
-	  rotation.rotateZ (-(offset+(n+0.5)*width));
-	  // Minus Sign because for the physical volume we need the
-	  // coordinate system rotation.
-	  pRotation = &rotation;
-	  break;
-	} 
-	pVPV -> SetTranslation (translation);
-	pVPV -> SetRotation    (pRotation);
-	pVPV -> SetCopyNo (n);
+        G4ThreeVector translation;  // Identity.
+        G4RotationMatrix rotation;  // Identity - life enough for visualizing.
+        G4RotationMatrix* pRotation = 0;
+        switch (axis) {
+          default:
+          case kXAxis:
+            translation = G4ThreeVector (-width*(nReplicas-1)*0.5+n*width,0,0);
+            break;
+          case kYAxis:
+            translation = G4ThreeVector (0,-width*(nReplicas-1)*0.5+n*width,0);
+            break;
+          case kZAxis:
+            translation = G4ThreeVector (0,0,-width*(nReplicas-1)*0.5+n*width);
+            break;
+          case kRho:
+            if (pSol->GetEntityType() == "G4Tubs") {
+              ((G4Tubs*)pSol)->SetInnerRadius(width*n+offset);
+              ((G4Tubs*)pSol)->SetOuterRadius(width*(n+1)+offset);
+            } else {
+              if (fpMP->IsWarning())
+                G4warn <<
+                "G4PhysicalVolumeModel::VisitGeometryAndGetVisReps: WARNING:"
+                "\n  built-in replicated volumes replicated in radius for "
+                << pSol->GetEntityType() <<
+                "-type\n  solids (your solid \""
+                << pSol->GetName() <<
+                "\") are not visualisable."
+                << G4endl;
+              visualisable = false;
+            }
+            break;
+          case kPhi:
+            rotation.rotateZ (-(offset+(n+0.5)*width));
+            // Minus Sign because for the physical volume we need the
+            // coordinate system rotation.
+            pRotation = &rotation;
+            break;
+        }
+        pVPV -> SetTranslation (translation);
+        pVPV -> SetRotation    (pRotation);
+        pVPV -> SetCopyNo (n);
         fCurrentPVCopyNo = n;
-	if (visualisable) {
-	  DescribeAndDescend (pVPV, requestedDepth, pLV, pSol, pMaterial,
-			    theAT, sceneHandler);
-	}
+        if (visualisable) {
+          DescribeAndDescend (pVPV, requestedDepth, pLV, pSol, pMaterial,
+                              theAT, sceneHandler);
+        }
       }
       // Restore originals...
       pVPV -> SetTranslation (originalTranslation);
       pVPV -> SetRotation    (pOriginalRotation);
       if (axis == kRho && pSol->GetEntityType() == "G4Tubs") {
-	((G4Tubs*)pSol)->SetInnerRadius(originalRMin);
-	((G4Tubs*)pSol)->SetOuterRadius(originalRMax);
+        ((G4Tubs*)pSol)->SetInnerRadius(originalRMin);
+        ((G4Tubs*)pSol)->SetOuterRadius(originalRMax);
       }
     }
   }
@@ -514,7 +530,7 @@ void G4PhysicalVolumeModel::DescribeAndDescend
           // Create a vis atts object for the modified vis atts.
           // It is static so that we may return a reliable pointer to it.
           static G4VisAttributes modifiedVisAtts;
-          // Initialise it with the current vis atts and reset the pointer.
+          // Initialise it with the current operational vis atts and reset the pointer.
           modifiedVisAtts = *pVisAttribs;
           pVisAttribs = &modifiedVisAtts;
           const G4VisAttributes& transVisAtts = vam.GetVisAttributes();
@@ -623,6 +639,50 @@ void G4PhysicalVolumeModel::DescribeAndDescend
     }
   }
 
+  auto currentFullDepth = fCurrentDepth + (G4int)fBaseFullPVPath.size();
+
+  // Respect transparency by depth set by user
+  const auto& transparencyByDepthParameter = fpMP->GetTransparencyByDepth();
+  const auto& maxDepth = sceneHandler.GetMaxGeometryDepth();
+  if (transparencyByDepthParameter > 0 && maxDepth > 0) {
+    const auto& option = fpMP->GetTransparencyByDepthOption();
+    G4double alpha = 1.;  // Multiplies pre-existing opacity
+    switch (option) {
+      case 1: {  // Unwrap - simply make invisible by depth
+        if (currentFullDepth <= transparencyByDepthParameter) alpha = 0.;
+        break;
+      }
+      case 2: {  // Fade a layer at a time
+        alpha = currentFullDepth - transparencyByDepthParameter;
+        alpha = std::min(1.,std::max(0.,alpha));
+        break;
+      }
+      case 3: {  // X-ray: progressive transparancy throughout depth
+        // Algorithm by Andrea Barresi January 2025.
+        // Linear function from 0 to 1 in the [0,maxdepth] range
+        // Shift according to k value so that:
+        // alpha = 1 for all volumes when k = 0,
+        // alpha = 0 for all volumes when k = maxDepth.
+        const auto& k = transparencyByDepthParameter;
+        alpha = G4double(currentFullDepth) / maxDepth - 2 * k / maxDepth + 1;
+        alpha = std::min(1., std::max(0., alpha));
+      }
+      default: {}
+    }
+    if (alpha < 1.) {
+      // As above, create a vis atts object for the modified vis atts.
+      // It is static so that we may return a reliable pointer to it.
+      static G4VisAttributes transparencyByDepthVisAtts;
+      // Initialise it with the current operational vis atts and reset the pointer.
+      transparencyByDepthVisAtts = *pVisAttribs;
+      pVisAttribs = &transparencyByDepthVisAtts;
+      // Adjust the transparency (multiply any existing opacity)
+      auto colour = pVisAttribs->GetColour();
+      colour.SetAlpha(colour.GetAlpha()*alpha);
+      transparencyByDepthVisAtts.SetColour(colour);
+    }
+  }
+
   // Make decision to draw...
   G4bool thisToBeDrawn = true;
 
@@ -655,10 +715,15 @@ void G4PhysicalVolumeModel::DescribeAndDescend
   // Set "drawn" flag (it was true by default) - thisToBeDrawn may be false
   nodeID.SetDrawn(thisToBeDrawn);
 
+  fMapAllTouchables[currentFullDepth]++;  // Increment for every touchable at each depth
+  if (fMaxFullDepth < currentFullDepth) fMaxFullDepth = currentFullDepth;
+
   if (thisToBeDrawn) {
 
     // Update path of drawn physical volumes...
     fDrawnPVPath.push_back(nodeID);
+
+    fMapDrawnTouchables[currentFullDepth]++;  // Increment for every touchable drawn at each depth
 
     if (fpMP->IsExplode() && fDrawnPVPath.size() == 1) {
       // For top-level drawn volumes, explode along radius...
@@ -670,14 +735,11 @@ void G4PhysicalVolumeModel::DescribeAndDescend
       centred.getDecomposition(oldScale, oldRotation, oldTranslation);
       G4double explodeFactor = fpMP->GetExplodeFactor();
       G4Translate3D newTranslation =
-	G4Translate3D(explodeFactor * oldTranslation.dx(),
-		      explodeFactor * oldTranslation.dy(),
-		      explodeFactor * oldTranslation.dz());
+      G4Translate3D(explodeFactor * oldTranslation.dx(),
+                    explodeFactor * oldTranslation.dy(),
+                    explodeFactor * oldTranslation.dz());
       theNewAT = centering * newTranslation * oldRotation * oldScale;
     }
-
-    auto fullDepth = fCurrentDepth + (G4int)fBaseFullPVPath.size();
-    fNTouchables[fullDepth]++;  // Increment for every touchable drawn at each depth
 
     DescribeSolid (theNewAT, pSol, pVisAttribs, sceneHandler);
 
@@ -706,13 +768,13 @@ void G4PhysicalVolumeModel::DescribeAndDescend
     // parameters...
     G4bool cullingCovered = fpMP->IsCullingCovered();
     G4bool surfaceDrawing =
-      fpMP->GetDrawingStyle() == G4ModelingParameters::hsr ||
-      fpMP->GetDrawingStyle() == G4ModelingParameters::hlhsr;    
+    fpMP->GetDrawingStyle() == G4ModelingParameters::hsr ||
+    fpMP->GetDrawingStyle() == G4ModelingParameters::hlhsr;
     if (pVisAttribs->IsForceDrawingStyle()) {
       switch (pVisAttribs->GetForcedDrawingStyle()) {
-      default:
-      case G4VisAttributes::wireframe: surfaceDrawing = false; break;
-      case G4VisAttributes::solid: surfaceDrawing = true; break;
+        default:
+        case G4VisAttributes::wireframe: surfaceDrawing = false; break;
+        case G4VisAttributes::solid: surfaceDrawing = true; break;
       }
     }
     G4bool opaque = pVisAttribs->GetColour().GetAlpha() >= 1.;
@@ -720,19 +782,19 @@ void G4PhysicalVolumeModel::DescribeAndDescend
     if (culling) {
       // 6) ..and culling of invisible volumes is on...
       if (cullingInvisible) {
-	// 7) ...and the mother requests daughters invisible
-	if (daughtersInvisible) daughtersToBeDrawn = false;
+        // 7) ...and the mother requests daughters invisible
+        if (daughtersInvisible) daughtersToBeDrawn = false;
       }
       // 8) Or culling of covered daughters is requested...
       if (cullingCovered) {
-	// 9) ...and surface drawing is operating...
-	if (surfaceDrawing) {
-	  // 10) ...but only if mother is visible...
-	  if (thisToBeDrawn) {
-	    // 11) ...and opaque...
-	      if (opaque) daughtersToBeDrawn = false;
-	  }
-	}
+        // 9) ...and surface drawing is operating...
+        if (surfaceDrawing) {
+          // 10) ...but only if mother is visible...
+          if (thisToBeDrawn) {
+            // 11) ...and opaque...
+            if (opaque) daughtersToBeDrawn = false;
+          }
+        }
       }
     }
   }
@@ -744,7 +806,7 @@ void G4PhysicalVolumeModel::DescribeAndDescend
       // Descend the geometry structure recursively...
       fCurrentDepth++;
       VisitGeometryAndGetVisReps
-	(pDaughterVPV, requestedDepth - 1, theNewAT, sceneHandler);
+      (pDaughterVPV, requestedDepth - 1, theNewAT, sceneHandler);
       fCurrentDepth--;
     }
   }

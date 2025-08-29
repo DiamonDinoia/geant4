@@ -36,18 +36,19 @@
 /// \file CommandLineParser.cc
 /// \brief Implementation of the CommandLineParser class
 
-#include <iomanip>
 #include "CommandLineParser.hh"
+
+#include <iomanip>
 
 using namespace std;
 using namespace G4DNAPARSER;
 
-CommandLineParser* CommandLineParser::fpInstance(0);
+CommandLineParser* CommandLineParser::fpInstance(nullptr);
 G4String Command::fNoOption = "NoOption";
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-inline bool MATCH(const char *a, const char *b)
+inline bool MATCH(const char* a, const char* b)
 {
   return strcmp(a, b) == 0;
 }
@@ -56,16 +57,10 @@ inline bool MATCH(const char *a, const char *b)
 
 CommandLineParser::CommandLineParser()
 {
-  // G4cout << "############ NEW PARSE ##########" << G4endl;
   fpInstance = this;
-  fOptionsWereSetup = false;
-  fMaxMarkerLength = 0;
-  fMaxOptionNameLength = 0;
   AddCommand("--help", Command::WithoutOption, "Print this help");
   AddCommand("-h", Command::WithoutOption, "Print this help");
   AddCommand("&", Command::WithoutOption);
-
-  fVerbose = 0;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -80,10 +75,9 @@ CommandLineParser* CommandLineParser::GetParser()
 
 CommandLineParser::~CommandLineParser()
 {
-  std::map<G4String, Command*>::iterator it = fCommandMap.begin();
-  for (; it != fCommandMap.end(); it++)
-  {
-    if (it->second) delete it->second;
+  auto it = fCommandMap.begin();
+  for (; it != fCommandMap.end(); it++) {
+    delete it->second;
   }
 }
 
@@ -91,17 +85,15 @@ CommandLineParser::~CommandLineParser()
 
 void CommandLineParser::DeleteInstance()
 {
-  if (fpInstance)
-  {
+  if (fpInstance) {
     delete fpInstance;
-    fpInstance = 0;
+    fpInstance = nullptr;
   }
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-Command::Command(Command::Type commandType,
-                 const G4String& description)
+Command::Command(Command::Type commandType, const G4String& description)
 {
   fType = commandType;
   fDescription = description;
@@ -110,11 +102,9 @@ Command::Command(Command::Type commandType,
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-CommandWithOption::CommandWithOption(Command::Type commandType,
-                 const G4String& description,
-                 const G4String& defaultOption,
-                 const G4String& optionName) : 
-Command(commandType, description)
+CommandWithOption::CommandWithOption(Command::Type commandType, const G4String& description,
+                                     const G4String& defaultOption, const G4String& optionName)
+  : Command(commandType, description)
 {
   fDefaultOption = defaultOption;
   fOptionName = optionName;
@@ -123,16 +113,14 @@ Command(commandType, description)
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-int CommandLineParser::Parse(int& argc, char **argv)
+G4int CommandLineParser::Parse(int& argc, char** argv)
 {
-  //    G4cout << "Parse " << G4endl;
-  static char null[1] = { "" };
-  int firstArgc = argc;
+  static char null[1] = {""};
+  G4int firstArgc = argc;
 
-  for (int i = 1; i < firstArgc; i++)
-  {
-    Command* command = FindCommand(argv[i]);
-    if (command == 0) continue;
+  for (G4int i = 1; i < firstArgc; i++) {
+    auto command = FindCommand(argv[i]);
+    if (command == nullptr) continue;
 
     if (fVerbose) G4cout << "Command : " << argv[i] << G4endl;
 
@@ -141,67 +129,53 @@ int CommandLineParser::Parse(int& argc, char **argv)
 
     G4String marker(argv[i]);
 
-    if (strcmp(argv[i], "-h") != 0 && strcmp(argv[i], "--help") != 0)
-    {
+    if (strcmp(argv[i], "-h") != 0 && strcmp(argv[i], "--help") != 0) {
       argv[i] = null;
     }
 
-    if (command->fType == Command::WithOption)
-    {
+    if (command->fType == Command::WithOption) {
       if (fVerbose) G4cout << "WithOption" << G4endl;
 
-      if(i+1 > firstArgc || argv[i+1]==0 || argv[i+1][0]=='-')
-      {
-        G4cerr << "An command line option is missing for "
-               << marker << G4endl;
+      if (i + 1 > firstArgc || argv[i + 1] == nullptr || argv[i + 1][0] == '-') {
+        G4cerr << "An command line option is missing for " << marker << G4endl;
         abort();
       }
 
-      command->SetOption( (const char*) strdup(argv[i+1]) );
-      argv[i+1] = null;
+      command->SetOption((const char*)strdup(argv[i + 1]));
+      argv[i + 1] = null;
       i++;
     }
-    else if(command->fType == Command::OptionNotCompulsory)
-    {
-      if(fVerbose)
-      G4cout <<"OptionNotCompulsory"<<G4endl;
+    else if (command->fType == Command::OptionNotCompulsory) {
+      if (fVerbose) G4cout << "OptionNotCompulsory" << G4endl;
 
-      if(i+1 < firstArgc)
-      {
-        G4String buffer = (const char*) strdup(argv[i+1]);
+      if (i + 1 < firstArgc) {
+        G4String buffer = (const char*)strdup(argv[i + 1]);
 
-        if(buffer.empty() == false)
-        {
-          if(buffer.at(0) != '-'
-             && buffer.at(0) != '&'
-             && buffer.at(0) != '>'
-             && buffer.at(0) != '|')
+        if (!buffer.empty()) {
+          if (buffer.at(0) != '-' && buffer.at(0) != '&' && buffer.at(0) != '>'
+              && buffer.at(0) != '|')
           {
-            if(fVerbose)
-            {
+            if (fVerbose) {
               G4cout << "facultative option is : " << buffer << G4endl;
             }
 
-            command->SetOption( (const char*) strdup(argv[i+1]) );
-            argv[i+1] = null;
+            command->SetOption((const char*)strdup(argv[i + 1]));
+            argv[i + 1] = null;
             i++;
             continue;
           }
         }
       }
 
-      if(fVerbose)
-      G4cout << "Option not set" << G4endl;
+      if (fVerbose) G4cout << "Option not set" << G4endl;
 
       command->SetOption("");
     }
   }
   CorrectRemainingOptions(argc, argv);
 
-  Command* commandLine(0);
-  if ((commandLine = GetCommandIfActive("--help")) || (commandLine =
-      GetCommandIfActive("-h")))
-  {
+  Command* commandLine(nullptr);
+  if ((commandLine = GetCommandIfActive("--help")) || (commandLine = GetCommandIfActive("-h"))) {
     G4cout << "Usage : " << argv[0] << " [OPTIONS]" << G4endl;
     PrintHelp();
     return 1;
@@ -216,36 +190,30 @@ void CommandLineParser::PrintHelp()
 {
   std::map<G4String, Command*>::iterator it;
 
-  int maxFieldLength = fMaxMarkerLength + fMaxOptionNameLength + 4;
+  G4int maxFieldLength = fMaxMarkerLength + fMaxOptionNameLength + 4;
 
   G4cout << "Options: " << G4endl;
 
-  for (it = fCommandMap.begin(); it != fCommandMap.end(); it++)
-  {
+  for (it = fCommandMap.begin(); it != fCommandMap.end(); it++) {
     Command* command = it->second;
-    if (command)
-    {
+    if (command) {
       G4cout << setw(maxFieldLength) << left;
 
       G4String toPrint = it->first;
 
-      if (toPrint == "&")
-      {
+      if (toPrint == "&") {
         continue;
       }
-      else if (toPrint == "-h") continue;
-      else if (toPrint == "--help")
-      {
+      else if (toPrint == "-h")
+        continue;
+      else if (toPrint == "--help") {
         toPrint += ", -h";
       }
 
-      if (command->GetDefaultOption() != "")
-      {
+      if (command->GetDefaultOption() != "") {
         toPrint += " \"" + command->GetDefaultOption() + "\"";
       }
-
       G4cout << toPrint;
-
       G4cout << command->GetDescription() << G4endl;
     }
   }
@@ -253,14 +221,12 @@ void CommandLineParser::PrintHelp()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void CommandLineParser::CorrectRemainingOptions(int& argc, char **argv)
+void CommandLineParser::CorrectRemainingOptions(int& argc, char** argv)
 {
   // remove handled arguments from argument array
-  int j = 0;
-  for (int i = 0; i < argc; i++)
-  {
-    if (strcmp(argv[i], ""))
-    {
+  G4int j = 0;
+  for (G4int i = 0; i < argc; i++) {
+    if (strcmp(argv[i], "")) {
       argv[j] = argv[i];
       j++;
     }
@@ -270,129 +236,74 @@ void CommandLineParser::CorrectRemainingOptions(int& argc, char **argv)
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void CommandLineParser::AddCommand(const G4String& marker,
-                                   Command::Type type,
-                                   const G4String& description,
-                                   const G4String& defaultOption,
+void CommandLineParser::AddCommand(const G4String& marker, Command::Type type,
+                                   const G4String& description, const G4String& defaultOption,
                                    const G4String& optionName)
 {
-  // G4cout << "Add command : "<< marker << G4endl;
-  
-  Command* command = 0;
-  switch(type)
-  {
- case Command::WithoutOption:
-        command = new Command(type, description);
-        break;
-        
-        default:
-        command = new CommandWithOption(type, 
-                                        description, 
-                                        defaultOption, 
-                                        optionName);
-        if ((int) defaultOption.length() > fMaxOptionNameLength)
-          fMaxOptionNameLength = defaultOption.length();
-        break;
+  Command* command = nullptr;
+  switch (type) {
+    case Command::WithoutOption:
+      command = new Command(type, description);
+      break;
+
+    default:
+      command = new CommandWithOption(type, description, defaultOption, optionName);
+      if ((int)defaultOption.length() > fMaxOptionNameLength)
+        fMaxOptionNameLength = defaultOption.length();
+      break;
   }
 
-  if ((int) marker.length() > fMaxMarkerLength) fMaxMarkerLength =
-      marker.length();
+  if ((G4int)marker.length() > fMaxMarkerLength) fMaxMarkerLength = marker.length();
   fCommandMap.insert(make_pair(marker, command));
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-/*
-// Add one command but multiple markers
-void Parser::AddCommand(vector<G4String> markers,
-                        CommandType type,
-                        const G4String& description,
-                        const G4String& optionName)
-{
-  // G4cout << "Add command : "<< marker << G4endl;
-  Command* command = new Command(type, description, optionName);
-
-  for (size_t i = 0; i < markers.size; i++)
-  {
-    G4String marker = markers[i];
-    if ((int) marker.length() > fMaxMarkerLength)
-    {
-      fMaxMarkerLength = marker.length();
-    }
-    if ((int) optionName.length() > fMaxOptionNameLength)
-    {
-      fMaxOptionNameLength = optionName.length();
-    }
-    fCommandMap.insert(make_pair(marker, command));
-  }
-}
-*/
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
 Command* CommandLineParser::FindCommand(const G4String& marker)
 {
-  std::map<G4String, Command*>::iterator it = fCommandMap.find(marker);
-  if (it == fCommandMap.end())
-  {
-    // G4cerr << "command not found" << G4endl;
-    return 0;
+  auto it = fCommandMap.find(marker);
+  if (it == fCommandMap.end()) {
+    return nullptr;
   }
   return it->second;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-Command* CommandLineParser::GetCommandIfActive(const G4String &marker)
+Command* CommandLineParser::GetCommandIfActive(const G4String& marker)
 {
   Command* command = FindCommand(marker);
-  if (command)
-  {
-    // G4cout << "Command found : "<< marker << G4endl;
-
-    if (command->fActive)
-    {
-      // G4cout << "Command Active" << G4endl;
+  if (command) {
+    if (command->fActive) {
       return command;
     }
-    // else
-    //  G4cout <<"Command not active" << G4endl;
   }
-  else
-  {
+  else {
     G4ExceptionDescription description;
-    description << "You try to retrieve a command that was not registered : "
-           << marker << G4endl;
-    G4Exception("CommandLineParser::GetCommandIfActive",
-                "COMMAND LINE NOT DEFINED", FatalException, description, "");
-    // If you are using this class outside of Geant4, use exit(-1) instead
-    //exit(-1);
+    description << "You try to retrieve a command that was not registered : " << marker << G4endl;
+    G4Exception("CommandLineParser::GetCommandIfActive", "COMMAND LINE NOT DEFINED", FatalException,
+                description, "");
   }
-  return 0;
+  return nullptr;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 bool CommandLineParser::CheckIfNotHandledOptionsExists(int& argc, char** argv)
 {
-  if (argc > 0)
-  {
+  if (argc > 0) {
     G4bool kill = false;
-    for (G4int i = 1; i < argc; i++)
-    {
-      if (strcmp(argv[i], ""))
-      {
+    for (G4int i = 1; i < argc; i++) {
+      if (strcmp(argv[i], "")) {
         kill = true;
         G4cerr << "Unknown argument : " << argv[i] << "\n";
       }
     }
-    if (kill)
-    {
-      G4cerr << "The option " << argv[0]
-             << " is not handled this programme." << G4endl;
+    if (kill) {
+      G4cerr << "The option " << argv[0] << " is not handled this programme." << G4endl;
       G4cout << "Usage : " << argv[0] << " [OPTIONS]" << G4endl;
       PrintHelp();
-      return true; // KILL APPLICATION
+      return true;  // KILL APPLICATION
     }
   }
   return false;

@@ -50,7 +50,7 @@ G4AugerTransition::G4AugerTransition(G4int finalShell, std::vector<G4int> transI
   augerOriginatingShellIdsMap = *idMap;
   augerTransitionEnergiesMap = *energyMap;
   augerTransitionProbabilitiesMap = *probabilityMap;
-  transitionOriginatingShellIds = transIds;
+  transitionOriginatingShellIds = std::move(transIds);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -64,10 +64,16 @@ G4AugerTransition::~G4AugerTransition()
 const std::vector<G4int>* G4AugerTransition::AugerOriginatingShellIds(G4int startShellId) const
 {
   auto shellId = augerOriginatingShellIdsMap.find(startShellId);
-
+  if (shellId == augerOriginatingShellIdsMap.end())
+    {
+      G4Exception("G4AugerTransition::AugerOriginatingShellIds()",
+		  "em2199",JustWarning,"Error: no Auger ID found");
+      return nullptr;
+    }
   const std::vector<G4int>* dataSet = &(*shellId).second;
   if (dataSet->empty()) 
-    G4cout << "Error: no auger Id found"<< G4endl;
+    G4Exception("G4AugerTransition::AugerOriginatingShellIds()",
+		"em2198",JustWarning,"Error: no Auger ID found");
   return dataSet;
 }
 

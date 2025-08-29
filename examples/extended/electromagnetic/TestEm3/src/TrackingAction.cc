@@ -85,10 +85,13 @@ void TrackingAction::PostUserTrackingAction(const G4Track* track )
 {
  // energy leakage
  G4StepStatus status = track->GetStep()->GetPostStepPoint()->GetStepStatus();
- if (status == fWorldBoundary) { 
+ if (status == fWorldBoundary) {
     G4double eleak = track->GetKineticEnergy();
+    if (track->GetDefinition() == G4Positron::Positron()) {
+      eleak += 2*electron_mass_c2;
+    }
     fEventAct->SumEnergyLeak(eleak);
- }    
+ }
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

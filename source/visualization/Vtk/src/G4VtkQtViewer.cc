@@ -34,54 +34,36 @@
 #include "G4VtkQtSceneHandler.hh"
 #include "G4VtkUtility.hh"
 
-#include "qcoreapplication.h"
-#include "qlabel.h"
-#include "qlayout.h"
-#include "qlineedit.h"
-#include "qopenglcontext.h"
-#include "qpushbutton.h"
-#include "qthread.h"
-#include "qtreewidget.h"
-#include "vtkActor.h"
-#include "vtkCamera.h"
-#include "vtkCylinderSource.h"
-#include "vtkGenericOpenGLRenderWindow.h"
-#include "vtkNamedColors.h"
-#include "vtkNew.h"
-#include "vtkPolyDataMapper.h"
-#include "vtkProperty.h"
-#include "vtkRenderer.h"
-#include "vtkVersion.h"
+#include <qcoreapplication.h>
+#include <qlabel.h>
+#include <qlayout.h>
+#include <qlineedit.h>
+#include <qopenglcontext.h>
+#include <qpushbutton.h>
+#include <qthread.h>
+#include <qtreewidget.h>
+#include <vtkActor.h>
+#include <vtkCamera.h>
+#include <vtkCylinderSource.h>
+#include <vtkGenericOpenGLRenderWindow.h>
+#include <vtkNamedColors.h>
+#include <vtkNew.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkProperty.h>
+#include <vtkRenderer.h>
+#include <vtkVersion.h>
 
 #include <array>
-
-namespace
-{
-G4Mutex mWaitForVisSubThreadQtOpenGLContextMoved = G4MUTEX_INITIALIZER;
-G4Mutex mWaitForVisSubThreadQtOpenGLContextInitialized = G4MUTEX_INITIALIZER;
-// avoid unused variable warning
-#ifdef G4MULTITHREADED
-G4Condition c1_VisSubThreadQtOpenGLContextInitialized = G4CONDITION_INITIALIZER;
-G4Condition c2_VisSubThreadQtOpenGLContextMoved = G4CONDITION_INITIALIZER;
-#endif
-}  // namespace
 
 G4VtkQtViewer::G4VtkQtViewer(G4VSceneHandler& sceneHandler, const G4String& name)
   : G4VtkViewer(sceneHandler, name)
 {
-  lWaitForVisSubThreadQtOpenGLContextInitialized =
-    new G4AutoLock(mWaitForVisSubThreadQtOpenGLContextInitialized, std::defer_lock);
-  lWaitForVisSubThreadQtOpenGLContextMoved =
-    new G4AutoLock(mWaitForVisSubThreadQtOpenGLContextMoved, std::defer_lock);
-
   G4Qt::getInstance();
   //this->setFormat(QVTKOpenGLNativeWidget::defaultFormat());
 }
 
 G4VtkQtViewer::~G4VtkQtViewer()
 {
-  delete lWaitForVisSubThreadQtOpenGLContextInitialized;
-  delete lWaitForVisSubThreadQtOpenGLContextMoved;
 }
 
 void G4VtkQtViewer::Initialise()
@@ -121,100 +103,101 @@ void G4VtkQtViewer::CreateMainWindow(QVTKOpenGLNativeWidget* vtkWidget, const QS
 
 #ifdef G4MULTITHREADED
 
+namespace {
+  G4Mutex visSubThreadMutex = G4MUTEX_INITIALIZER;
+  G4Condition waitForVisSubThreadInitialized = G4CONDITION_INITIALIZER;
+  G4bool visSubThreadEstablished = false;
+  G4bool qObjectsSwitched = false;
+  QVTKOpenGLNativeWidget* qVtkW = nullptr;
+}
+
 void G4VtkQtViewer::DoneWithMasterThread()
 {
   // Called by Main Thread !
 
-  // Useful to avoid two vis thread at the same time
-  // G4MUTEXLOCK(&mWaitForVisSubThreadQtOpenGLContextInitialized);
-  if (!lWaitForVisSubThreadQtOpenGLContextInitialized->owns_lock())
-    lWaitForVisSubThreadQtOpenGLContextInitialized->lock();
+  // Initialise and check qVtkW - no need to check in subsequent functions
+  qVtkW = dynamic_cast<QVTKOpenGLNativeWidget*>(fGLWidget);
+  if (qVtkW == nullptr) return;
+
+  // Done with master thread
+  qVtkW->doneCurrent();
+
+  // Set current QThread for the way back
+  fQVtkContextMainThread = QThread::currentThread();
+}
+
+void G4VtkQtViewer::MovingToVisSubThread()
+{
+  // Still on master thread but vis thread has been launched
+
+  if (qVtkW == nullptr) return;
+
+  // Wait until SwitchToVisSubThread has found vis sub-thread QThread
+  {
+  G4AutoLock lock(&visSubThreadMutex);
+  G4CONDITIONWAITLAMBDA(&waitForVisSubThreadInitialized, &lock, []{return visSubThreadEstablished;})
+  }
+
+  // Move stuff to sub-thread
+  if(qVtkW->context()) qVtkW->context()->moveToThread(fQVtkContextVisSubThread);
+
+  // Inform sub-thread
+  G4AutoLock lock(&visSubThreadMutex);
+  qObjectsSwitched = true;
+  lock.unlock();
+  G4CONDITIONBROADCAST(&waitForVisSubThreadInitialized);
 }
 
 void G4VtkQtViewer::SwitchToVisSubThread()
 {
   // Called by VisSub Thread !
 
-  auto qGLW = dynamic_cast<QVTKOpenGLNativeWidget*>(fGLWidget);
-  if (qGLW == nullptr) {
-    return;
+  if (qVtkW == nullptr) return;
+
+  fQVtkContextVisSubThread = QThread::currentThread();
+
+  // Let MovingToVisSubThread know we have the QThread
+  {
+  G4AutoLock lock(&visSubThreadMutex);
+  visSubThreadEstablished = true;
+  G4CONDITIONBROADCAST(&waitForVisSubThreadInitialized);
   }
 
-  // Set the current QThread to its static variable
-  SetQGLContextVisSubThread(QThread::currentThread());
-
-  // - Wait for the vis thread to set its QThread
-  G4CONDITIONBROADCAST(&c1_VisSubThreadQtOpenGLContextInitialized);
-  // a condition without a locked mutex is an undefined behavior.
-  // we check if the mutex owns the lock, and if not, we lock it
-  if (!lWaitForVisSubThreadQtOpenGLContextMoved->owns_lock())
-    lWaitForVisSubThreadQtOpenGLContextMoved->lock();
-
-  // Unlock the vis thread if it is Qt Viewer
-  G4CONDITIONWAIT(&c2_VisSubThreadQtOpenGLContextMoved, lWaitForVisSubThreadQtOpenGLContextMoved);
+  // Wait until MovingToVisSubThread has moved stuff
+  {
+  G4AutoLock lock(&visSubThreadMutex);
+  G4CONDITIONWAITLAMBDA(&waitForVisSubThreadInitialized, &lock, []{return qObjectsSwitched;})
+  }
 
   // make context current
-  qGLW->makeCurrent();
+  qVtkW->makeCurrent();
 }
 
 void G4VtkQtViewer::DoneWithVisSubThread()
 {
   // Called by vis sub thread
-  auto qGLW = dynamic_cast<QVTKOpenGLNativeWidget*>(fGLWidget);
-  if (qGLW == nullptr) {
-    return;
-  }
+
+  if (qVtkW == nullptr) return;
 
   // finish with this vis sub thread context
-  qGLW->doneCurrent();
+  qVtkW->doneCurrent();
 
   // and move it back to the main thread
-  qGLW->context()->moveToThread(fQGLContextMainThread);
+  if(qVtkW->context()) qVtkW->context()->moveToThread(fQVtkContextMainThread);
 }
 
 void G4VtkQtViewer::SwitchToMasterThread()
 {
   // Called by VisSub Thread !
 
-  auto qGLW = dynamic_cast<QVTKOpenGLNativeWidget*>(fGLWidget);
-  if (qGLW == nullptr) {
-    return;
-  }
+  if (qVtkW == nullptr) return;
 
-  // Useful to avoid two vis thread at the same time
-  // G4MUTEXUNLOCK(&mWaitForVisSubThreadQtOpenGLContextInitialized);
-  if (lWaitForVisSubThreadQtOpenGLContextInitialized->owns_lock())
-    lWaitForVisSubThreadQtOpenGLContextInitialized->unlock();
+  qVtkW->makeCurrent();
 
-  qGLW->makeCurrent();
+  visSubThreadEstablished = false;
+  qObjectsSwitched = false;
 }
 
-void G4VtkQtViewer::MovingToVisSubThread()
-{
-  // Called by Main Thread !
-
-  auto qGLW = dynamic_cast<QVTKOpenGLNativeWidget*>(fGLWidget);
-  if (qGLW == nullptr) {
-    return;
-  }
-
-  // a condition without a locked mutex is an undefined behavior.
-  // we check if the mutex owns the lock, and if not, we lock it
-  if (!lWaitForVisSubThreadQtOpenGLContextInitialized->owns_lock())
-    lWaitForVisSubThreadQtOpenGLContextInitialized->lock();
-
-  // - Wait for the vis sub thread to set its QThread
-  G4CONDITIONWAIT(&c1_VisSubThreadQtOpenGLContextInitialized,
-                  lWaitForVisSubThreadQtOpenGLContextInitialized);
-
-  // Set current QThread for the way back
-  SetQGLContextMainThread(QThread::currentThread());
-
-  // finish with this main thread context
-  qGLW->doneCurrent();
-  qGLW->context()->moveToThread(fQGLContextVisSubThread);
-  G4CONDITIONBROADCAST(&c2_VisSubThreadQtOpenGLContextMoved);
-}
 #endif
 
 void G4VtkQtViewer::FinishView()

@@ -6,6 +6,53 @@ It must **not** be used as a substitute for writing good git commit messages!
 
 -------------------------------------------------------------------------------
 
+## 2025-04-11 Makoto Asai (intercoms-V11-03-00)
+- G4UImanager, G4UIcontrolMessenger
+  - Introducing "@@" keyword that can be placed in any UI command that takes
+    a macro file name. It creates a temporal macro file with following commands
+    until /control/endRecord command comes. This “@@” mechanism works recursively.
+  - If a file name is enclosed in a pair of "@", that macro file is created.
+  - This mechanism works for both interactive mode and batch mode. When used in
+    interactive mode with Qt GUI, you can use up-arrow, tab-key and clickable
+     menu in left-side bar to complement a command.
+
+## 2024-07-29 John Allison (intercoms-V11-02-07)
+- G4UImanager::ApplyCommand:
+  - Replace `isMaster` by `G4Threading::IsMasterThread()`.
+    - This controls highlighting of echoed commands in the Qt GUI.
+    - This was a misunderstanding. I thought `isMaster` referred to the thread.
+      It looks like it refers to a type of run manager. Luckily for MT mode,
+      `isMaster` is true, but for Serial mode, it is false, so highlighting did
+      not work for Serial mode. This was an oversight on my part - I should have
+      tested Serial mode when I introduced highlighting in January and February
+      2020 (intercoms-V10-07-01 and 2).
+
+## 2024-07-16 Gabriele Cosmo (intercoms-V11-02-06)
+- More fixes for Coverity defects.
+
+## 2024-07-15 Gabriele Cosmo (intercoms-V11-02-05)
+- Fixed reported Coverity defects, use consistently 'const G4String&' to
+  avoid implicit copy.
+
+## 2024-05-18 Makoto Asai (intercoms-V11-02-04)
+- G4GenericMessenger.cc : Further addressing to Bug Report #2606
+
+## 2024-05-17 Ben Morgan (intercoms-V11-02-03)
+- Unify range checking implementation in G4UIparameter/command.
+  - Pure refactor to remove code duplication and complexity
+    of user-facing classes.
+
+## 2024-05-09 Ben Morgan (intercoms-V11-02-02)
+- Move tests to tests/ctests_source
+
+## 2024-05-03 Ben Morgan (intercoms-V11-02-01)
+- Remove use of no longer supported TiMemory.
+
+## 2024-04-24 Makoto Asai (intercoms-V11-02-00)
+- G4UIparsing.hh : checking int or long int parameter value is withing the 
+  range of G4int or G4long
+- G4GenericMessenger.cc : Addressing to Bug Report #2606
+
 ## 2023-10-16 Makoto Asai (intercoms-V11-01-08)
 - Add G4UImessenger::LtoS().
   - Missed when StoL() was introduced.

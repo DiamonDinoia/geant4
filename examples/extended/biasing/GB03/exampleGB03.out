@@ -11,7 +11,7 @@ Environment variable "G4FORCE_RUN_MANAGER_TYPE" enabled with value == Serial. Fo
 
 
 **************************************************************
- Geant4 version Name: geant4-11-02-patch-01    (16-February-2024)
+ Geant4 version Name: geant4-11-03-ref-06    (30-June-2025)
                        Copyright : Geant4 Collaboration
                       References : NIM A 506 (2003), 250-303
                                  : IEEE-TNS 53 (2006), 270-278
@@ -21,6 +21,9 @@ Environment variable "G4FORCE_RUN_MANAGER_TYPE" enabled with value == Serial. Fo
 
 <<< Geant4 Physics List simulation engine: FTFP_BERT
 
+      ********************************************************* 
+      ********** processes are wrapped for biasing ************ 
+      ********************************************************* 
 Visualization Manager instantiating with verbosity "warnings (3)"...
 Visualization Manager initialising...
 Registering graphics systems...
@@ -30,28 +33,35 @@ Registered graphics systems are:
   ASCIITree (ATree)
   DAWNFILE (DAWNFILE)
   G4HepRepFile (HepRepFile)
-  RayTracer (RayTracer)
+  RayTracer (RT)
   VRML2FILE (VRML2FILE)
   gMocrenFile (gMocrenFile)
-  TOOLSSG_OFFSCREEN (TSG_OFFSCREEN)
   TOOLSSG_OFFSCREEN (TSG_OFFSCREEN, TSG_FILE)
   OpenGLImmediateQt (OGLIQt, OGLI)
-  OpenGLStoredQt (OGLSQt, OGL, OGLS)
+  OpenGLStoredQt (OGLSQt, OGLS)
   OpenGLImmediateXm (OGLIXm, OGLIQt_FALLBACK)
   OpenGLStoredXm (OGLSXm, OGLSQt_FALLBACK)
   OpenGLImmediateX (OGLIX, OGLIQt_FALLBACK, OGLIXm_FALLBACK)
   OpenGLStoredX (OGLSX, OGLSQt_FALLBACK, OGLSXm_FALLBACK)
-  RayTracerX (RayTracerX)
+  RayTracerX (RTX)
+  RayTracerQt (RTQt)
   Qt3D (Qt3D)
   TOOLSSG_X11_GLES (TSG_X11_GLES, TSGX11, TSG_XT_GLES_FALLBACK)
+  TOOLSSG_X11_ZB (TSG_X11_ZB, TSGX11ZB)
   TOOLSSG_XT_GLES (TSG_XT_GLES, TSGXt, TSG_QT_GLES_FALLBACK)
   TOOLSSG_XT_ZB (TSG_XT_ZB, TSGXtZB)
-  TOOLSSG_QT_GLES (TSG_QT_GLES, TSGQt, TSG)
+  TOOLSSG_QT_GLES (TSG_QT_GLES, TSGQt, TSG, OGL)
   TOOLSSG_QT_ZB (TSG_QT_ZB, TSGQtZB)
-Default graphics system is: TSG_OFFSCREEN (based on batch session).
-Default window size hint is: 600x600-0+0 (based on G4VisManager initialisation).
-Note: Parameters specified on the command line will override these defaults.
-      Use "vis/open" without parameters to get these defaults.
+You may choose a graphics system (driver) with a parameter of
+the command "/vis/open" or "/vis/sceneHandler/create",
+or you may omit the driver parameter and choose at run time:
+- by argument in the construction of G4VisExecutive
+- by environment variable "G4VIS_DEFAULT_DRIVER"
+- by entry in "~/.g4session"
+- by build flags.
+- Note: This feature is not allowed in batch mode.
+For further information see "examples/basic/B1/exampleB1.cc"
+and "vis.mac".
 
 Registering model factories...
 
@@ -123,10 +133,13 @@ Bremsstrahlung energy threshold above which
   primary e+- is added to the list of secondary    100 TeV
 Bremsstrahlung energy threshold above which primary
   muon/hadron is added to the list of secondary    100 TeV
+Positron annihilation at rest model                SimplePositronium
+Enable 3 gamma annihilation on fly                 0
 Lowest triplet kinetic energy                      1 MeV
 Enable sampling of gamma linear polarisation       0
 5D gamma conversion model type                     0
 5D gamma conversion model on isolated ion          0
+Use RiGe 5D e+e- pair production model by muons    0
 Livermore data directory                           epics_2017
 =======================================================================
 ======                 Ionisation Parameters                   ========
@@ -245,7 +258,7 @@ eBrem:  for e+  XStype:4  SubType=3
              eBremSB : Emin=    0 eV  Emax=    1 GeV  ModifiedTsai
             eBremLPM : Emin=    1 GeV Emax=  100 TeV  ModifiedTsai
 
-annihil:  for e+ XStype:2 SubType=5 BuildTable=0
+annihil:  for e+ XStype:2 SubType=5 AtRestModel:Simple BuildTable=0
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
             eplus2gg : Emin=    0 eV  Emax=  100 TeV
 
@@ -297,7 +310,7 @@ ionIoni:  for GenericIon  XStype:3  SubType=2
       Lambda tables from threshold to 100 TeV, 7 bins/decade, spline: 1
       StepFunction=(0.2, 0.1 mm), integ: 3, fluct: 1, linLossLim= 0.02
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
-            BraggIon : Emin=    0 eV  Emax=    2 MeV
+               Bragg : Emin=    0 eV  Emax=    2 MeV
           BetheBloch : Emin=    2 MeV Emax=  100 TeV
 
 msc:  for alpha  SubType= 10
@@ -776,11 +789,11 @@ CoulombScat:  for pi- XStype:1 SubType=1 BuildTable=1
         Model:  Binary Light Ion Cascade: 0 eV /n ---> 6 GeV/n
         Model:                      FTFP: 3 GeV/n ---> 100 TeV/n
      Cr_sctns:  Glauber-Gribov Nucl-nucl: 0 eV  ---> 25.6 PeV
-### G4LevelReader: broken transition 0 from level 24 to 24 for isotope Z= 89 A= 219 - use ground level
 =======================================================================
 ======       Geant4 Native Pre-compound Model Parameters       ========
 =======================================================================
-Type of pre-compound inverse x-section              3
+Type of pre-compound model                          0
+Type of pre-compound inverse x-section              1
 Pre-compound model active                           1
 Pre-compound excitation low energy                  100 keV
 Pre-compound excitation high energy                 30 MeV
@@ -796,16 +809,17 @@ Use HETC submodel for pre-compound model            0
 Type of de-excitation inverse x-section             3
 Type of de-excitation factory                       Evaporation+GEM
 Number of de-excitation channels                    68
+Type of Fermi BreakUp model                         ModelVI
 Min excitation energy                               10 eV 
 Min energy per nucleon for multifragmentation       200 GeV
 Limit excitation energy for Fermi BreakUp           20 MeV
 Level density (1/MeV)                               0.075
 Use simple level density model                      1
-Use discrete excitation energy of the residual      1
+Use discrete excitation energy of the residual      0
 Time limit for long lived isomeres                  1 ns 
 Isomer production flag                              1
 Internal e- conversion flag                         1
-Store e- internal conversion data                   0
+Store e- internal conversion data                   1
 Correlated gamma emission flag                      0
 Max 2J for sampling of angular correlations         10
 =======================================================================
@@ -849,6 +863,7 @@ Index : 2     used in the geometry : Yes
 ==================================================================
 
 Start closing geometry.
+--------------------------------------------------------------------------------
 G4GeometryManager::ReportVoxelStats -- Voxel Statistics
 
     Total memory consumed for geometry optimisation:   0 kByte
@@ -863,14 +878,14 @@ G4GeometryManager::ReportVoxelStats -- Voxel Statistics
     Percent     Memory      Heads    Nodes   Pointers    Total CPU    Volume
     -------   --------     ------   ------   --------   ----------    ----------
      100.00          0k         1       10         10         0.00    Calor
-G4VisManager: Using G4TrajectoryDrawByCharge as fallback trajectory model.
-See commands in /vis/modeling/trajectories/ for other options.
+--------------------------------------------------------------------------------
+
 GB03BOptrGeometryBasedBiasing : starting run with splitting factor = 2, and probability for applying the technique 1 . 
 ### Run 0 starts.
  Run terminated.
 Run Summary
   Number of events processed : 10
-  User=0.140000s Real=0.136254s Sys=0.000000s
+  User=0.060000s Real=0.060830s Sys=0.000000s
 
 Region <DefaultRegionForTheWorld> --  -- appears in <World> world volume
  This region is in the mass world.
@@ -911,6 +926,7 @@ Index : 2     used in the geometry : Yes
 ==================================================================
 
 Start closing geometry.
+--------------------------------------------------------------------------------
 G4GeometryManager::ReportVoxelStats -- Voxel Statistics
 
     Total memory consumed for geometry optimisation:   1 kByte
@@ -925,20 +941,23 @@ G4GeometryManager::ReportVoxelStats -- Voxel Statistics
     Percent     Memory      Heads    Nodes   Pointers    Total CPU    Volume
     -------   --------     ------   ------   --------   ----------    ----------
      100.00          1k         1       20         20         0.00    Calor
+--------------------------------------------------------------------------------
+
 GB03BOptrGeometryBasedBiasing : starting run with splitting factor = 2, and probability for applying the technique 0.5 . 
 ### Run 1 starts.
  Run terminated.
 Run Summary
   Number of events processed : 10
-  User=0.160000s Real=0.164234s Sys=0.000000s
+  User=0.020000s Real=0.026905s Sys=0.000000s
 Graphics systems deleted.
 Visualization Manager deleting...
 G4 kernel has come to Quit state.
-UserDetectorConstruction deleted.
-UserPhysicsList deleted.
-UserActionInitialization deleted.
-UserWorkerInitialization deleted.
-UserWorkerThreadInitialization deleted.
+Deleting G4Run (id:1) 
+UserDetectorConstruction deleted 0x80b2f0
+UserPhysicsList deleted 0x80be00
+UserActionInitialization deleted 0x9c7e10
+UserWorkerInitialization deleted 0
+UserWorkerThreadInitialization deleted 0
 UserRunAction deleted.
 UserPrimaryGenerator deleted.
 RunManager is deleting RunManagerKernel.
@@ -946,24 +965,22 @@ G4SDManager deleted.
 EventManager deleted.
 Units table cleared.
 TransportationManager deleted.
-Total navigation history collections cleaned: 27
+Total navigation history collections cleaned: 25
 G4RNGHelper object is deleted.
 ================== Deleting memory pools ===================
-Pool ID '20G4NavigationLevelRep', size : 0.0385 MB
+Pool ID '20G4NavigationLevelRep', size : 0.0356 MB
 Pool ID '24G4ReferenceCountedHandleIvE', size : 0.000961 MB
-Pool ID '17G4DynamicParticle', size : 0.00577 MB
-Pool ID '16G4SmartVoxelNode', size : 0.000961 MB
-Pool ID '17G4SmartVoxelProxy', size : 0.000961 MB
+Pool ID '17G4DynamicParticle', size : 0.00481 MB
 Pool ID '7G4Event', size : 0.000961 MB
 Pool ID '15G4PrimaryVertex', size : 0.000961 MB
 Pool ID '17G4PrimaryParticle', size : 0.000961 MB
 Pool ID '15G4HCofThisEvent', size : 0.000961 MB
-Pool ID '7G4Track', size : 0.0106 MB
+Pool ID '7G4Track', size : 0.00865 MB
 Pool ID '18G4TouchableHistory', size : 0.00288 MB
 Pool ID '15G4CountedObjectIvE', size : 0.000961 MB
 Pool ID '10G4Fragment', size : 0.000961 MB
-Number of memory pools allocated: 13 of which, static: 0
-Dynamic pools deleted: 13 / Total memory freed: 0.066 MB
+Number of memory pools allocated: 11 of which, static: 0
+Dynamic pools deleted: 11 / Total memory freed: 0.059 MB
 ============================================================
 G4Allocator objects are deleted.
 UImanager deleted.

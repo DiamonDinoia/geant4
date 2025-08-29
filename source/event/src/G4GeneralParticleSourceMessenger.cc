@@ -274,6 +274,12 @@ G4GeneralParticleSourceMessenger(G4GeneralParticleSource* fPtclGun)
   verbosityCmd->SetParameterName("level",false);
   verbosityCmd->SetRange("level>=0 && level <=2");
 
+  volChkCmd = new G4UIcmdWithABool("/gps/checkVolume",this);
+  volChkCmd->SetGuidance("Switch on/off the check if the vertex position is inside the world volume.");
+  volChkCmd->SetGuidance("By default the check is on. There is a small performance gain if this check is off,");
+  volChkCmd->SetGuidance("but the user has to make sure setting the vertex position inside the world.");
+  volChkCmd->SetParameterName("switch",true,true);
+
   // Now extended commands
   // Positional ones:
   //
@@ -652,6 +658,8 @@ G4GeneralParticleSourceMessenger::~G4GeneralParticleSourceMessenger()
   delete arbintCmd1;
 
   delete verbosityCmd;
+  delete volChkCmd;
+
   delete ionCmd;
   delete ionLvlCmd;
   delete particleCmd;
@@ -1070,6 +1078,10 @@ void G4GeneralParticleSourceMessenger::SetNewValue(G4UIcommand *command, G4Strin
       // CHECKPG();
       // fParticleGun->SetVerbosity(verbosityCmd->GetNewIntValue(newValues));
     }
+  else if( command==volChkCmd )
+    {
+      fGPS->CheckInside(volChkCmd->GetNewBoolValue(newValues));
+    }
   else if( command==particleCmd )
     {
       if (newValues =="ion")
@@ -1407,7 +1419,7 @@ void G4GeneralParticleSourceMessenger::SetNewValue(G4UIcommand *command, G4Strin
   else if(command == applyEnergyWeightCmd1)
     {
       CHECKPG();
-      auto eDisType = fParticleGun->GetEneDist()->GetEnergyDisType();
+      const auto& eDisType = fParticleGun->GetEneDist()->GetEnergyDisType();
       if(eDisType != "Lin")
       {
         G4ExceptionDescription ed;
@@ -1483,10 +1495,14 @@ void G4GeneralParticleSourceMessenger::SetNewValue(G4UIcommand *command, G4Strin
     }
 }
 
-G4String G4GeneralParticleSourceMessenger::GetCurrentValue(G4UIcommand*)
+G4String G4GeneralParticleSourceMessenger::GetCurrentValue(G4UIcommand* command)
 {
   G4String cv;
   
+  if( command==volChkCmd )
+  { cv = volChkCmd->ConvertToString(fParticleGun->IfCheckInside()); }
+  else
+  {
   //  if( command==directionCmd )
   //  { cv = directionCmd->ConvertToString(fParticleGun->GetParticleMomentumDirection()); }
   //  else if( command==energyCmd )
@@ -1501,11 +1517,12 @@ G4String G4GeneralParticleSourceMessenger::GetCurrentValue(G4UIcommand*)
   //  { cv = numberCmd->ConvertToString(fParticleGun->GetNumberOfParticles()); }
   
   cv = "Not implemented yet";
+  }
 
   return cv;
 }
 
-void G4GeneralParticleSourceMessenger::IonCommand(G4String newValues)
+void G4GeneralParticleSourceMessenger::IonCommand(const G4String& newValues)
 {
   if (fShootIon)
   {
@@ -1554,7 +1571,7 @@ void G4GeneralParticleSourceMessenger::IonCommand(G4String newValues)
   }
 }
 
-void G4GeneralParticleSourceMessenger::IonLvlCommand(G4String newValues)
+void G4GeneralParticleSourceMessenger::IonLvlCommand(const G4String& newValues)
 {
   if (fShootIon)
   {

@@ -11,7 +11,7 @@ Environment variable "G4FORCE_RUN_MANAGER_TYPE" enabled with value == Serial. Fo
 
 
 **************************************************************
- Geant4 version Name: geant4-11-02-patch-01    (16-February-2024)
+ Geant4 version Name: geant4-11-03-ref-06    (30-June-2025)
                        Copyright : Geant4 Collaboration
                       References : NIM A 506 (2003), 250-303
                                  : IEEE-TNS 53 (2006), 270-278
@@ -121,10 +121,13 @@ Bremsstrahlung energy threshold above which
   primary e+- is added to the list of secondary    100 TeV
 Bremsstrahlung energy threshold above which primary
   muon/hadron is added to the list of secondary    100 TeV
+Positron annihilation at rest model                SimplePositronium
+Enable 3 gamma annihilation on fly                 0
 Lowest triplet kinetic energy                      1 MeV
 Enable sampling of gamma linear polarisation       0
 5D gamma conversion model type                     0
 5D gamma conversion model on isolated ion          0
+Use RiGe 5D e+e- pair production model by muons    0
 Livermore data directory                           epics_2017
 =======================================================================
 ======                 Ionisation Parameters                   ========
@@ -243,7 +246,7 @@ eBrem:  for e+  XStype:4  SubType=3
              eBremSB : Emin=    0 eV  Emax=    1 GeV  ModifiedTsai
             eBremLPM : Emin=    1 GeV Emax=  100 TeV  ModifiedTsai
 
-annihil:  for e+ XStype:2 SubType=5 BuildTable=0
+annihil:  for e+ XStype:2 SubType=5 AtRestModel:Simple BuildTable=0
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
             eplus2gg : Emin=    0 eV  Emax=  100 TeV
 
@@ -295,7 +298,7 @@ ionIoni:  for GenericIon  XStype:3  SubType=2
       Lambda tables from threshold to 100 TeV, 7 bins/decade, spline: 1
       StepFunction=(0.2, 0.1 mm), integ: 3, fluct: 1, linLossLim= 0.02
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
-            BraggIon : Emin=    0 eV  Emax=    2 MeV
+               Bragg : Emin=    0 eV  Emax=    2 MeV
           BetheBloch : Emin=    2 MeV Emax=  100 TeV
 
 msc:  for alpha  SubType= 10
@@ -774,11 +777,11 @@ CoulombScat:  for pi- XStype:1 SubType=1 BuildTable=1
         Model:  Binary Light Ion Cascade: 0 eV /n ---> 6 GeV/n
         Model:                      FTFP: 3 GeV/n ---> 100 TeV/n
      Cr_sctns:  Glauber-Gribov Nucl-nucl: 0 eV  ---> 25.6 PeV
-### G4LevelReader: broken transition 0 from level 24 to 24 for isotope Z= 89 A= 219 - use ground level
 =======================================================================
 ======       Geant4 Native Pre-compound Model Parameters       ========
 =======================================================================
-Type of pre-compound inverse x-section              3
+Type of pre-compound model                          0
+Type of pre-compound inverse x-section              1
 Pre-compound model active                           1
 Pre-compound excitation low energy                  100 keV
 Pre-compound excitation high energy                 30 MeV
@@ -794,16 +797,17 @@ Use HETC submodel for pre-compound model            0
 Type of de-excitation inverse x-section             3
 Type of de-excitation factory                       Evaporation+GEM
 Number of de-excitation channels                    68
+Type of Fermi BreakUp model                         ModelVI
 Min excitation energy                               10 eV 
 Min energy per nucleon for multifragmentation       200 GeV
 Limit excitation energy for Fermi BreakUp           20 MeV
 Level density (1/MeV)                               0.075
 Use simple level density model                      1
-Use discrete excitation energy of the residual      1
+Use discrete excitation energy of the residual      0
 Time limit for long lived isomeres                  1 ns 
 Isomer production flag                              1
 Internal e- conversion flag                         1
-Store e- internal conversion data                   0
+Store e- internal conversion data                   1
 Correlated gamma emission flag                      0
 Max 2J for sampling of angular correlations         10
 =======================================================================
@@ -868,6 +872,7 @@ Index : 5     used in the geometry : Yes
 ==================================================================
 
 Start closing geometry.
+--------------------------------------------------------------------------------
 G4GeometryManager::ReportVoxelStats -- Voxel Statistics
 
     Total memory consumed for geometry optimisation:   15 kByte
@@ -888,6 +893,8 @@ G4GeometryManager::ReportVoxelStats -- Voxel Statistics
       20.31          3k         6       44         83         0.00    HadronCalorimeterBox0      14.44          2k         5       30         60         0.00    HadronCalorimeterBox1       4.81          0k         1       12         14         0.00    CrystalMatrixLayer
        3.70          0k         2        7         13         0.00    HadronCalorimeterScntLayer2       2.08          0k         1        4          8         0.00    HadronCalorimeter
        1.98          0k         1        4          6         0.00    HadronCalorimeterScntLayer0       1.67          0k         1        3          6         0.00    HadronCalorimeterScntLayer1       1.57          0k         1        3          4         0.00    HcalTB96
+--------------------------------------------------------------------------------
+
 ### Run 0 starts.
 ### Run 0 start.
 ... set ntuple merging row mode : row-wise - done
@@ -952,16 +959,17 @@ G4GeometryManager::ReportVoxelStats -- Voxel Statistics
  Run terminated.
 Run Summary
   Number of events processed : 20
-  User=15.200000s Real=15.392174s Sys=0.010000s
+  User=7.560000s Real=7.562846s Sys=0.010000s
 ### Run 0 end.
 ... write file : ccal.root - done
 ... close file : ccal.root - done
 G4 kernel has come to Quit state.
-UserDetectorConstruction deleted.
-UserPhysicsList deleted.
-UserActionInitialization deleted.
-UserWorkerInitialization deleted.
-UserWorkerThreadInitialization deleted.
+Deleting G4Run (id:0) 
+UserDetectorConstruction deleted 0x1aa9ba0
+UserPhysicsList deleted 0x1aaad60
+UserActionInitialization deleted 0x1c66e60
+UserWorkerInitialization deleted 0
+UserWorkerThreadInitialization deleted 0
 UserRunAction deleted.
 UserPrimaryGenerator deleted.
 RunManager is deleting RunManagerKernel.
@@ -970,26 +978,24 @@ G4SDManager deleted.
 EventManager deleted.
 Units table cleared.
 TransportationManager deleted.
-Total navigation history collections cleaned: 47
+Total navigation history collections cleaned: 49
 G4RNGHelper object is deleted.
 ================== Deleting memory pools ===================
-Pool ID '20G4NavigationLevelRep', size : 0.0692 MB
+Pool ID '20G4NavigationLevelRep', size : 0.0721 MB
 Pool ID '24G4ReferenceCountedHandleIvE', size : 0.000961 MB
-Pool ID '17G4DynamicParticle', size : 0.0433 MB
-Pool ID '16G4SmartVoxelNode', size : 0.00769 MB
-Pool ID '17G4SmartVoxelProxy', size : 0.00385 MB
+Pool ID '17G4DynamicParticle', size : 0.0798 MB
 Pool ID '7G4Event', size : 0.000961 MB
 Pool ID '15G4PrimaryVertex', size : 0.000961 MB
 Pool ID '17G4PrimaryParticle', size : 0.000961 MB
 Pool ID '15G4HCofThisEvent', size : 0.000961 MB
 Pool ID '16G4HitsCollection', size : 0.000961 MB
-Pool ID '7G4Track', size : 0.0865 MB
+Pool ID '7G4Track', size : 0.159 MB
 Pool ID '18G4TouchableHistory', size : 0.00577 MB
 Pool ID '15G4CountedObjectIvE', size : 0.000961 MB
-Pool ID '17G4ReactionProduct', size : 0.0154 MB
-Pool ID '10G4Fragment', size : 0.00577 MB
-Number of memory pools allocated: 15 of which, static: 0
-Dynamic pools deleted: 15 / Total memory freed: 0.24 MB
+Pool ID '17G4ReactionProduct', size : 0.0173 MB
+Pool ID '10G4Fragment', size : 0.00673 MB
+Number of memory pools allocated: 13 of which, static: 0
+Dynamic pools deleted: 13 / Total memory freed: 0.35 MB
 ============================================================
 G4Allocator objects are deleted.
 UImanager deleted.

@@ -47,43 +47,33 @@
 #include "G4Fragment.hh"
 #include "G4ReactionProduct.hh"
 #include "G4Pow.hh"
+#include "G4VSIntegration.hh"
 
 class G4NuclearLevelData;
 class G4DeexPrecoParameters;
 class G4VCoulombBarrier;
+class G4InterfaceToXS;
 
-class G4VPreCompoundFragment
+class G4VPreCompoundFragment : G4VSIntegration
 {
 public:  
 
   explicit G4VPreCompoundFragment(const G4ParticleDefinition*,
 				  G4VCoulombBarrier*);
   
-  virtual ~G4VPreCompoundFragment();
-  
-  friend std::ostream& 
-  operator<<(std::ostream&, const G4VPreCompoundFragment*);
-  friend std::ostream& 
-  operator<<(std::ostream&, const G4VPreCompoundFragment&);
-  
-  // =====================
-  // Pure Virtual methods
-  // =====================
-  
-  // Initialization method
-  void Initialize(const G4Fragment& aFragment);
+  ~G4VPreCompoundFragment() override;
     
-  // Methods for calculating the emission probability
-  // ------------------------------------------------
-  
+  // Run time initialization method
+  G4bool Initialize(const G4Fragment& aFragment);
+    
   // Calculates the total (integrated over kinetic energy) emission
   // probability of a fragment
-  virtual G4double CalcEmissionProbability(const G4Fragment&) = 0;
+  virtual G4double CalcEmissionProbability(const G4Fragment&);
   
   // sample kinetic energy of emitted fragment
-  virtual G4double SampleKineticEnergy(const G4Fragment&) = 0;
+  virtual G4double SampleKineticEnergy(const G4Fragment&);
 
-  inline G4bool IsItPossible(const G4Fragment& aFragment) const;
+  G4double ProbabilityDensityFunction(G4double energy) override;  
   
   inline G4ReactionProduct* GetReactionProduct() const; 	
   
@@ -113,9 +103,14 @@ public:
   void SetMomentum(const G4LorentzVector& lv) { theMomentum = lv; }
   
   //for inverse cross section choice
-  void SetOPTxs(G4int opt) { OPTxs = opt; }
+  void SetOPTxs(G4int) {}
   //for superimposed Coulomb Barrier for inverse cross sections
   void UseSICB(G4bool use) { useSICB = use; } 
+
+  friend std::ostream& 
+  operator<<(std::ostream&, const G4VPreCompoundFragment*);
+  friend std::ostream& 
+  operator<<(std::ostream&, const G4VPreCompoundFragment&);
 
   G4VPreCompoundFragment(const G4VPreCompoundFragment &right) = delete;
   const G4VPreCompoundFragment& 
@@ -125,6 +120,10 @@ public:
 
 protected:
 
+  virtual G4double
+  ProbabilityDistributionFunction(G4double, const G4Fragment&)
+  { return 0.0; }; 
+
   virtual G4double GetAlpha() const = 0;
 
   virtual G4double GetBeta() const { return -theCoulombBarrier; }
@@ -132,6 +131,8 @@ protected:
   G4NuclearLevelData* fNucData;
   G4DeexPrecoParameters* theParameters;
   G4Pow* g4calc;
+  G4InterfaceToXS* fXSection{nullptr};
+  const G4Fragment* pFragment{nullptr};
 
   G4int theA;
   G4int theZ;
@@ -139,6 +140,9 @@ protected:
   G4int theResZ{0};
   G4int theFragA{0};
   G4int theFragZ{0};
+  //for inverse cross section choice
+  G4int OPTxs;
+  G4int index{0};
 
   G4double theResA13{0.0};
   G4double theBindingEnergy{0.0};
@@ -151,8 +155,6 @@ protected:
   G4double theEmissionProbability{0.0};
   G4double theCoulombBarrier{0.0};
 
-  //for inverse cross section choice
-  G4int OPTxs{3};
   //for superimposed Coulomb Barrier for inverse cross sections
   G4bool useSICB{true};
 
@@ -162,14 +164,6 @@ private:
   G4VCoulombBarrier* theCoulombBarrierPtr;
   G4LorentzVector theMomentum{0., 0., 0., 0.};
 };
-
-inline G4bool
-G4VPreCompoundFragment::IsItPossible(const G4Fragment& aFragment) const
-{
-  G4int pplus = aFragment.GetNumberOfCharged();
-  G4int pneut = aFragment.GetNumberOfParticles()-pplus;
-  return (pneut >= theA - theZ && pplus >= theZ && theMaxKinEnergy > 0.0);
-}
 
 inline G4ReactionProduct* G4VPreCompoundFragment::GetReactionProduct() const
 {

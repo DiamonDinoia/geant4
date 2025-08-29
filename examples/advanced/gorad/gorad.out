@@ -11,7 +11,7 @@ Environment variable "G4FORCE_RUN_MANAGER_TYPE" enabled with value == Serial. Fo
 
 
 **************************************************************
- Geant4 version Name: geant4-11-02-patch-01    (16-February-2024)
+ Geant4 version Name: geant4-11-03-ref-06    (30-June-2025)
                        Copyright : Geant4 Collaboration
                       References : NIM A 506 (2003), 250-303
                                  : IEEE-TNS 53 (2006), 270-278
@@ -52,11 +52,6 @@ Creating FTFP_BERT physics list ################ 1
 Adding G4GenericBiasingPhysics for GeomBias ################ 
 Using 
 G4GDML: Reading 'simpleCone.gdml'...
-G4GDML: VALIDATION ERROR! ID attribute 'G4_Ni' is referenced but was never declared at line: 48
-G4GDML: VALIDATION ERROR! ID attribute 'G4_Fe' is referenced but was never declared at line: 48
-G4GDML: VALIDATION ERROR! ID attribute 'G4_Cr' is referenced but was never declared at line: 48
-G4GDML: VALIDATION ERROR! ID attribute 'G4_AIR' is referenced but was never declared at line: 48
-G4GDML: VALIDATION ERROR! ID attribute 'G4_Galactic' is referenced but was never declared at line: 48
 G4GDML: Reading definitions...
 G4GDML: Reading materials...
 G4GDML: Reading solids...
@@ -225,19 +220,19 @@ Index : 3     used in the geometry : Yes
  Run terminated.
 Run Summary
   Number of events processed : 100000
-  User=136.470000s Real=137.754628s Sys=0.000000s
+  User=74.290000s Real=74.365780s Sys=0.020000s
 /control/doifBatch /score/dumpAllQuantitiesToFile Probes Probes.csv
 /score/dumpAllQuantitiesToFile Probes Probes.csv
 # Mesh or volume name: Probes  -- # Primitive scorer name: dose
-  bin 0,0,0 : statistical error 39.1279(%)
-   to reduce the statistical error below 10%, increase number of events approximately 15.3099 times.
+  bin 0,0,0 : statistical error 34.2995(%)
+   to reduce the statistical error below 10%, increase number of events approximately 11.7645 times.
 # Mesh or volume name: Probes  -- # Primitive scorer name: protonFlux
-  bin 0,0,0 : statistical error 35.5209(%)
-   to reduce the statistical error below 10%, increase number of events approximately 12.6174 times.
+  bin 0,0,0 : statistical error 29.2441(%)
+   to reduce the statistical error below 10%, increase number of events approximately 8.55216 times.
 # Mesh or volume name: Probes  -- # Primitive scorer name: volFlx
-  bin 0,0,0 : statistical error 36.8385(%)
-   to reduce the statistical error below 10%, increase number of events approximately 13.5707 times.
+  bin 0,0,0 : statistical error 24.5375(%)
+   to reduce the statistical error below 10%, increase number of events approximately 6.0209 times.
 ================== Deleting memory pools ===================
 Number of memory pools allocated: 12 of which, static: 0
-Dynamic pools deleted: 12 / Total memory freed: 1.2 MB
+Dynamic pools deleted: 12 / Total memory freed: 2.1 MB
 ============================================================

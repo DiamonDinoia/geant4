@@ -125,25 +125,22 @@ G4int G4FluoData::StartShellId(G4int initIndex, G4int vacancyIndex) const
 {
  G4int n = -1;
 
- if (vacancyIndex<0 || vacancyIndex>=numberOfVacancies)
-   {
-     G4Exception("G4FluoData::StartShellId()","de0002",FatalErrorInArgument,
-		 "vacancyIndex outside boundaries");
-   }
- else
-   {
-     auto pos = idMap.find(vacancyIndex);
-     
-     G4DataVector dataSet = *((*pos).second);
+ if (vacancyIndex<0 || vacancyIndex>=numberOfVacancies) {
+   G4Exception("G4FluoData::StartShellId()","de0002",FatalErrorInArgument,
+	       "vacancyIndex outside boundaries");
+ } else {
+   auto pos = idMap.find(vacancyIndex);
+   if (pos != idMap.end()) {
+     G4DataVector* dataSet = (*pos).second;
    
-     G4int nData = (G4int)dataSet.size();
+     G4int nData = (G4int)dataSet->size();
      // The first Element of idMap's dataSets is the original shell of 
      // the vacancy, so we must start from the first element of dataSet
-     if (initIndex >= 0 && initIndex < nData)
-       {
-         n = dataSet[initIndex+1];   
-       }
+     if (initIndex >= 0 && initIndex < nData) {
+       n = (*dataSet)[initIndex+1];   
+     }
    }
+ }
  return n;
 }
 
@@ -160,13 +157,15 @@ G4double G4FluoData::StartShellEnergy(G4int initIndex, G4int vacancyIndex) const
   else
     {     
       auto pos = energyMap.find(vacancyIndex);
-     
-      G4DataVector dataSet = *((*pos).second);
-     
-      G4int nData = (G4int)dataSet.size();
-      if (initIndex >= 0 && initIndex < nData)
+      if (pos != energyMap.end())
 	{
-          n =  dataSet[initIndex];
+	  G4DataVector dataSet = *((*pos).second);
+	  
+	  G4int nData = (G4int)dataSet.size();
+	  if (initIndex >= 0 && initIndex < nData)
+	    {
+	      n =  dataSet[initIndex];
+	    }
 	}
     }
   return n;
@@ -187,13 +186,15 @@ G4double G4FluoData::StartShellProb(G4int initIndex, G4int vacancyIndex) const
   else
     {
       auto pos = probabilityMap.find(vacancyIndex);
-     
-      G4DataVector dataSet = *((*pos).second);
-     
-      G4int nData = (G4int)dataSet.size();
-      if (initIndex >= 0 && initIndex < nData)
+      if (pos != probabilityMap.end())
 	{
-          n =  dataSet[initIndex];
+	  G4DataVector dataSet = *((*pos).second);
+	  
+	  G4int nData = (G4int)dataSet.size();
+	  if (initIndex >= 0 && initIndex < nData)
+	    {
+	      n =  dataSet[initIndex];
+	    }
 	}
     }
   return n;

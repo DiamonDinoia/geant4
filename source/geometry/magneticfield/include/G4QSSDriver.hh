@@ -27,10 +27,10 @@
 //
 // QSS Interpolator Driver
 
-// Authors:  Lucio Santi, Rodrigo Castro - 2018-2021
+// Authors: Lucio Santi, Rodrigo Castro (Univ. Buenos Aires) - 2018-2021
 // --------------------------------------------------------------------
 #ifndef G4QSSDriver_HH
-#define G4QSSDriver_HH
+#define G4QSSDriver_HH 1
 
 #include "G4InterpolationDriver.hh"
 #include "G4QSSMessenger.hh"
@@ -57,9 +57,6 @@ class G4QSSDriver : public G4InterpolationDriver<T, true>
     void OnComputeStep(const G4FieldTrack* track) override
     {
       Base::OnComputeStep(track);
-#ifdef GEANT4_DUMP_STEPPER_STATS
-      this->GetStepper()->stats.steps++;
-#endif
     }
 
     void SetPrecision(G4double dq_rel, G4double dq_min);

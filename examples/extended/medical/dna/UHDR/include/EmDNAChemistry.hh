@@ -32,7 +32,7 @@
 #include "globals.hh"
 
 class G4DNAMolecularReactionTable;
-class G4VChemistryWorld;
+class G4GenericMessenger;
 class EmDNAChemistry : public G4VUserChemistryList,
                        public G4VPhysicsConstructor {
 public:
@@ -47,12 +47,9 @@ public:
   void ConstructReactionTable(G4DNAMolecularReactionTable *reactionTable) final;
   void ConstructTimeStepModel(G4DNAMolecularReactionTable *reactionTable) final;
 
-  void SetChemistryWorld(G4VChemistryWorld &chemistryWorld) {
-    fpChemistryWorld = &chemistryWorld;
-  }
-
 private:
-  G4VChemistryWorld *fpChemistryWorld = nullptr;
+  std::unique_ptr<G4GenericMessenger> fMessenger;
+    //----------------------------------------------
 };
 
 #endif

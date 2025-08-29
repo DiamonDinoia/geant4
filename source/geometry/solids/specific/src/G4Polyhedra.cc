@@ -742,6 +742,13 @@ G4GeometryType G4Polyhedra::GetEntityType() const
   return {"G4Polyhedra"};
 }
 
+// IsFaceted
+//
+G4bool G4Polyhedra::IsFaceted() const
+{
+  return true;
+}
+
 // Make a clone of the object
 //
 G4VSolid* G4Polyhedra::Clone() const
@@ -1031,7 +1038,14 @@ G4Polyhedron* G4Polyhedra::CreatePolyhedron() const
   std::vector<G4TwoVector> rz(numCorner);
   for (G4int i = 0; i < numCorner; ++i)
     rz[i].set(corners[i].r, corners[i].z);
-  return new G4PolyhedronPgon(startPhi, endPhi - startPhi, numSide, rz);
+
+  // Check the validity of the delta phi
+  G4double wrDelta = endPhi - startPhi;
+  if (wrDelta <= 0. || wrDelta >= twopi*(1-DBL_EPSILON))
+  {
+    wrDelta = twopi;
+  }
+  return new G4PolyhedronPgon(startPhi, wrDelta, numSide, rz);
 }
 
 // SetOriginalParameters

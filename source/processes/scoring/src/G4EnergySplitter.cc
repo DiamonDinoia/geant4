@@ -61,6 +61,10 @@ G4int G4EnergySplitter::SplitEnergyInVolumes(const G4Step* aStep)
 
   G4double edep = aStep->GetTotalEnergyDeposit();
 
+  if( edep == 0. ) {
+    return 0; 
+  }
+  
 #ifdef VERBOSE_ENERSPLIT
   G4bool verbose = 1;
   if (verbose)
@@ -78,7 +82,14 @@ G4int G4EnergySplitter::SplitEnergyInVolumes(const G4Step* aStep)
     return (G4int)theEnergies.size();
   }
 
-  if (thePhantomParam == nullptr) GetPhantomParam(true);
+  //----- Get the phantom parameterisation from the G4Step
+  auto preStepPhysVol = aStep->GetPreStepPoint()->GetPhysicalVolume();
+  if (!IsPhantomVolume(preStepPhysVol)) {
+    G4Exception("G4EnergySplitter::SplitEnergyInVolumes", "PhantomParamError", FatalException,
+                "SplitEnergyInVolumes() called for a step not in a phantom volume");
+  }
+  auto phantomVol = static_cast<G4PVParameterised*>(preStepPhysVol);
+  thePhantomParam = static_cast<G4PhantomParameterisation*>(phantomVol->GetParameterisation());
 
   //----- Distribute energy deposited in voxels
   std::vector<std::pair<G4int, G4double>> rnsl =
@@ -272,23 +283,6 @@ G4int G4EnergySplitter::SplitEnergyInVolumes(const G4Step* aStep)
   }
 
   return (G4int)theEnergies.size();
-}
-
-//-----------------------------------------------------------------------
-void G4EnergySplitter::GetPhantomParam(G4bool mustExist)
-{
-  G4PhysicalVolumeStore* pvs = G4PhysicalVolumeStore::GetInstance();
-  for (const auto pv : *pvs) {
-    if (IsPhantomVolume(pv)) {
-      const auto pvparam = static_cast<const G4PVParameterised*>(pv);
-      G4VPVParameterisation* param = pvparam->GetParameterisation();
-      thePhantomParam = static_cast<G4PhantomParameterisation*>(param);
-    }
-  }
-
-  if ((thePhantomParam == nullptr) && mustExist)
-    G4Exception("G4EnergySplitter::GetPhantomParam", "PhantomParamError", FatalException,
-                "No G4PhantomParameterisation found !");
 }
 
 //-----------------------------------------------------------------------

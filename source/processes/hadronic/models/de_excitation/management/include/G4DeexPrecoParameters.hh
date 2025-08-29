@@ -31,6 +31,15 @@
 //
 // Verbosity level depends on the local verbosity level and the verbosity
 // level of hadronics defined in G4HadronicParameters
+//
+// OPTxs is a type of model for inverse cross section. It is different
+// for pre-compound and de-excitation (fPrecoType and fDeexType).
+// Possible types:
+//    0 - Dostrovski's parameterization
+//    1 - G4NeutronInelasticXS or G4ParticleInelasticXS
+//    2 - Chatterjee's paramaterization
+//    3 - Kalbach's parameterization
+//
 
 #ifndef G4DeexPrecoParameters_h
 #define G4DeexPrecoParameters_h 1
@@ -46,6 +55,20 @@ enum G4DeexChannelType
   fDummy
 };
 
+enum G4PreCompoundType
+{
+  eDefault = 0,
+  eDeexcitation,
+  ePrecoInterface
+};
+
+enum G4FermiBreakUpType
+{
+  bModelVI = 0,
+  bModelAN,
+  bDummy
+};
+
 class G4StateManager;
 class G4DeexParametersMessenger;
 
@@ -53,7 +76,7 @@ class G4DeexPrecoParameters
 {
 public:
 
-  explicit G4DeexPrecoParameters();
+  G4DeexPrecoParameters();
 
   ~G4DeexPrecoParameters();
 
@@ -86,6 +109,8 @@ public:
 
   inline G4double GetMinExcitation() const;
 
+  inline G4double GetNuclearLevelWidth() const;
+
   inline G4double GetMaxLifeTime() const;
 
   inline G4double GetMinExPerNucleounForMF() const;
@@ -94,8 +119,10 @@ public:
 
   inline G4int GetMinAForPreco() const;
 
+  // should be renamed 
   inline G4int GetPrecoModelType() const;
 
+  // should be renamed 
   inline G4int GetDeexModelType() const;
 
   inline G4int GetTwoJMAX() const;
@@ -130,8 +157,11 @@ public:
 
   inline G4DeexChannelType GetDeexChannelsType() const;
 
-  // Set methods 
+  inline G4PreCompoundType GetPreCompoundType() const;
 
+  inline G4FermiBreakUpType GetFermiBreakUpType() const;
+
+  // Set methods 
   void SetLevelDensity(G4double);
 
   void SetR0(G4double);
@@ -150,6 +180,8 @@ public:
 
   void SetMinExcitation(G4double);
 
+  void SetNuclearLevelWidth(G4double);
+
   void SetMaxLifeTime(G4double);
 
   void SetMinExPerNucleounForMF(G4double);
@@ -160,8 +192,10 @@ public:
 
   void SetMinAForPreco(G4int);
 
+  // should be renamed
   void SetPrecoModelType(G4int);
 
+  // should be renamed
   void SetDeexModelType(G4int);
 
   void SetTwoJMAX(G4int);
@@ -186,7 +220,7 @@ public:
 
   void SetStoreICLevelData(G4bool);
 
-  // obsolete method (use previous)
+  // obsolete method (use SetStoreICLevelData)
   void SetStoreAllLevels(G4bool);
 
   void SetInternalConversionFlag(G4bool);
@@ -198,6 +232,10 @@ public:
   void SetIsomerProduction(G4bool);
 
   void SetDeexChannelsType(G4DeexChannelType);
+
+  void SetPreCompoundType(G4PreCompoundType);
+
+  void SetFermiBreakUpType(G4FermiBreakUpType);
 
   G4DeexPrecoParameters(const G4DeexPrecoParameters & right) = delete;  
   const G4DeexPrecoParameters& operator=
@@ -234,47 +272,50 @@ private:
   G4double fPrecoHighEnergy;
 
   // Preco phenomenological factor
-  G4double fPhenoFactor = 1.0;
+  G4double fPhenoFactor;
 
   // Excitation handler
   G4double fMinExcitation;
+  G4double fNuclearLevelWidth;
   G4double fMaxLifeTime;
 
   // Multi-fragmentation model
   G4double fMinExPerNucleounForMF;
 
   // Cross section type
-  G4int fPrecoType = 3;
-  G4int fDeexType = 3;
+  G4int fPrecoType;
+  G4int fDeexType;
 
-  G4int fTwoJMAX = 10;
+  G4int fTwoJMAX;
 
   // Preco model
-  G4int fMinZForPreco = 3;
-  G4int fMinAForPreco = 5;
+  G4int fMinZForPreco;
+  G4int fMinAForPreco;
 
-  G4int fVerbose = 1;
+  G4int fVerbose;
 
   // Preco flags
-  G4bool fNeverGoBack = false;
-  G4bool fUseSoftCutoff = false;
-  G4bool fUseCEM = true;
-  G4bool fUseGNASH = false;
-  G4bool fUseHETC = false;
-  G4bool fUseAngularGen = true;
-  G4bool fPrecoDummy = false;
+  G4bool fNeverGoBack;
+  G4bool fUseSoftCutoff;
+  G4bool fUseCEM;
+  G4bool fUseGNASH;
+  G4bool fUseHETC;
+  G4bool fUseAngularGen;
+  G4bool fPrecoDummy;
 
   // Deex flags
-  G4bool fCorrelatedGamma = false;
-  G4bool fStoreAllLevels = false;
-  G4bool fInternalConversion = true;
-  G4bool fLD = true;  // use simple level density model 
-  G4bool fFD = true;  // use transition to discrete level 
-  G4bool fIsomerFlag = true;  // enable isomere production
-  G4bool fIsPrinted = false;
+  G4bool fCorrelatedGamma;
+  G4bool fStoreAllLevels;
+  G4bool fInternalConversion;
+  G4bool fLD; 
+  G4bool fFD; 
+  G4bool fIsomerFlag;
+  G4bool fIsPrinted{false};
 
-  // type of a set of e-exitation channels
-  G4DeexChannelType fDeexChannelType = fCombined;
+  // type of a set of de-exitation channels
+  G4DeexChannelType fDeexChannelType;
+  G4PreCompoundType fPreCompoundType;
+  G4FermiBreakUpType fFermiBreakUpType;
 };
 
 inline G4double G4DeexPrecoParameters::GetLevelDensity() const
@@ -320,6 +361,11 @@ inline G4double G4DeexPrecoParameters::GetPhenoFactor() const
 inline G4double G4DeexPrecoParameters::GetMinExcitation() const
 {
   return fMinExcitation;
+}
+
+inline G4double G4DeexPrecoParameters::GetNuclearLevelWidth() const
+{
+  return fNuclearLevelWidth;
 }
 
 inline G4double G4DeexPrecoParameters::GetMaxLifeTime() const
@@ -427,4 +473,14 @@ inline G4DeexChannelType G4DeexPrecoParameters::GetDeexChannelsType() const
   return fDeexChannelType;
 }
 
+inline G4PreCompoundType G4DeexPrecoParameters::GetPreCompoundType() const
+{
+  return fPreCompoundType;
+}
+
+inline G4FermiBreakUpType G4DeexPrecoParameters::GetFermiBreakUpType() const
+{
+  return fFermiBreakUpType;
+}
+  
 #endif

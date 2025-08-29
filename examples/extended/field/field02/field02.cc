@@ -27,59 +27,47 @@
 /// \file field/field02/field02.cc
 /// \brief Main program of the field/field02 example
 //
-//
-//
-//
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #include "G4Types.hh"
 
-#ifdef G4MULTITHREADED
-#include "G4MTRunManager.hh"
-#else
+#include "G4RunManagerFactory.hh"
 #include "F02SteppingVerbose.hh"
-#include "G4RunManager.hh"
-#endif
 
-#include "F02DetectorConstruction.hh"
 #include "F02ActionInitialization.hh"
-
-#include "G4UImanager.hh"
+#include "F02DetectorConstruction.hh"
 #include "FTFP_BERT.hh"
-#include "G4StepLimiterPhysics.hh"
-#include "Randomize.hh"
 
-#include "G4VisExecutive.hh"
+#include "G4StepLimiterPhysics.hh"
 #include "G4UIExecutive.hh"
+#include "G4UImanager.hh"
+#include "G4VisExecutive.hh"
+#include "Randomize.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-int main(int argc,char** argv)
+int main(int argc, char** argv)
 {
   // Instantiate G4UIExecutive if there are no arguments (interactive mode)
+  //
   G4UIExecutive* ui = nullptr;
-  if ( argc == 1 ) {
+  if (argc == 1) {
     ui = new G4UIExecutive(argc, argv);
   }
 
-  // Choose the Random engine
+  // Setting the application-specific SteppingVerbose
   //
-  G4Random::setTheEngine(new CLHEP::RanecuEngine);
+  auto verbosity = new F02SteppingVerbose;
 
   // Construct the default run manager
   //
-#ifdef G4MULTITHREADED
-  G4MTRunManager * runManager = new G4MTRunManager;
-#else
-  G4VSteppingVerbose::SetInstance(new F02SteppingVerbose);
-  auto  runManager = new G4RunManager;
-#endif
+  auto runManager = G4RunManagerFactory::CreateRunManager();
 
   // Set mandatory initialization classes
   //
   // Detector construction
-  auto  detector = new F02DetectorConstruction();
+  auto detector = new F02DetectorConstruction();
   runManager->SetUserInitialization(detector);
   // Physics list
   G4VModularPhysicsList* physicsList = new FTFP_BERT;
@@ -103,26 +91,25 @@ int main(int argc,char** argv)
   //
   G4UImanager* UImanager = G4UImanager::GetUIpointer();
 
-  if (!ui)   // batch mode
-    {
-      G4String command = "/control/execute ";
-      G4String fileName = argv[1];
-      UImanager->ApplyCommand(command+fileName);
-    }
-  else
-    {  // interactive mode : define UI session
-     UImanager->ApplyCommand("/control/execute init_vis.mac");
-     if (ui->IsGUI())
-        UImanager->ApplyCommand("/control/execute gui.mac");
-     ui->SessionStart();
-     delete ui;
-    }
+  if (!ui)  // batch mode
+  {
+    G4String command = "/control/execute ";
+    G4String fileName = argv[1];
+    UImanager->ApplyCommand(command + fileName);
+  }
+  else {  // interactive mode : define UI session
+    UImanager->ApplyCommand("/control/execute init_vis.mac");
+    if (ui->IsGUI()) UImanager->ApplyCommand("/control/execute gui.mac");
+    ui->SessionStart();
+    delete ui;
+  }
 
   // Job termination
   // Free the store: user actions, physics_list and detector_description are
   //                 owned and deleted by the run manager, so they should not
   //                 be deleted in the main() program !
 
+  delete verbosity;
   delete visManager;
   delete runManager;
 

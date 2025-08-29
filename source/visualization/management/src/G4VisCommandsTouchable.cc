@@ -176,6 +176,81 @@ void G4VisCommandsTouchable::SetNewValue
     return;
   }
 
+  if (command == fpCommandDump) {
+
+    G4PhysicalVolumeModel::TouchableProperties properties =
+    G4TouchableUtils::FindTouchableProperties(fCurrentTouchableProperties.fTouchablePath);
+    if (properties.fpTouchablePV) {
+      // To handle parameterisations we have to set the copy number
+      properties.fpTouchablePV->SetCopyNo(properties.fCopyNo);
+      G4PhysicalVolumeModel tempPVModel
+      (properties.fpTouchablePV,
+       G4PhysicalVolumeModel::UNLIMITED,
+       properties.fTouchableGlobalTransform,
+       nullptr, // Modelling parameters (not used)
+       true, // use full extent (prevents calculating own extent, which crashes)
+       properties.fTouchableBaseFullPVPath);
+      const std::map<G4String,G4AttDef>* attDefs = tempPVModel.GetAttDefs();
+      std::vector<G4AttValue>* attValues = tempPVModel.CreateCurrentAttValues();
+      G4cout << G4AttCheck(attValues,attDefs);
+      delete attValues;
+      const auto lv = properties.fpTouchablePV->GetLogicalVolume();
+      const auto polyhedron = lv->GetSolid()->GetPolyhedron();
+      if (polyhedron) {
+        polyhedron->SetVisAttributes(lv->GetVisAttributes());
+        G4cout << "\nLocal polyhedron coordinates:\n" << *polyhedron;
+        const G4Transform3D& transform = tempPVModel.GetCurrentTransform();
+        polyhedron->Transform(transform);
+        G4cout << "\nGlobal polyhedron coordinates:\n" << *polyhedron;
+      }
+    } else {
+      G4warn << "Touchable not found." << G4endl;
+    }
+    return;
+
+  } else if (command == fpCommandFindPath) {
+    
+    G4String pvName;
+    G4int copyNo;
+    std::istringstream iss(newValue);
+    iss >> pvName >> copyNo;
+    std::vector<G4PhysicalVolumesSearchScene::Findings> findingsVector;
+    std::vector<G4VPhysicalVolume*>::iterator iterWorld =
+    transportationManager->GetWorldsIterator();
+    for (size_t i = 0; i < nWorlds; ++i, ++iterWorld) {
+      G4PhysicalVolumeModel searchModel (*iterWorld);  // Unlimited depth.
+      G4ModelingParameters mp;  // Default - no culling.
+      searchModel.SetModelingParameters (&mp);
+      // Find all instances at any position in the tree
+      G4PhysicalVolumesSearchScene searchScene (&searchModel, pvName, copyNo);
+      searchModel.DescribeYourselfTo (searchScene);  // Initiate search.
+      for (const auto& findings: searchScene.GetFindings()) {
+        findingsVector.push_back(findings);
+      }
+    }
+    for (const auto& findings: findingsVector) {
+      G4cout
+      <<  findings.fFoundBasePVPath
+      << ' ' << findings.fpFoundPV->GetName()
+      << ' ' <<  findings.fFoundPVCopyNo
+      << " (mother logical volume: "
+      << findings.fpFoundPV->GetMotherLogical()->GetName()
+      << ')'
+      << G4endl;
+    }
+    if (findingsVector.size()) {
+      G4cout
+      << "Use this to set a particular touchable with \"/vis/set/touchable <path>\""
+      << "\nor to see overlaps: \"/vis/drawLogicalVolume <mother-logical-volume-name>\""
+      << G4endl;
+    } else {
+      G4warn << pvName;
+      if (copyNo >= 0) G4warn << ':' << copyNo;
+      G4warn << " not found" << G4endl;
+    }
+    return;
+  }
+
   G4VViewer* currentViewer = fpVisManager -> GetCurrentViewer ();
   if (!currentViewer) {
     if (verbosity >= G4VisManager::errors) {
@@ -239,13 +314,15 @@ void G4VisCommandsTouchable::SetNewValue
       const G4Point3D& standardTargetPoint = currentScene->GetStandardTargetPoint();
       newVP.SetCurrentTargetPoint(newTargetPoint - standardTargetPoint);
 
-      // Interpolate
-      auto keepVisVerbose = fpVisManager->GetVerbosity();
-      fpVisManager->SetVerboseLevel(G4VisManager::errors);
-      if (newVP != saveVP) InterpolateToNewView(currentViewer, saveVP, newVP);
-      // ...and twinkle
-      Twinkle(currentViewer,newVP,touchables);
-      fpVisManager->SetVerboseLevel(keepVisVerbose);
+      if (currentViewer->GetKernelVisitElapsedTimeSeconds() < 0.1) {
+        // Interpolate
+        auto keepVisVerbose = fpVisManager->GetVerbosity();
+        fpVisManager->SetVerboseLevel(G4VisManager::errors);
+        if (newVP != saveVP) InterpolateToNewView(currentViewer, saveVP, newVP);
+        // ...and twinkle
+        Twinkle(currentViewer,newVP,touchables);
+        fpVisManager->SetVerboseLevel(keepVisVerbose);
+      }
 
       if (verbosity >= G4VisManager::confirmations) {
         G4cout
@@ -310,36 +387,6 @@ void G4VisCommandsTouchable::SetNewValue
     }
     return;
 
-  } else if (command == fpCommandDump) {
-
-    G4PhysicalVolumeModel::TouchableProperties properties =
-    G4TouchableUtils::FindTouchableProperties(fCurrentTouchableProperties.fTouchablePath);
-    if (properties.fpTouchablePV) {
-      // To handle parameterisations we have to set the copy number
-      properties.fpTouchablePV->SetCopyNo(properties.fCopyNo);
-      G4PhysicalVolumeModel tempPVModel
-      (properties.fpTouchablePV,
-       G4PhysicalVolumeModel::UNLIMITED,
-       properties.fTouchableGlobalTransform,
-       nullptr, // Modelling parameters (not used)
-       true, // use full extent (prevents calculating own extent, which crashes)
-       properties.fTouchableBaseFullPVPath);
-      const std::map<G4String,G4AttDef>* attDefs = tempPVModel.GetAttDefs();
-      std::vector<G4AttValue>* attValues = tempPVModel.CreateCurrentAttValues();
-      G4cout << G4AttCheck(attValues,attDefs);
-      delete attValues;
-      const auto lv = properties.fpTouchablePV->GetLogicalVolume();
-      const auto polyhedron = lv->GetSolid()->GetPolyhedron();
-      polyhedron->SetVisAttributes(lv->GetVisAttributes());
-      G4cout << "\nLocal polyhedron coordinates:\n" << *polyhedron;
-      const G4Transform3D& transform = tempPVModel.GetCurrentTransform();
-      polyhedron->Transform(transform);
-      G4cout << "\nGlobal polyhedron coordinates:\n" << *polyhedron;
-    } else {
-      G4warn << "Touchable not found." << G4endl;
-    }
-    return;
-
   } else if (command == fpCommandExtentForField) {
 
     G4PhysicalVolumeModel::TouchableProperties properties =
@@ -360,48 +407,6 @@ void G4VisCommandsTouchable::SetNewValue
       }
     } else {
       G4warn << "Touchable not found." << G4endl;
-    }
-    return;
-
-  } else if (command == fpCommandFindPath) {
-
-    G4String pvName;
-    G4int copyNo;
-    std::istringstream iss(newValue);
-    iss >> pvName >> copyNo;
-    std::vector<G4PhysicalVolumesSearchScene::Findings> findingsVector;
-    std::vector<G4VPhysicalVolume*>::iterator iterWorld =
-    transportationManager->GetWorldsIterator();
-    for (size_t i = 0; i < nWorlds; ++i, ++iterWorld) {
-      G4PhysicalVolumeModel searchModel (*iterWorld);  // Unlimited depth.
-      G4ModelingParameters mp;  // Default - no culling.
-      searchModel.SetModelingParameters (&mp);
-      // Find all instances at any position in the tree
-      G4PhysicalVolumesSearchScene searchScene (&searchModel, pvName, copyNo);
-      searchModel.DescribeYourselfTo (searchScene);  // Initiate search.
-      for (const auto& findings: searchScene.GetFindings()) {
-        findingsVector.push_back(findings);
-      }
-    }
-    for (const auto& findings: findingsVector) {
-      G4cout
-      <<  findings.fFoundBasePVPath
-      << ' ' << findings.fpFoundPV->GetName()
-      << ' ' <<  findings.fFoundPVCopyNo
-      << " (mother logical volume: "
-      << findings.fpFoundPV->GetMotherLogical()->GetName()
-      << ')'
-      << G4endl;
-    }
-    if (findingsVector.size()) {
-      G4cout
-      << "Use this to set a particular touchable with \"/vis/set/touchable <path>\""
-      << "\nor to see overlaps: \"/vis/drawLogicalVolume <mother-logical-volume-name>\""
-      << G4endl;
-    } else {
-      G4warn << pvName;
-      if (copyNo >= 0) G4warn << ':' << copyNo;
-      G4warn << " not found" << G4endl;
     }
     return;
 
@@ -443,19 +448,23 @@ void G4VisCommandsTouchable::SetNewValue
 
   } else if (command == fpCommandTwinkle) {
 
-    G4PhysicalVolumeModel::TouchableProperties properties =
-    G4TouchableUtils::FindTouchableProperties(fCurrentTouchableProperties.fTouchablePath);
-    if (properties.fpTouchablePV) {
-      std::vector<std::vector<G4PhysicalVolumeModel::G4PhysicalVolumeNodeID>> touchables;
-      touchables.push_back(properties.fTouchableFullPVPath);
-      auto keepVisVerbose = fpVisManager->GetVerbosity();
-      fpVisManager->SetVerboseLevel(G4VisManager::errors);
-      auto keepVP = currentViewer->GetViewParameters();
-      Twinkle(currentViewer,currentViewer->GetViewParameters(),touchables);
-      SetViewParameters(currentViewer, keepVP);
-      fpVisManager->SetVerboseLevel(keepVisVerbose);
+    if (currentViewer->GetKernelVisitElapsedTimeSeconds() < 0.1) {
+      G4PhysicalVolumeModel::TouchableProperties properties =
+      G4TouchableUtils::FindTouchableProperties(fCurrentTouchableProperties.fTouchablePath);
+      if (properties.fpTouchablePV) {
+        std::vector<std::vector<G4PhysicalVolumeModel::G4PhysicalVolumeNodeID>> touchables;
+        touchables.push_back(properties.fTouchableFullPVPath);
+        auto keepVisVerbose = fpVisManager->GetVerbosity();
+        fpVisManager->SetVerboseLevel(G4VisManager::errors);
+        auto keepVP = currentViewer->GetViewParameters();
+        Twinkle(currentViewer,currentViewer->GetViewParameters(),touchables);
+        SetViewParameters(currentViewer, keepVP);
+        fpVisManager->SetVerboseLevel(keepVisVerbose);
+      } else {
+        G4warn << "Touchable not found." << G4endl;
+      }
     } else {
-      G4warn << "Touchable not found." << G4endl;
+      G4warn << "Twinkling not available - image construction time too long." << G4endl;
     }
     return;
 

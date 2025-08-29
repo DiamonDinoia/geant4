@@ -36,7 +36,6 @@
 #include "G4SDManager.hh"
 #include "G4ScoringManager.hh"
 #include "G4TaskRunManager.hh"
-#include "G4TiMemory.hh"
 #include "G4Timer.hh"
 #include "G4TransportationManager.hh"
 #include "G4UImanager.hh"
@@ -140,10 +139,6 @@ void G4WorkerTaskRunManager::RunInitialization()
   }
 
   if (userRunAction != nullptr) userRunAction->BeginOfRunAction(currentRun);
-
-#if defined(GEANT4_USE_TIMEMORY)
-  workerRunProfiler.reset(new ProfilerConfig(currentRun));
-#endif
 
   if (isScoreNtupleWriter) {
     G4VScoreNtupleWriter::Instance()->OpenFile();
@@ -259,6 +254,7 @@ G4Event* G4WorkerTaskRunManager::GenerateEvent(G4int i_event)
     }
 
     if (!eventLoopOnGoing) {
+      anEvent->ScoresRecorded();
       delete anEvent;
       return nullptr;
     }
@@ -331,9 +327,6 @@ G4Event* G4WorkerTaskRunManager::GenerateEvent(G4int i_event)
 void G4WorkerTaskRunManager::RunTermination()
 {
   if (!fakeRun && (currentRun != nullptr)) {
-#if defined(GEANT4_USE_TIMEMORY)
-    workerRunProfiler.reset();
-#endif
     MergePartialResults();
 
     // Call a user hook: note this is before the next barrier
@@ -416,7 +409,7 @@ void G4WorkerTaskRunManager::ProcessUI()
   if (!matching) {
     for (const auto& itr : command_stack)
       G4UImanager::GetUIpointer()->ApplyCommand(itr);
-    processedCommandStack = command_stack;
+    processedCommandStack = std::move(command_stack);
   }
 }
 
@@ -449,7 +442,7 @@ void G4WorkerTaskRunManager::DoWork()
   }
 
   // Start this run
-  G4int nevts = mrm->GetNumberOfEventsToBeProcessed();
+  G4int nevts = mrm->GetNumberOfEventsPerTask();
   G4int numSelect = mrm->GetNumberOfSelectEvents();
   G4String macroFile = mrm->GetSelectMacro();
   G4bool empty_macro = (macroFile.empty() || macroFile == " ");

@@ -45,10 +45,10 @@ class G4VPhysicsConstructor;
 class G4EmDNAChemistry;
 class G4EmDNAChemistry_option1;
 
-class PhysicsList: public G4VModularPhysicsList
+class PhysicsList : public G4VModularPhysicsList
 {
   public:
-    explicit PhysicsList();
+    PhysicsList();
     ~PhysicsList() override;
 
     void ConstructParticle() override;
@@ -57,9 +57,9 @@ class PhysicsList: public G4VModularPhysicsList
     void RegisterConstructor(const G4String& name);
 
   private:
-    G4VPhysicsConstructor*    fEmDNAPhysicsList;
-    G4EmDNAChemistry*         fEmDNAChemistryList;
-    G4EmDNAChemistry_option1* fEmDNAChemistryList1;
-    G4String                  fPhysDNAName;
+    G4VPhysicsConstructor* fEmDNAPhysicsList = nullptr;
+    G4EmDNAChemistry* fEmDNAChemistryList = nullptr;
+    G4EmDNAChemistry_option1* fEmDNAChemistryList1 = nullptr;
+    G4String fPhysDNAName;
 };
 #endif

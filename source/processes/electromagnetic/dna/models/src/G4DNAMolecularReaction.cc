@@ -45,6 +45,7 @@
 #include "G4ITReaction.hh"
 
 #include "G4ITTrackHolder.hh"
+#include "G4MoleculeCounterManager.hh"
 
 G4DNAMolecularReaction::G4DNAMolecularReaction()
     : 
@@ -91,7 +92,10 @@ std::unique_ptr<G4ITReactionChange> G4DNAMolecularReaction::MakeReaction(const G
     const auto pMoleculeB = GetMolecule(trackB)->GetMolecularConfiguration();
 
     const auto pReactionData = fMolReactionTable->GetReactionData(pMoleculeA, pMoleculeB);
-
+    // Notify molecule (reaction) counter
+    if (G4MoleculeCounterManager::Instance()->GetIsActive()) {
+      G4MoleculeCounterManager::Instance()->RecordReaction(pReactionData, trackA.GetGlobalTime());
+    }
     const G4int nbProducts = pReactionData->GetNbProducts();
 
     if (nbProducts != 0)
@@ -142,9 +146,9 @@ std::vector<std::unique_ptr<G4ITReactionChange>> G4DNAMolecularReaction::FindRea
     }
 
     G4ITReactionPerTrackMap& reactionPerTrackMap = pReactionSet->GetReactionMap();
-    for (auto tracks_i = reactionPerTrackMap.begin();
-         tracks_i != reactionPerTrackMap.end();
-         tracks_i = reactionPerTrackMap.begin())
+    for (auto tracks_i = reactionPerTrackMap.cbegin();
+         tracks_i != reactionPerTrackMap.cend();
+         tracks_i = reactionPerTrackMap.cbegin())
     {
         G4Track* pTrackA = tracks_i->first;
         if (pTrackA->GetTrackStatus() == fStopAndKill)
@@ -155,9 +159,9 @@ std::vector<std::unique_ptr<G4ITReactionChange>> G4DNAMolecularReaction::FindRea
         G4ITReactionPerTrackPtr reactionPerTrack = tracks_i->second;
         G4ITReactionList& reactionList = reactionPerTrack->GetReactionList();
 
-        assert(reactionList.begin() != reactionList.end());
+        assert(reactionList.cbegin() != reactionList.cend());
 
-        for (auto it = reactionList.begin(); it != reactionList.end(); it = reactionList.begin())
+        for (auto it = reactionList.cbegin(); it != reactionList.cend(); it = reactionList.cbegin())
         {
             G4ITReactionPtr reaction(*it);
             G4Track* pTrackB = reaction->GetReactant(pTrackA);
@@ -178,7 +182,7 @@ std::vector<std::unique_ptr<G4ITReactionChange>> G4DNAMolecularReaction::FindRea
                             exceptionDescription);
             }
 
-            pReactionSet->SelectThisReaction(reaction);
+            pReactionSet->SelectThisReaction(std::move(reaction));
 
             if (TestReactibility(*pTrackA, *pTrackB, currentStepTime, reachedUserStepTimeLimit))
             {

@@ -70,28 +70,38 @@ public:
 
   ~G4ChargeExchangeXS() override = default;
 
-  G4bool IsIsoApplicable(const G4DynamicParticle*, G4int Z, G4int A,
-			 const G4Element*, const G4Material*) override;
+  G4bool IsElementApplicable(const G4DynamicParticle*, G4int Z, 
+                             const G4Material*) final;
 
-  G4double GetIsoCrossSection(const G4DynamicParticle*, G4int Z, G4int A,
-                              const G4Isotope* iso,
-                              const G4Element* elm,
-                              const G4Material* mat) override;
+  G4double GetElementCrossSection(const G4DynamicParticle*, G4int Z,
+                                  const G4Material*) final;
 
-  void CrossSectionDescription(std::ostream&) const override;
+  void CrossSectionDescription(std::ostream&) const final;
 
   const G4ParticleDefinition*
-  SampleSecondaryType(const G4ParticleDefinition*,
-                      const G4int Z, const G4int A);
+  SampleSecondaryType(const G4ParticleDefinition*, const G4Material*,
+		      G4int Z, G4int A, G4double etot);
+
+  G4double GetPartialPionXS(G4int idx);
+
+  G4double GetPionTFactor(G4int idx, const G4ParticleDefinition* part,
+			  G4double pEtot);
 
   void SetEnergyLimit(G4double val) { fEnergyLimit = val; };
 
   void SetCrossSectionFactor(G4double val) { fFactor = val; };
 
+  G4double GetCrossSectionFactor() const { return fFactor; };
+
   G4ChargeExchangeXS & operator=(const G4ChargeExchangeXS &right) = delete;
   G4ChargeExchangeXS(const G4ChargeExchangeXS&) = delete;
 
 private:
+
+  G4double GetCrossSection(const G4ParticleDefinition*, const G4Material*,
+			   G4int Z, G4double etot);
+
+  G4double ComputeDeuteronFraction(const G4Material*);
 
   G4Pow* g4calc;
   const G4ParticleDefinition* fPionSecPD[5];

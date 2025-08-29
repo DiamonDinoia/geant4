@@ -33,11 +33,11 @@
 #include <sstream>
 
 #include "G4MultiUnion.hh"
-#include "Randomize.hh"
 #include "G4GeometryTolerance.hh"
 #include "G4BoundingEnvelope.hh"
 #include "G4AffineTransform.hh"
 #include "G4DisplacedSolid.hh"
+#include "G4QuickRand.hh"
 
 #include "G4VGraphicsScene.hh"
 #include "G4Polyhedron.hh"
@@ -124,28 +124,9 @@ G4MultiUnion& G4MultiUnion::operator = (const G4MultiUnion& rhs)
 //______________________________________________________________________________
 G4double G4MultiUnion::GetCubicVolume()
 {
-  // Computes the cubic volume of the "G4MultiUnion" structure using
-  // random points
-
   if (fCubicVolume == 0.0)
   {
-    G4ThreeVector extentMin, extentMax, d, p, point;
-    G4int inside = 0, generated;
-    BoundingLimits(extentMin, extentMax);
-    d = (extentMax - extentMin) / 2.;
-    p = (extentMax + extentMin) / 2.;
-    G4ThreeVector left = p - d;
-    G4ThreeVector length = d * 2;
-    for (generated = 0; generated < 10000; ++generated)
-    {
-      G4ThreeVector rvec(G4UniformRand(), G4UniformRand(), G4UniformRand());
-      point = left + G4ThreeVector(length.x()*rvec.x(),
-                                   length.y()*rvec.y(),
-                                   length.z()*rvec.z());
-      if (Inside(point) != EInside::kOutside) ++inside;
-    }
-    G4double vbox = (2 * d.x()) * (2 * d.y()) * (2 * d.z());
-    fCubicVolume = inside * vbox / generated;
+    fCubicVolume = EstimateCubicVolume(1000000, 0.001);
   }
   return fCubicVolume;
 }
@@ -818,9 +799,24 @@ G4double G4MultiUnion::GetSurfaceArea()
 {
   if (fSurfaceArea == 0.0)
   {
-    fSurfaceArea = EstimateSurfaceArea(1000000, 0.001);
+    fSurfaceArea = EstimateSurfaceArea(1000000, -1.);
   }
   return fSurfaceArea;
+}
+
+//______________________________________________________________________________
+G4int G4MultiUnion::GetNumOfConstituents() const
+{
+  G4int num = 0;
+  for (const auto solid : fSolids) { num += solid->GetNumOfConstituents(); }
+  return num;
+}
+
+//______________________________________________________________________________
+G4bool G4MultiUnion::IsFaceted() const
+{
+  for (const auto solid : fSolids) { if (!solid->IsFaceted()) return false; }
+  return true;
 }
 
 //______________________________________________________________________________
@@ -947,19 +943,16 @@ std::ostream& G4MultiUnion::StreamInfo(std::ostream& os) const
 G4ThreeVector G4MultiUnion::GetPointOnSurface() const
 {
   G4ThreeVector point;
-
   G4long size = fSolids.size();
-
   do
   {
-    G4long rnd = G4RandFlat::shootInt(G4long(0), size);
+    G4long rnd = (G4long)(G4QuickRand()*size);
     G4VSolid& solid = *fSolids[rnd];
-    point = solid.GetPointOnSurface();
+    G4ThreeVector p = solid.GetPointOnSurface();
     const G4Transform3D& transform = fTransformObjs[rnd];
-    point = GetGlobalPoint(transform, point);
+    point = GetGlobalPoint(transform, p);
   }
   while (Inside(point) != EInside::kSurface);
-
   return point;
 }
 
@@ -1004,23 +997,7 @@ G4Polyhedron* G4MultiUnion::CreatePolyhedron() const
   }
   else
   {
-    G4VSolid* solidA = GetSolid(0);
-    auto solidAPolyhedron =solidA->GetPolyhedron();
-
-    const G4Transform3D transform0 = GetTransformation(0);
-    G4DisplacedSolid dispSolidA("placedA", solidA, transform0);
-
-    // dispSolidA.GetPolyhedron()
-    for (G4int i = 1; i < GetNumberOfSolids(); ++i)
-    {
-      G4VSolid* solidB = GetSolid(i);
-      const G4Transform3D transform = GetTransformation(i);
-      G4DisplacedSolid dispSolidB("placedB", solidB, transform);
-      solidAPolyhedron = G4BooleanSolid::GetExternalBooleanProcessor()
-                       ->Union(solidAPolyhedron, dispSolidB.GetPolyhedron());
-    }
-
-    return solidAPolyhedron;
+    return G4BooleanSolid::GetExternalBooleanProcessor()->Process(this);
   }
 }
 

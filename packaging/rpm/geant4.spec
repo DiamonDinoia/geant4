@@ -1,17 +1,20 @@
-%global geant4_version 11.2.1
+%global geant4_version 11.4.0-beta
 
-%global NEUTRONHPDATA G4NDL.4.7
-%global LEDATA G4EMLOW.8.5
-%global LEVELGAMMADATA G4PhotonEvaporation.5.7
-%global RADIOACTIVEDATA G4RadioactiveDecay.5.6
-%global PARTICLEXSDATA G4PARTICLEXS.4.0
+%global NEUTRONHPDATA G4NDL.4.7.1
+%global LEDATA G4EMLOW.8.7
+%global LEVELGAMMADATA G4PhotonEvaporation.6.1
+%global RADIOACTIVEDATA G4RadioactiveDecay.6.1.2
+%global PARTICLEXSDATA G4PARTICLEXS.4.1
 %global PIIDATA G4PII.1.3
 %global REALSURFACEDATA G4RealSurface.2.2
 %global SAIDXSDATA G4SAIDDATA.2.0
 %global ABLADATA G4ABLA.3.3
 %global INCLDATA G4INCL.1.2
-%global ENSDFSTATEDATA G4ENSDFSTATE.2.3
+%global ENSDFSTATEDATA G4ENSDFSTATE.3.0
+%global CHANNELINGDATA G4CHANNELING.1.0
 %global TENDLDATA G4TENDL.1.4
+%global NUDEXLIBDATA G4NUDEXLIB.1.0
+%global URRPTDATA G4URRPT.1.1
 
 Name: geant4
 Version: %{geant4_version}
@@ -31,7 +34,10 @@ Source8:  https://geant4-data.web.cern.ch/datasets/%{SAIDXSDATA}.tar.gz
 Source9:  https://geant4-data.web.cern.ch/datasets/%{ABLADATA}.tar.gz
 Source10: https://geant4-data.web.cern.ch/datasets/%{INCLDATA}.tar.gz
 Source11: https://geant4-data.web.cern.ch/datasets/%{ENSDFSTATEDATA}.tar.gz
-Source12: https://geant4-data.web.cern.ch/datasets/%{TENDLDATA}.tar.gz
+Source12: https://geant4-data.web.cern.ch/datasets/%{CHANNELINGDATA}.tar.gz
+Source13: https://geant4-data.web.cern.ch/datasets/%{TENDLDATA}.tar.gz
+Source14: https://geant4-data.web.cern.ch/datasets/%{NUDEXLIBDATA}.tar.gz
+Source15: https://geant4-data.web.cern.ch/datasets/%{URRPTDATA}.tar.gz
 
 %undefine __cmake_in_source_build
 %undefine __cmake3_in_source_build
@@ -89,12 +95,10 @@ Requires: %{name}-data = %{version}-%{release}
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 
 %description
-Geant simulates the passage of subatomic particles through matter,
-for instance, particle detectors. Geant 3 simulations are performed
-by linking Fortran code supplied by the user with the Geant libraries,
-then running the resulting executable. This package includes gxint,
-the script used to perform this linking step. Geant 4 is a complete
-rewrite in C++ with addition of other modern features and detectors.
+Geant4 simulates the passage of subatomic particles through matter,
+for instance, particle detectors. Geant4 simulations are performed
+by linking C++ code supplied by the user with the Geant4 libraries,
+then running the resulting executable.
 
 %package libs
 Summary: Geant4 libraries
@@ -200,7 +204,6 @@ Geant4 user examples
   -DGEANT4_USE_SYSTEM_PTL:BOOL=OFF \
   -DGEANT4_USE_SYSTEM_ZLIB:BOOL=ON \
   -DGEANT4_USE_TBB:BOOL=%{with tbb} \
-  -DGEANT4_USE_TIMEMORY:BOOL=OFF \
   -DGEANT4_USE_VTK:BOOL=%{with vtk} \
   -DGEANT4_USE_XM:BOOL=ON
 
@@ -231,6 +234,9 @@ tar xzf %{SOURCE9} -C %{buildroot}/%{_datadir}/%{name}/data
 tar xzf %{SOURCE10} -C %{buildroot}/%{_datadir}/%{name}/data
 tar xzf %{SOURCE11} -C %{buildroot}/%{_datadir}/%{name}/data
 tar xzf %{SOURCE12} -C %{buildroot}/%{_datadir}/%{name}/data
+tar xzf %{SOURCE13} -C %{buildroot}/%{_datadir}/%{name}/data
+tar xzf %{SOURCE14} -C %{buildroot}/%{_datadir}/%{name}/data
+tar xzf %{SOURCE15} -C %{buildroot}/%{_datadir}/%{name}/data
 
 %files
 # Empty
@@ -258,6 +264,44 @@ tar xzf %{SOURCE12} -C %{buildroot}/%{_datadir}/%{name}/data
 %endif
 
 %changelog
+* Thu Jun 26 2025 Gabriele Cosmo <Gabriele.Cosmo@cern.ch> - 11.4.0-b
+- Update to version 11.4.0-beta
+
+* Fri Apr 25 2025 Gabriele Cosmo <Gabriele.Cosmo@cern.ch> - 11.3.2
+- Update to version 11.3.2
+
+* Fri Mar 21 2025 Gabriele Cosmo <Gabriele.Cosmo@cern.ch> - 11.3.1
+- Update to version 11.3.1
+
+* Mon Nov 25 2024 Ben Morgan <Ben.Morgan@warwick.ac.uk> - 11.3.0-3
+- Bump G4RadioactiveDecay dataset version to 6.1.2
+
+* Thu Nov 21 2024 Gabriele Cosmo <Gabriele.Cosmo@cern.ch> - 11.3.0-2
+- Bump G4URRPT dataset to 1.1
+- Fixed package description
+
+* Tue Nov 19 2024 Ben Morgan <Ben.Morgan@warwick.ac.uk> - 11.3.0-1
+- Bump G4RadioactiveDecay dataset version to 6.1.1
+
+* Fri Nov 15 2024 Ben Morgan <Ben.Morgan@warwick.ac.uk> - 11.3.0
+- Update to version 11.3.0
+- Add install of new Channeling dataset
+
+* Fri Jun 28 2024 Gabriele Cosmo <Gabriele.Cosmo@cern.ch> - 11.3.0-b
+- Update to version 11.3.0-beta
+
+* Fri Jun 21 2024 Gabriele Cosmo <Gabriele.Cosmo@cern.ch> - 11.2.2
+- Update to version 11.2.2
+
+* Fri June 7 2024 Ben Morgan <bmorgan@cern.ch> - 11.2.1-2
+- Add install of new URRPT dataset
+
+* Fri May 17 2024 Ben Morgan <bmorgan@cern.ch> - 11.2.1-1
+- Add install of new NuDEXLib dataset
+
+* Fri Feb 16 2024 Gabriele Cosmo <Gabriele.Cosmo@cern.ch> - 11.2.1
+- Update to version 11.2.1
+
 * Wed Dec 12 2023 Guilherme Amadio <amadio@cern.ch> - 11.2.0
 - Update to version 11.2.0
 

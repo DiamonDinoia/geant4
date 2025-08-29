@@ -8,13 +8,16 @@ geant4_add_module(G4emutils
     G4AtomicShellEnumerator.hh
     G4DNAModelSubType.hh
     G4DummyModel.hh
+    G4ChemTimeStepModel.hh
     G4ElectronIonPair.hh
     G4EmBiasingManager.hh
     G4EmCalculator.hh
     G4EmConfigurator.hh
     G4EmCorrections.hh
     G4EmDataHandler.hh
+    G4EmDataRegistry.hh
     G4EmElementSelector.hh
+    G4EmElementXS.hh
     G4EmExtraParameters.hh
     G4EmExtraParametersMessenger.hh
     G4EmFluoDirectory.hh
@@ -48,7 +51,9 @@ geant4_add_module(G4emutils
     G4VEnergyLossProcess.hh
     G4VMscModel.hh
     G4VMultipleScattering.hh
+    G4VPositronAtRestModel.hh
     G4VSubCutProducer.hh
+    G4VXRayModel.hh
     G4ionEffectiveCharge.hh
   SOURCES
     G4AngleDirect.cc
@@ -59,7 +64,9 @@ geant4_add_module(G4emutils
     G4EmConfigurator.cc
     G4EmCorrections.cc
     G4EmDataHandler.cc
+    G4EmDataRegistry.cc
     G4EmElementSelector.cc
+    G4EmElementXS.cc
     G4EmExtraParameters.cc
     G4EmExtraParametersMessenger.cc
     G4EmLowEParameters.cc
@@ -86,6 +93,7 @@ geant4_add_module(G4emutils
     G4VEnergyLossProcess.cc
     G4VMscModel.cc
     G4VMultipleScattering.cc
+    G4VXRayModel.cc
     G4ionEffectiveCharge.cc)
 
 geant4_module_link_libraries(G4emutils

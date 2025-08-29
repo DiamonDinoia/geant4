@@ -43,8 +43,6 @@
 #include "G4TransportationManager.hh"
 #include "G4Navigator.hh"
 #include "Randomize.hh"
-#include "G4Profiler.hh"
-#include "G4TiMemory.hh"
 #include "G4GlobalFastSimulationManager.hh"
 #include "G4AutoLock.hh"
 
@@ -90,7 +88,8 @@ G4EventManager::~G4EventManager()
   fpEventManager = nullptr;
 }
 
-void G4EventManager::DoProcessing(G4Event* anEvent)
+void G4EventManager::DoProcessing(G4Event* anEvent,
+  G4TrackVector* trackVector, G4bool IDhasAlreadySet)
 {
   abortRequested = false;
   G4ApplicationState currentState = stateManager->GetCurrentState();
@@ -101,7 +100,7 @@ void G4EventManager::DoProcessing(G4Event* anEvent)
     return;
   }
   currentEvent = anEvent;
-  stateManager->SetNewState(G4State_EventProc);
+  if(!subEventParaWorker) stateManager->SetNewState(G4State_EventProc);
   if(storetRandomNumberStatusToG4Event > 1)
   {
     std::ostringstream oss;
@@ -125,6 +124,7 @@ void G4EventManager::DoProcessing(G4Event* anEvent)
   {
     G4cout << "=====================================" << G4endl;
     G4cout << "  G4EventManager::ProcessOneEvent()  " << G4endl;
+    if(trackVector!=nullptr) G4cout << "     for a sub-event" << G4endl;
     G4cout << "=====================================" << G4endl;
   }
 #endif
@@ -133,17 +133,18 @@ void G4EventManager::DoProcessing(G4Event* anEvent)
 
 #ifdef G4_STORE_TRAJECTORY
   trajectoryContainer = nullptr;
+//  trajectoryContainer = currentEvent->GetTrajectoryContainer();
+//  if(trajectoryContainer==nullptr) {
+//    trajectoryContainer = new G4TrajectoryContainer;
+//    currentEvent->SetTrajectoryContainer(trajectoryContainer);
+//  }
 #endif
 
   sdManager = G4SDManager::GetSDMpointerIfExist();
   if(sdManager != nullptr)
   { currentEvent->SetHCofThisEvent(sdManager->PrepareNewEvent()); }
 
-  if(userEventAction != nullptr) userEventAction->BeginOfEventAction(currentEvent);
-
-#if defined(GEANT4_USE_TIMEMORY)
-  eventProfiler.reset(new ProfilerConfig(currentEvent));
-#endif
+  if(!subEventParaWorker && userEventAction != nullptr) userEventAction->BeginOfEventAction(currentEvent);
 
 #ifdef G4VERBOSE
   if ( verboseLevel > 1 )
@@ -153,6 +154,10 @@ void G4EventManager::DoProcessing(G4Event* anEvent)
   }
 #endif
 
+  if(trackVector!=nullptr) 
+  {
+    StackTracks(trackVector,IDhasAlreadySet);
+  }
   if(!abortRequested)
   {
     StackTracks(transformer->GimmePrimaries(currentEvent,trackIDCounter), true);
@@ -161,8 +166,8 @@ void G4EventManager::DoProcessing(G4Event* anEvent)
 #ifdef G4VERBOSE
   if ( verboseLevel > 0 )
   {
-    G4cout << trackContainer->GetNTotalTrack() << " primaries "
-           << "are passed from G4EventTransformer." << G4endl;
+    G4cout << trackContainer->GetNTotalTrack() << " primary tracks "
+           << "are passed to the stack." << G4endl;
     G4cout << "!!!!!!! Now start processing an event !!!!!!!" << G4endl;
   }
 #endif
@@ -309,10 +314,6 @@ void G4EventManager::DoProcessing(G4Event* anEvent)
     sdManager->TerminateCurrentEvent(currentEvent->GetHCofThisEvent());
   }
 
-#if defined(GEANT4_USE_TIMEMORY)
-  eventProfiler.reset();
-#endif
-
 //  In case of sub-event parallelism, an event may not be completed at
 //  this point but results of sus-events may be merged later. Thus
 //  userEventAction->EndOfEventAction() is invoked by G4RunManager
@@ -340,7 +341,7 @@ void G4EventManager::DoProcessing(G4Event* anEvent)
     }
   }
 
-  stateManager->SetNewState(G4State_GeomClosed);
+  if(!subEventParaWorker) stateManager->SetNewState(G4State_GeomClosed);
   currentEvent = nullptr;
   abortRequested = false;
 }
@@ -357,7 +358,7 @@ void G4EventManager::TerminateSubEvent(const G4SubEvent* se,const G4Event* evt)
   G4AutoLock lock(&EventMgrMutex);
   auto ev = se->GetEvent();
   ev->MergeSubEventResults(evt);
-  userEventAction->MergeSubEvent(ev,evt);
+  if(!subEventParaWorker && userEventAction!=nullptr) userEventAction->MergeSubEvent(ev,evt);
 #ifdef G4VERBOSE
   // Capture this here because termination will delete subevent...
   G4int seType = se->GetSubEventType();
@@ -377,6 +378,16 @@ void G4EventManager::TerminateSubEvent(const G4SubEvent* se,const G4Event* evt)
     { G4cout << " ---- This event has no more sub-event remaining." << G4endl; }
   }
 #endif
+}
+
+G4int G4EventManager::StoreSubEvent(G4Event* evt, G4int& subEvtType, G4SubEvent* se)
+{
+  G4AutoLock lock(&EventMgrMutex);
+  if(evt != currentEvent) {
+    G4Exception("G4EventManager::StoreSubEvent","SubEvt1011", FatalException,
+                "StoreSubEvent is invoked with a G4Event that is not the current event. PANIC!");
+  }
+  return evt->StoreSubEvent(subEvtType,se);
 }
 
 void G4EventManager::StackTracks(G4TrackVector* trackVector,
@@ -452,13 +463,21 @@ void G4EventManager::ProcessOneEvent(G4TrackVector* trackVector,
 {
   static G4ThreadLocal G4String* randStat = nullptr;
   if (randStat == nullptr) randStat = new G4String;
-  trackIDCounter = 0;
   G4bool tempEvent = false;
+  G4bool newEvent = false;
   if(anEvent == nullptr)
   {
     anEvent = new G4Event();
     tempEvent = true;
+    newEvent = true;
+  } else {
+    if(evID_inSubEv != anEvent->GetEventID()) {
+      evID_inSubEv = anEvent->GetEventID();
+      newEvent = true;
+    }
   }
+  if(newEvent) trackIDCounter = 0;
+
   if (storetRandomNumberStatusToG4Event==1
    || storetRandomNumberStatusToG4Event==3)
   {
@@ -467,8 +486,7 @@ void G4EventManager::ProcessOneEvent(G4TrackVector* trackVector,
     (*randStat) = oss.str();
     anEvent->SetRandomNumberStatus(*randStat);
   }
-  StackTracks(trackVector,false);
-  DoProcessing(anEvent);
+  DoProcessing(anEvent,trackVector,false);
   if(tempEvent) { delete anEvent; }
 }
 

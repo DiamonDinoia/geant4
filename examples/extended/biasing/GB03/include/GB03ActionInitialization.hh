@@ -30,19 +30,17 @@
 #ifndef GB03ActionInitialization_H
 #define GB03ActionInitialization_H 1
 
-#include "globals.hh"
 #include "G4VUserActionInitialization.hh"
+#include "globals.hh"
 
 class GB03ActionInitialization : public G4VUserActionInitialization
 {
   public:
     GB03ActionInitialization();
-    virtual ~GB03ActionInitialization();
+    ~GB03ActionInitialization() override;
 
-    virtual void Build() const;
-    virtual void BuildForMaster() const;
-
+    void Build() const override;
+    void BuildForMaster() const override;
 };
 
 #endif
-

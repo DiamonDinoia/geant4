@@ -124,7 +124,7 @@ G4UrbanMscModel::G4UrbanMscModel(const G4String& nam)
 G4UrbanMscModel::~G4UrbanMscModel()
 {
   if(isFirstInstance) {
-    for(auto & ptr : msc) { delete ptr; }
+    for(auto const & ptr : msc) { delete ptr; }
     msc.clear();
   } 
 }
@@ -464,8 +464,7 @@ G4double G4UrbanMscModel::ComputeTruePathLengthLimit(
               : ComputeSafety(sp->GetPosition(), tPathLength);
   
   // stop here if small step or range is less than safety
-  if((tPathLength == currentRange && tPathLength < presafety) ||
-     tPathLength < tlimitminfix) { 
+  if(tPathLength == currentRange && tPathLength < presafety) { 
     latDisplasment = false;   
     return ConvertTrueToGeom(tPathLength, currentMinimalStep); 
   }
@@ -504,8 +503,9 @@ G4double G4UrbanMscModel::ComputeTruePathLengthLimit(
 
       smallstep += 1.;
       insideskin = false;
+      tgeom = geombig;
 
-      // initialisation at firs step and at the boundary
+      // initialisation at first step and at the boundary
       if(firstStep || (stepStatus == fGeomBoundary))
         {
           rangeinit = currentRange;
@@ -520,30 +520,38 @@ G4double G4UrbanMscModel::ComputeTruePathLengthLimit(
                  << " tlimitmin= " << tlimitmin << " geomlimit= " 
                  << geomlimit <<G4endl;
         */
-          // constraint from the geometry
-
-          if((geomlimit < geombig) && (geomlimit > geommin))
-            {
-              // geomlimit is a geometrical step length
-              // transform it to true path length (estimation)
-              if(lambda0 > geomlimit) {
-                geomlimit = -lambda0*G4Log(1.-geomlimit/lambda0)+tlimitmin;
-	      }
-              tgeom = (stepStatus == fGeomBoundary)
-                ? geomlimit/facgeom : 2.*geomlimit/facgeom;
-            }
-          else
-	    {
-	      tgeom = geombig;
-	    }
         }
+
+      // constraint from the geometry
+      // tgeom is upper limit for the step size
+      if((geomlimit < geombig) && (geomlimit > geommin))
+        {
+          // geomlimit is a geometrical step length
+          // transform it to true path length (estimation)
+          if(lambda0 > geomlimit) {
+            geomlimit = -lambda0*G4Log(1.-geomlimit/lambda0)+tlimitmin;
+          }
+          tgeom = (stepStatus == fGeomBoundary) ? geomlimit/facgeom
+	    : facrange*rangeinit + stepmin;
+        }
+      else if(geomlimit > geombig) {
+         // range smaller than distance to boundary  
+         // here tgeom is the true path length
+         tgeom = currentRange;
+        }
+      else if((geomlimit < geommin) && (geomlimit > 0.)) {
+         // geomlimit small (smaller than geommin=1 um)
+         // here true pathlength ~ geom path length
+         tgeom = geomlimit;
+        } 
 
       //step limit 
       tlimit = (currentRange > presafety) ?
         std::max(facrange*rangeinit, facsafety*presafety) : currentRange;
 
       //lower limit for tlimit
-      tlimit = std::min(std::max(tlimit,tlimitmin), tgeom);
+      tlimit = std::max(tlimit, tlimitmin);
+      tlimit = std::min(tlimit, tgeom);
       /*
       G4cout << "tgeom= " << tgeom << " geomlimit= " << geomlimit  
             << " tlimit= " << tlimit << " presafety= " << presafety << G4endl;

@@ -23,9 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-// class G4ErrorPropagationNavigator implementation
+// Class G4ErrorPropagationNavigator implementation
 //
-// Author: Pedro Arce, CIEMAT
+// Author: Pedro Arce (CIEMAT), September 2004
 // --------------------------------------------------------------------
 
 #include "G4ErrorPropagationNavigator.hh"
@@ -38,22 +38,9 @@
 #include "G4ErrorPlaneSurfaceTarget.hh"
 #include "G4ErrorCylSurfaceTarget.hh"
 
-
-//-------------------------------------------------------------------
-
-G4ErrorPropagationNavigator::G4ErrorPropagationNavigator()
-{
-}
-
-//-------------------------------------------------------------------
-
-G4ErrorPropagationNavigator::~G4ErrorPropagationNavigator() = default;
-
-//-------------------------------------------------------------------
-
 G4double G4ErrorPropagationNavigator::
-ComputeStep ( const G4ThreeVector &pGlobalPoint,
-              const G4ThreeVector &pDirection,
+ComputeStep ( const G4ThreeVector& pGlobalPoint,
+              const G4ThreeVector& pDirection,
               const G4double pCurrentProposedStepLength,
                     G4double &pNewSafety )
 {
@@ -148,7 +135,7 @@ TargetSafetyFromPoint( const G4ThreeVector& pGlobalpoint )
 //-------------------------------------------------------------------
 
 G4double G4ErrorPropagationNavigator::
-ComputeSafety( const G4ThreeVector &pGlobalPoint,
+ComputeSafety( const G4ThreeVector& pGlobalPoint,
                const G4double pMaxLength,
                const G4bool keepState )
 {

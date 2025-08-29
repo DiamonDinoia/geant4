@@ -11,7 +11,7 @@ Environment variable "G4FORCE_RUN_MANAGER_TYPE" enabled with value == Serial. Fo
 
 
 **************************************************************
- Geant4 version Name: geant4-11-02-patch-01    (16-February-2024)
+ Geant4 version Name: geant4-11-03-ref-06    (30-June-2025)
                        Copyright : Geant4 Collaboration
                       References : NIM A 506 (2003), 250-303
                                  : IEEE-TNS 53 (2006), 270-278
@@ -156,28 +156,35 @@ Registered graphics systems are:
   ASCIITree (ATree)
   DAWNFILE (DAWNFILE)
   G4HepRepFile (HepRepFile)
-  RayTracer (RayTracer)
+  RayTracer (RT)
   VRML2FILE (VRML2FILE)
   gMocrenFile (gMocrenFile)
-  TOOLSSG_OFFSCREEN (TSG_OFFSCREEN)
   TOOLSSG_OFFSCREEN (TSG_OFFSCREEN, TSG_FILE)
   OpenGLImmediateQt (OGLIQt, OGLI)
-  OpenGLStoredQt (OGLSQt, OGL, OGLS)
+  OpenGLStoredQt (OGLSQt, OGLS)
   OpenGLImmediateXm (OGLIXm, OGLIQt_FALLBACK)
   OpenGLStoredXm (OGLSXm, OGLSQt_FALLBACK)
   OpenGLImmediateX (OGLIX, OGLIQt_FALLBACK, OGLIXm_FALLBACK)
   OpenGLStoredX (OGLSX, OGLSQt_FALLBACK, OGLSXm_FALLBACK)
-  RayTracerX (RayTracerX)
+  RayTracerX (RTX)
+  RayTracerQt (RTQt)
   Qt3D (Qt3D)
   TOOLSSG_X11_GLES (TSG_X11_GLES, TSGX11, TSG_XT_GLES_FALLBACK)
+  TOOLSSG_X11_ZB (TSG_X11_ZB, TSGX11ZB)
   TOOLSSG_XT_GLES (TSG_XT_GLES, TSGXt, TSG_QT_GLES_FALLBACK)
   TOOLSSG_XT_ZB (TSG_XT_ZB, TSGXtZB)
-  TOOLSSG_QT_GLES (TSG_QT_GLES, TSGQt, TSG)
+  TOOLSSG_QT_GLES (TSG_QT_GLES, TSGQt, TSG, OGL)
   TOOLSSG_QT_ZB (TSG_QT_ZB, TSGQtZB)
-Default graphics system is: TSG_OFFSCREEN (based on batch session).
-Default window size hint is: 600x600-0+0 (based on G4VisManager initialisation).
-Note: Parameters specified on the command line will override these defaults.
-      Use "vis/open" without parameters to get these defaults.
+You may choose a graphics system (driver) with a parameter of
+the command "/vis/open" or "/vis/sceneHandler/create",
+or you may omit the driver parameter and choose at run time:
+- by argument in the construction of G4VisExecutive
+- by environment variable "G4VIS_DEFAULT_DRIVER"
+- by entry in "~/.g4session"
+- by build flags.
+- Note: This feature is not allowed in batch mode.
+For further information see "examples/basic/B1/exampleB1.cc"
+and "vis.mac".
 
 Registering model factories...
 
@@ -286,10 +293,13 @@ Bremsstrahlung energy threshold above which
   primary e+- is added to the list of secondary    100 TeV
 Bremsstrahlung energy threshold above which primary
   muon/hadron is added to the list of secondary    100 TeV
+Positron annihilation at rest model                SimplePositronium
+Enable 3 gamma annihilation on fly                 0
 Lowest triplet kinetic energy                      1 MeV
 Enable sampling of gamma linear polarisation       0
 5D gamma conversion model type                     0
 5D gamma conversion model on isolated ion          0
+Use RiGe 5D e+e- pair production model by muons    0
 Livermore data directory                           epics_2017
 =======================================================================
 ======                 Ionisation Parameters                   ========
@@ -408,7 +418,7 @@ eBrem:  for e+  XStype:4  SubType=3
              eBremSB : Emin=    0 eV  Emax=    1 GeV  ModifiedTsai
             eBremLPM : Emin=    1 GeV Emax=  100 TeV  ModifiedTsai
 
-annihil:  for e+ XStype:2 SubType=5 BuildTable=0
+annihil:  for e+ XStype:2 SubType=5 AtRestModel:Simple BuildTable=0
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
             eplus2gg : Emin=    0 eV  Emax=  100 TeV
 
@@ -460,7 +470,7 @@ ionIoni:  for GenericIon  XStype:3  SubType=2
       Lambda tables from threshold to 100 TeV, 7 bins/decade, spline: 1
       StepFunction=(0.2, 0.1 mm), integ: 3, fluct: 1, linLossLim= 0.02
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
-            BraggIon : Emin=    0 eV  Emax=    2 MeV
+               Bragg : Emin=    0 eV  Emax=    2 MeV
           BetheBloch : Emin=    2 MeV Emax=  100 TeV
 
 msc:  for alpha  SubType= 10
@@ -746,6 +756,7 @@ Index : 3     used in the geometry : Yes
 ==================================================================
 
 Start closing geometry.
+--------------------------------------------------------------------------------
 G4GeometryManager::ReportVoxelStats -- Voxel Statistics
 
     Total memory consumed for geometry optimisation:   1 kByte
@@ -762,14 +773,14 @@ G4GeometryManager::ReportVoxelStats -- Voxel Statistics
     -------   --------     ------   ------   --------   ----------    ----------
       52.31          0k         1       13         26         0.00    LensMotherLV
       47.69          0k         3        9         22         0.00    World
-G4VisManager: Using G4TrajectoryDrawByCharge as fallback trajectory model.
-See commands in /vis/modeling/trajectories/ for other options.
+--------------------------------------------------------------------------------
+
 ### Run 0 starts.
 ooo Run 0 starts (global).
 
 --------- Ranlux engine status ---------
- Initial seed = 1707932508
- float_seed_table[] = 0.788761 0.669246 0.424286 0.522021 0.280473 0.948221 0.106564 0.200429 0.0242301 0.664527 0.572897 0.0248976 0.336361 0.244251 0.61169 0.331917 0.535976 0.646344 0.939989 0.812095 0.356999 0.979121 0.706451 0.999465 
+ Initial seed = 1750481057
+ float_seed_table[] = 0.944009 0.718055 0.317672 0.319721 0.407741 0.508605 0.478986 0.261606 0.04847 0.625178 0.898724 0.708996 0.939653 0.34942 0.842478 0.972186 0.203706 0.163775 0.328182 0.0692302 0.224796 0.183814 0.152983 0.573314 
  i_lag = 23, j_lag = 9
  carry = 0, count24 = 0
  luxury = 3 nskip = 199
@@ -780,16 +791,17 @@ mu- Mono Plane
  Run terminated.
 Run Summary
   Number of events processed : 100
-  User=1.340000s Real=1.358161s Sys=0.000000s
+  User=0.600000s Real=0.600162s Sys=0.000000s
 ### Run 0 (global) ended.
 Graphics systems deleted.
 Visualization Manager deleting...
 G4 kernel has come to Quit state.
-UserDetectorConstruction deleted.
-UserPhysicsList deleted.
-UserActionInitialization deleted.
-UserWorkerInitialization deleted.
-UserWorkerThreadInitialization deleted.
+Deleting G4Run (id:0) 
+UserDetectorConstruction deleted 0x925600
+UserPhysicsList deleted 0x9667a8
+UserActionInitialization deleted 0xafc460
+UserWorkerInitialization deleted 0
+UserWorkerThreadInitialization deleted 0
 UserRunAction deleted.
 UserPrimaryGenerator deleted.
 RunManager is deleting RunManagerKernel.
@@ -802,20 +814,18 @@ G4RNGHelper object is deleted.
 ================== Deleting memory pools ===================
 Pool ID '20G4NavigationLevelRep', size : 0.0115 MB
 Pool ID '24G4ReferenceCountedHandleIvE', size : 0.000961 MB
-Pool ID '17G4DynamicParticle', size : 0.025 MB
-Pool ID '16G4SmartVoxelNode', size : 0.00192 MB
-Pool ID '17G4SmartVoxelProxy', size : 0.000961 MB
+Pool ID '17G4DynamicParticle', size : 0.024 MB
 Pool ID '7G4Event', size : 0.000961 MB
 Pool ID '15G4PrimaryVertex', size : 0.000961 MB
 Pool ID '17G4PrimaryParticle', size : 0.000961 MB
 Pool ID '15G4HCofThisEvent', size : 0.000961 MB
 Pool ID '16G4HitsCollection', size : 0.000961 MB
-Pool ID '7G4Track', size : 0.049 MB
+Pool ID '7G4Track', size : 0.0471 MB
 Pool ID '18G4TouchableHistory', size : 0.000961 MB
 Pool ID '15G4CountedObjectIvE', size : 0.000961 MB
 Pool ID '15UltraOpticalHit', size : 0.00481 MB
-Number of memory pools allocated: 14 of which, static: 0
-Dynamic pools deleted: 14 / Total memory freed: 0.1 MB
+Number of memory pools allocated: 12 of which, static: 0
+Dynamic pools deleted: 12 / Total memory freed: 0.095 MB
 ============================================================
 G4Allocator objects are deleted.
 UImanager deleted.

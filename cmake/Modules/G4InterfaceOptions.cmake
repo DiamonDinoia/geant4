@@ -64,27 +64,28 @@ if(GEANT4_USE_INVENTOR_QT AND NOT GEANT4_USE_QT)
   set(GEANT4_USE_QT ON CACHE BOOL "Build Geant4 with Qt support" FORCE)
   message(STATUS "Forcing GEANT4_USE_QT to ON, required by selection of GEANT4_USE_INVENTOR_QT as ON")
 endif()
-set(GEANT4_USE_TOOLSSG_QT_GLES ${GEANT4_USE_QT})
-set(GEANT4_USE_TOOLSSG_QT_ZB   ${GEANT4_USE_QT})
 
-# TEMPORARY for 11.2 Beta Development
-# Decision still required on whether to allow selection of 5/6 in production
-cmake_dependent_option(GEANT4_USE_QT_QT6 "Require Qt6 when building Qt support" OFF "GEANT4_USE_QT" OFF)
-mark_as_advanced(GEANT4_USE_QT_QT6)
+# We default to Qt6 if available, but allow the user to select Qt5
+set(GEANT4_USE_QT_QT6 ON)
+
+cmake_dependent_option(GEANT4_USE_QT_QT5 "Require Qt5 when building Qt support" OFF "GEANT4_USE_QT" OFF)
+if(GEANT4_USE_QT_QT5)
+  set(GEANT4_USE_QT_QT6 OFF)
+endif()
 
 # - Vtk
 option(GEANT4_USE_VTK "Build Geant4 with VTK visualisation" OFF)
 if(GEANT4_USE_VTK)
   find_package(VTK 9 REQUIRED COMPONENTS
-          CommonColor
-          InteractionStyle
-          IOExport
-          IOGeometry
-          IOLegacy
-          IOPLY
-          GUISupportQt
-          RenderingVolumeOpenGL2
-          )
+    CommonColor
+    InteractionStyle
+    IOExport
+    IOGeometry
+    IOLegacy
+    IOPLY
+    GUISupportQt
+    RenderingVolumeOpenGL2
+    )
   geant4_save_package_variables(VTK VTK_DIR)
 endif()
 geant4_add_feature(GEANT4_USE_VTK "Using VTK for visualisation")
@@ -100,18 +101,12 @@ if(UNIX)
     set(GEANT4_USE_XM ON CACHE BOOL "Build Geant4 with Motif (X11) support" FORCE)
     message(STATUS "Forcing GEANT4_USE_XM to ON, required by Inventor driver")
   endif()
-  set(GEANT4_USE_TOOLSSG_XT_GLES ${GEANT4_USE_XM})
-  set(GEANT4_USE_TOOLSSG_XT_ZB ${GEANT4_USE_XM})
   geant4_add_feature(GEANT4_USE_XM "Build Geant4 with Xm Support")
 
   # - OpenGL/X11 Vis Driver
   # Selection also enables ToolsSG driver X11 backend
   option(GEANT4_USE_OPENGL_X11 "Build Geant4 OpenGL driver with X11 support" OFF)
-  set(GEANT4_USE_TOOLSSG_X11_GLES ${GEANT4_USE_OPENGL_X11})
   geant4_add_feature(GEANT4_USE_OPENGL_X11 "Build Geant4 OpenGL driver with X11 support")
-
-  # tools/zb X11 Vis Driver
-  set(GEANT4_USE_TOOLSSG_X11_ZB ${X11_FOUND})
 
   # RayTracer driver with X11 support
   option(GEANT4_USE_RAYTRACER_X11 "Build RayTracer driver with X11 support" OFF)
@@ -121,10 +116,7 @@ endif()
 # Windows only
 if(WIN32)
   option(GEANT4_USE_OPENGL_WIN32 "Build OpenGL driver with Win32 support" OFF)
-  set(GEANT4_USE_TOOLSSG_WINDOWS_GLES ${GEANT4_USE_OPENGL_WIN32})
   geant4_add_feature(GEANT4_USE_OPENGL_WIN32 "Build OpenGL driver with Win32 support")
-
-  set(GEANT4_USE_TOOLSSG_WINDOWS_ZB ON)
 endif()
 
 #-----------------------------------------------------------------------
@@ -153,12 +145,12 @@ if(GEANT4_USE_INVENTOR)
     geant4_save_package_variables(Inventor SoQt_DIR)
   else()
     if(UNIX)
-      find_package(SoXt 1.4.0 REQUIRED)
+      find_package(SoXt REQUIRED)
       check_sobind_version(SoXt 1.4.0)
       geant4_save_package_variables(Inventor SoXt_DIR)
       set(GEANT4_USE_INVENTOR_XT ON)
     elseif(WIN32)
-      find_package(SoWin 1.4.0 REQUIRED)
+      find_package(SoWin REQUIRED)
       check_sobind_version(SoWin 1.4.0)
       geant4_save_package_variables(Inventor SoWin_DIR)
       set(GEANT4_USE_INVENTOR_WIN ON)
@@ -172,15 +164,13 @@ if(GEANT4_USE_QT)
   # 5.9 is selected as the min version to support based on the system version on CentOS7
   # Once 5.15 is the minimum version, the "Qt${QT_VERSION_MAJOR}_..." variables can be dropped
   # - https://doc.qt.io/qt-6/cmake-manual.html
-  # TEMPORARY for 11.2 beta:
-  # - Decision still required on whether to allow selection of 5/6 in production
   # TODO:
   # - Because VTK and SoQt use Qt themselves, we may want to consider checking that we
   #   have a consistent link to the same Qt version 
-  if(GEANT4_USE_QT_QT6)
-    find_package(QT NAMES Qt6 COMPONENTS Core REQUIRED)
-  else()
+  if(GEANT4_USE_QT_QT5)
     find_package(QT 5.9 NAMES Qt5 COMPONENTS Core REQUIRED)
+  else()
+    find_package(QT NAMES Qt6 COMPONENTS Core REQUIRED)
   endif()
   
   find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Gui Widgets OpenGL REQUIRED)
@@ -191,6 +181,9 @@ if(GEANT4_USE_QT)
     Qt${QT_VERSION_MAJOR}Gui_DIR
     Qt${QT_VERSION_MAJOR}Widgets_DIR
     Qt${QT_VERSION_MAJOR}OpenGL_DIR)
+
+  # RayTracerQT
+  set(GEANT4_USE_RAYTRACER_QT ON)
 
   # G4OpenGL and G4ToolsSG also require OpenGLWidgets in Qt6
   if(QT_VERSION_MAJOR GREATER 5)

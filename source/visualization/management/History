@@ -6,6 +6,423 @@ It must **not** be used as a substitute for writing good git commit messages!
 
 -------------------------------------------------------------------------------
 
+## 2025-06-08 John Allison (visman-V11-03-12)
+- G4ViewParameters.cc:
+  - Fix for bug report 2460.
+    - Fix typo whereby "/vis/viewer/set/lightsMove cam" behaves incorrectly for
+      "/vis/viewer/set/lightsVector 0 0 1".
+
+## 2025-06-01 John Allison (visman-V11-03-11)
+- Make TSG the "flagship" vis driver.
+- G4VisExecutive.icc:
+  - Make nickname/alias OGL synonymous with TSG.
+  - Make TSG default for selection by build flags.
+- G4VisManager.cc:
+  - Initialise fDefaultGraphicsSystemName to TSG.
+    - This is just for consistency, since it is overridden in
+      G4VisExecutive.icc anyway.
+
+## 2025-05-27 John Allison (visman-V11-03-10)
+- G4VViewer.cc:
+  - Initialise fTransientsNeedRedrawing(false).
+    - Previously, this was initialised "true", but it is up to the viewer
+      to decide if transients (trajectories) need redrawing.
+    - Testing with OGL, TSG and VTK actually shows no change of behaviour,
+      but some future developments are affected, so this MR corrects.
+
+## 2025-05-24 John Allison (visman-V11-03-09)
+- Minor improvement to listing of histograms (if any)
+- G4VisManager::EndOfRun:
+  - Print list of histograms even if vis is disabled.
+
+## 2025-04-06 John Allison (visman-V11-03-08)
+- G4VisCommandsSceneAdd:
+  - Add /vis/scene/add/endOfRunMacro.
+  - The macro is executed at end of run and when rebuild required.
+  - WARNING: some vis commands in the macro cause recursion. Stick to simple
+    commmands, e.g., which invoke vis manager Draw() methods.
+
+## 2025-04-02 John Allison (visman-V11-03-07)
+- Co-works: raytracer-V11-03-00, cmake-V11-03-02.
+- G4VisExecutive.icc: Add RayTracerQt.
+- G4VisCommandsViewer.cc: /vis/viewer/select:
+  - Remove subsequent refresh, even for auto-refresh drivers.
+  - Refresh not required after a select - window systems keep the image.
+
+## 2025-04-01 John Allison (visman-V11-03-06)
+- G4VisCommandsTouchable.cc:
+  - Disable /vis/touchable/centre... and /twinkle in the case of large process times.
+    - This was an omission. It is already done for /vis/viewer/interpolate, etc.
+    - If the time taken to (re-)build is greater than (currently) 0.1 s, fancy
+      features like zooming in on and twinkling that rely on rebuilds are disabled.
+
+## 2025-03-21 Ben Morgan (visman-V11-03-05)
+- Modernize g4tools macro-based loops with range-based for.
+- Update raw for loops with range-for where possible.
+
+## 2025-02-24 John Allison (visman-V11-03-04)
+- Split scene processing into its "permanent" (run-duration models) and "transient"
+  (end-of-event and end-of-run models) parts.
+  - This allows us to update just the
+    transient part, e.g., trajectories, which we might want to display in a
+    different way, leaving the permanent part (e.g., detector) unchanged, i.e.,
+    leaving the permanent part of the graphical database unchanged, avoiding
+    unnecessary re-processing. This is exactly the situation for time windowing -
+    the detector does not change, the trajectories also actually do not change,
+    just the way they are drawn changes.
+  - The idea is that the concrete viewer makes the decision in its DrawView().
+    Typically, a viewer has CompareForKernelVisit(), to be used when a *complete*
+    reprocessing is required, and CompareForTransientsRedraw() (say) if only
+    transient models need reprocessing.
+- G4VSceneHandler:
+  - Introduce virtual void ProcessTransients().
+  - Move pertinent code from ProcessScene() to ProcessTransients().
+    - ProcessScene() calls ProcessTransients(), i.e., the existing "kernel
+      visit" processes both permanent and transient models as before.
+  - Also some re-indentation within ProcessTransients().
+- G4VViewer:
+  - Introduce void ProcessTransients() and fTransientsNeedRedrawing flag.
+
+## 2025-02-20 John Allison (visman-V11-03-03)
+- G4VVisCommand.cc:
+  - InterpolateViews():
+    - Implement desired time per time step (or desired fps). Computation time
+      per step may cause this to increase (i.e., fps to fall below this).
+- G4VisCommandsViewer.cc:
+  - /vis/viewer/interpolate:
+    - Small improvement to guidance consequent on the above.
+- G4VisCommandsViewer.cc:
+  - /vis/viewer/set/timeWindow/displayHeadTime:
+    - Implement "current as default". This is more rational; prevents surprises.
+      There might be some minor change of behaviour.
+
+## 2025-02-01 John Allison (visman-V11-03-02)
+- Simplify G4ViewParameters.
+- Co-works: opengl-V11-03-01.
+- G4ViewParameters.hh/cc:
+  - Use single G4ModelingParameters::TimeParameters to replace 18 time window
+    parameters.
+- G4VSceneHandler.cc:
+  - Copy time parameters into modeling parameters.
+- G4VisCommandsViewerSet.cc:
+  - /vis/viewer/set/timeWindow commands:
+    - Follow changes in G4ViewParameters.
+
+## 2025-01-13 John Allison (visman-V11-03-01)
+- G4VisCommandsViewerSet:
+  - /vis/viewer/set/transparencyByDepth: improve guidance.
+
+## 2025-01-06 John Allison (visman-V11-03-00)
+- Co-works: modeling-V11-03-00, interfaces-V11-03-00, opengl-V11-03-00,
+  visQt3D-V11-03-00, vis_toolssg-V11-03-00, openinventor-V11-03-00,
+  greps-V11-03-00.
+- Re-instate the transparency slider.
+- The transparency slider, whereby the user could see into the geometry
+  progressively, was a powerful feature of the OpenGL Qt viewer, but it
+  suffered a demise when we moved to a generic (new) scene tree. In this
+  MR we re-implement it in a generic way, i.e., for all drivers. It is moved
+  from the OpenGL Qt viewer to the Qt GUI (G4UIQt) and uses a new command,
+  "/vis/viewer/set/transparencyByDepth <d> [option]". G4UIQt issues this
+  command on signals from the slider. The user may, of course, use this
+  command directly.
+- The command initiates a "kernel visit", which causes a rebuild of the
+  graphical database. This may sound very heavy, but it is remarkably quick
+  for reasonable geometries on modern CPUs. (It is envisaged that this
+  feature is most useful when a detector - or a sub-detector - is being
+  developed.)
+- The design is based on the original design by Laurent Garnier in OpenGL Qt.
+  Laurent's ideas have been borrowed - thanks, Laurent. It was prompted in
+  particular by a user, Andrea Barresi, who missed its presence in G4 11.2,
+  and made some concrete proposals for its reintroduction using existing
+  commands. In the end I felt it deserved a new command to maximise
+  efficiency, but I have really appreciated his engagement in the process
+  of developing this new feature, and one of the algorithms is his
+  (option 3, "X-ray"). Thank you, Andrea. Unfortunately, it didn't make 11.3.
+- G4VisManager:
+  - Tidy - mainly improved indentation.
+- G4VSceneHandler:
+  - Calculate and maintain fMaxGeometryDepth (new base class data member).
+    (The base class is G4VGraphicsScene in graphics_reps category. Placing
+    the data member there makes is accessible to G4PhysicalVolumeModel.)
+  - Improve some diagnostic printing.
+- G4VViewer:
+  - Follow changes in G4PhysicalVolumeModel
+  - Use pvModel->GetTotalAllTouchables()
+  - Tidy
+- G4ViewParameters:
+  - Add TransparencyByDepth and TransparencyByDepthOption.
+- G4VisCommandsViewerSet:
+  - Add /vis/viewer/set/transparencyByDepth.
+
+## 2024-10-27 John Allison (visman-V11-02-28)
+- G4VisExecutive.icc:
+  - Remove #include <QtGlobal> - no longer needed.
+    - Was included to resolve some Qt5/6 issues in 11.2.
+
+## 2024-10-16 John Allison (visman-V11-02-27)
+- G4VSceneHandler.cc:
+  - Move some printing outside the loop over models - more hygenic
+  - Improve indentation.
+
+## 2024-10-03 John Allison (visman-V11-02-26)
+- Introduce TOOLS_USE_FREETYPE flag in vis management for /vis/plot command
+- sources.cmake:
+  - Add geant4_module_compile_definitions.
+    - Set cpp flag TOOLS_USE_FREETYPE if built with GEANT4_USE_FREETYPE.
+- G4VisCommandsCompound.cc:
+  - If TOOLS_USE_FREETYPE, augment /vis/plot command to take "style" argument.
+    - Candidates are: "none ROOT_default hippodraw".
+    - Default is: "ROOT_default".
+
+## 2024-10-02 John Allison (visman-V11-02-25)
+- G4VisManager.cc:
+  - Protect KeepForPostProcessing() with an mtVisSubThreadMutex lock.
+    - KeepForPostProcessing() is called on a worker thread, PostProcessingFinished()
+      is called on the vis sub-thread, so should be protected.
+    - Not sure about sub-event parallelism, because KeepForPostProcessing() is still
+      called on a worker thread, but PostProcessingFinished() is called from the
+      G4SubEvtRunManager. But having a short piece of code locked does no harm, so
+      let's do this.
+- G4VisManager.cc, G4VisCommandsSceneAdd.cc:
+  - Tidied redundant comments and corrected some.
+
+## 2024-09-30 Makoto Asai (visman-V11-02-24)
+- G4VisManager.cc, G4VisCommandsSceneAdd.cc:
+  - Optimize the timing of G4Event::KeepForPostProcessing() and
+    G4Event::PostProcessingFinished() so that event object that are not
+    requested to be kept are cleanly deleted at the end of each run.
+    Kept events are deleted at the beginning of the next run or when the
+    program terminates.
+  - Use G4Run::GetNumberOfKeptEvent() to properly display the number of kept 
+    events.
+  - Co-working with run-V11-02-18
+
+## 2024-09-12 John Allison (visman-V11-02-23)
+- G4ViewParameters.cc: Minor improvements to messages in output operator<<.
+- G4VisCommandsSceneAdd.cc:
+  - G4VisCommandSceneAddLogo::SetNewValue (/vis/scene/add/logo):
+    - Ensure the logo respects the current requested number of sides per circle.
+- G4VisCommandsViewer.cc:
+  - G4VisCommandViewerCreate::SetNewValue (/vis/viewer/create):
+    - Simplify the use of view parameters of a pre-existing viewer.
+      - Use the parameters of the most recent viewer whatever its type.
+    - Exclude GlobalMarkerScale from parameters copied from pre-existing viewer.
+      - Thus each viewer is allowed to specify its own GlobalMarkerScale.
+        - Mostly viewers use the default value of 1, but ToolsSG sets it to 2
+          to handle special displays such as Apple's Retina.
+
+## 2024-08-31 John Allison (visman-V11-02-22)
+- Coverity fixes.
+  - Some checks, which gave Coverity concern, are no longer needed, because
+    Begin/EndOfRun/Event are protected by flag set once and for all in
+    BeginOfRun.
+
+## 2024-08-26 John Allison (visman-V11-02-21)
+- G4VisManager.cc:
+  - Protect Begin/EndOfRun against invalid view (includes check on
+    existence of a scene).
+    - A dead-lock in MT mode if there is a view but no scene with OGL.
+      - Seems viewer has trouble changing threads.
+  - Some tidying and streamlining.
+    - Introduced local booleans isValidViewForRun and isFakeRun.
+
+## 2024-08-18 John Allison (visman-V11-02-20)
+- Improve messaging around /vis/verbose and /vis/list.
+- G4VisManager:
+  - Introduce PrintAvailableVerbosity().
+  - GetVerbosityValue: Print verbosity options on unknown or empty argument
+- G4VisCommands.cc:
+  - /vis/list: Add printing of verbosity options.
+  - /vis/verbose: Change default value to empty string (triggers printing
+    of verbosity options in G4VisManager::GetVerbosityValue().
+
+## 2024-08-04 John Allison (visman-V11-02-19)
+- Fix "accumulate" bug in Serial mode, and other small improvements.
+- G4VisManager.cc:
+  - Bug fix: In Serial mode, "accumulate" fails (behaves like "refresh").
+    - This relates to end-of-event action, e.g., trajectory drawing.
+    - Bug was introduced in visman-V11-02-18.
+    - Fix and rationalise by moving the following to EndOfEventCleanup():
+        if (pScene->GetRefreshAtEndOfEvent()) {
+          pViewer->ShowView();
+          pSceneHandler->SetMarkForClearingTransientStore(true);
+        }
+  - Improve printing of colours in PrintAvailableColours and advise on use.
+    - Used in /vis/list.
+  - Tidy further:
+    - Remove some commented-out debug printing to make code cleaner to read.
+    - Fix some errant indentations.
+- G4VisCommandsSceneAdd.cc:
+  - Move date model (/vis/scene/add/date) from run-duration to end-of-event list.
+    - Thus date and time are updated for every event displayed.
+
+## 2024-07-21 John Allison (visman-V11-02-18)
+- G4VisManager: Further rationalising and tidying after visman-V11-02-12.
+  - Replace method `G4bool Relinquishable` (used only if false) by its logical
+    opposite, `G4bool RequiredToBeKeptForVis` - clearer.
+  - Move `void EventReadyForVis` (invoked by G4SubEvtRunManager) to improve
+    readability of code. 
+  - Improve some messaging.
+
+## 2024-07-21 John Allison (visman-V11-02-17)
+- G4VisExecutive.icc:
+  - Remove duplicate instantiation of TOOLSSG_OFFSCREEN
+
+## 2024-07-17 John Allison (visman-V11-02-16)
+- With gMocren-V11-02-00, modeling-V11-02-02
+- Coverity fixes
+
+## 2024-07-12 Guy Barrand (visman-V11-02-15)
+- G4VViewer.hh: add virtual ReadyToDraw(). It helps avoiding a crash on macOS
+  if doing /run/beamOn in vis.mac at startup.
+- G4VSceneHandler.cc: DrawEvent(), DrawEndOfRunModels(): check if viewer is
+  ReadyToDraw() at begin of method.
+
+## 2024-07-06 John Allison (visman-V11-02-14)
+- G4VisManager:
+  - Call PostProcessingFinished for _every_ event in EndOfEventCleanup.
+  - Write lengthy comment about different end-of-event scenarios.
+  - Tidy up previous tag visman-V11-02-12.
+
+## 2024-06-21 Ben Morgan (visman-V11-02-13)
+- Remove use of G4MULTITHREADED symbol where not required, using runtime checks
+  as far as possible.
+
+## 2024-06-04 John Allison (visman-V11-02-12)
+- G4VisManager:
+  - Implement EventReadyForVis, used by G4SubEvtRunManager.
+  - Restructure EndOfEvent functions to accommodate this, and avoid
+    code duplication. This involved introducing:
+    - Relinquishable, EndOfEventKernel and EndOfEventCleanup.
+  - Correct the use of KeepForPostProcessing/PostProcessingFinished.
+
+## 2024-05-30 Guy Barrand (visman-V11-02-11)
+- G4VisExecutive.icc: Qt6: restore vis/OGL as default driver.
+
+## 2024-03-18 Gabriele Cosmo (visman-V11-02-10)
+- G4VisExecutive.icc: fixed use of static symbol 'fVerbosity' and replaced
+  with call to dedicated static method, to avoid linkage problems on Windows.
+
+## 2024-03-04 John Allison (visman-V11-02-09)
+- G4VViewer.cc: Coverity fix.
+  - Add return statement after G4Exception(...FatalException...) so Coverity
+    does not think a null pointer might be being allowed.
+  - This is a fix to a fix in visman-V11-02-07.
+
+## 2024-02-05 John Allison (visman-V11-02-08)
+- G4VisCommandsTouchable.cc:
+  - "/vis/touchable/dump" and "findPath" do not need a scene handler nor a
+    viewer. Move them to the beginning of G4VisCommandsTouchable::SetNewValue,
+    before the check on scene handler and viewer.
+  - This allows the user to "/vis/touchable/dump" even if he/she has
+    not yet opened a viewer.
+
+## 2024-02-03 John Allison (visman-V11-02-07)
+- G4VViewer.cc: Coverity fix.
+  - A previous tag changed class G4VViewer::SceneTreeScene to require a
+    G4PhysicalVolumeModel*. Previous to that, it was programmed for a
+    general G4VModel*, which required a check on the type. That check 
+    inadvertently remained, even though now not necessary. It seems to
+    confuse Coverity - something to do with the fact that it is called
+    in a virtual function, which has already involved a de-referencing,
+    whereas my checks implied the pointer could be null. It now *must*
+    be valid by construction, so I have removed the checks, and, just
+    to be sure, added a G4Exception on null pointer in the constructor.  
+
+## 2024-02-02 John Allison (visman-V11-02-06)
+- G4VSceneHandler.cc:
+  - Coverity fix: "const auto&" instead of "auto" to prevent copying.
+
+## 2024-01-23 John Allison (visman-V11-02-05)
+- Rationalisation, simplification and much tidying of visman-V11-02-04.
+- G4VViewer:
+  - Check validity of arguments in SceneTreeScene constructor.
+  - Pre-calculation of quantities in SceneTreeScene constructor.
+    - Avoids repeated calculations in ProcessVolume.
+  - More logical order of some functions.
+G4VSceneHandler.cc:
+  - Specify the G4PhysicalVolumeModel for construction of scene tree scene.
+
+## 2024-01-22 John Allison (visman-V11-02-04)
+- Co-works with modeling-V11-02-01, interfaces-V11-02-01 and greps-V11-02-00.
+- Limit the number of scene tree items.
+  - For complex geometries, the scene tree can take up a lot of space, and,
+    anyway, not easy to navigate. This tag suppresses the scene tree if the
+    number of touchables exceeds 10,000 (equivalent to about 20 MB).
+    - Better to suppress altogether than create a partial tree?
+- G4VViewer:
+  - Pre-calculate number of touchables. If >10,000, suppress them in the
+    scene tree and add some information about it to the model item so that
+    it pops up as a tooltip in the GUI.
+  - Some tidying and rationalisation.
+- G4VSceneHandler:
+  - Simplify loop over models, add some printing (verbosity >= confirmations).
+  - Some tidying and rationalisation.
+- G4VisCommandsViewer.cc:
+  - Use GetSceneTree (const) rather than AccessSceneTree when not necessary.
+
+## 2024-01-17 John Allison (visman-V11-02-03)
+- G4VSceneHandler:
+  - Print number of touchables by depth (if verbosity >= confirmations).
+  - Print problematic volumes (if verbosity >= confirmations).
+- G4VisCommandsTouchable.cc:
+  - Protect polyhedron pointer in /vis/touchable/dump.
+
+## 2024-01-16 John Allison (visman-V11-02-02)
+- Co-works with modeling-V11-02-00 and interfaces-V11-02-00
+- Improve identification of scene tree models - use full description, including
+  embedded blanks.
+- G4VisCommandScene.cc:
+  - G4VisCommandSceneActivateModel::SetNewValue:
+    -  Need to handle the possibility that the search string
+       contains embedded blanks within quotation marks.
+       (This arises if the search string is automatically generated from the
+       global description, as in G4UIQt, clicking on check box.)
+    - Tidy model searches.
+- G4VisCommandSceneAdd.cc:
+  - Text and Text2D: Use single quote (') to delineate actual text in description.
+    - This is so that normal quotes can be used in G4VisCommandSceneActivateModel.
+
+## 2024-01-12 John Allison (visman-V11-02-01)
+- G4VisExecutive.icc:
+  - Trap use of run-time vis driver choice - not allowed in batch mode.
+  - And (if using run-time choice) insist UI session is instantiated
+    *before* G4VisExecutive.
+- G4VisManager.cc:
+  - Improve messaging.
+- G4VSceneHandler.cc:
+  - Minor typo.
+
+## 2023-12-31 John Allison (visman-V11-02-00)
+- Delay determination of the run-time-chosen default driver (see visman-V11-01-26).
+  - This run-time-chosen default driver is not actually used until the first
+    use of /vis/open or /vis/sceneHandler/create without driver parameter,
+    so we delay to this point.
+  - This catches the situation when the user instantiates the UI session
+    *after* instantiating the vis manager.
+    - This choice depends on whether or not the user instantiates a
+      UI session, and, indeed, if instantiated, what type, so in this case
+      we *have* to delay.
+    - Note that Geant4 recommends instantiating the UI session as early as
+      possible in order to capture output streams. However, this is not
+      enforceable and even some of our examples do not follow this.
+  - G4VisExecutive:
+    - Keep argc, argv and user-specified system, if specified, for delayed use.
+    - Move informational (G4warn) from G4VisManager.
+  - G4VisManager:
+     - Make GetDefaultGraphicsSystemName() virtual and non const.
+       - It has to be virtual so that the derived class (G4VisExecutive) can
+         override it.
+       - And non-const because on first pass it may/should determine
+         these run-time-chosen defaults.
+       - The code for choosing a default driver *has to be* in user space, i.e.,
+         in G4VisExecutive, so that it has access to use flags. Hence we have to
+         use the virtual function mechanism.
+     - Modify the informational (G4warn) in PrintAvailableGraphicsSystems to give
+       advice and point to further information to be given after /vis/open.
+  - G4VViewer.cc:
+    - Minor, purely cosmetic improvement.
+
 ## 2023-11-12 John Allison (visman-V11-01-32)
 - G4VisExecutive.icc:
   - Add single line message "VTK: OpenGL-based drivers suppressed".

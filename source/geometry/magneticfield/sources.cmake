@@ -42,9 +42,15 @@ geant4_add_module(G4magneticfield
     G4ExactHelixStepper.hh
     G4ExplicitEuler.hh
     G4Field.hh
+    G4FieldBuilder.hh
+    G4FieldBuilderMessenger.hh
     G4FieldManager.hh
     G4FieldManager.icc
     G4FieldManagerStore.hh
+    G4FieldParameters.hh
+    G4FieldParametersMessenger.hh
+    G4FieldSetup.hh
+    G4FieldSetupMessenger.hh
     G4FieldTrack.hh
     G4FieldTrack.icc
     G4FieldUtils.hh
@@ -119,13 +125,14 @@ geant4_add_module(G4magneticfield
     # QSS - headers
     G4QSSDriver.hh
     G4QSSDriver.icc
-    G4QSSDriverCreator.hh
     G4QSStepper.hh
+    G4QSStepper.icc
     G4QSS2.hh
     G4QSS3.hh
     G4QSS_CustomStats.hh
     G4qss_misc.hh
     G4QSSMessenger.hh
+    G4QSSubstepStruct.hh
   SOURCES
     G4BFieldIntegrationDriver.cc
     G4BogackiShampine23.cc
@@ -156,8 +163,14 @@ geant4_add_module(G4magneticfield
     G4ExactHelixStepper.cc
     G4ExplicitEuler.cc
     G4Field.cc
+    G4FieldBuilder.cc
+    G4FieldBuilderMessenger.cc
     G4FieldManager.cc
     G4FieldManagerStore.cc
+    G4FieldParameters.cc
+    G4FieldParametersMessenger.cc
+    G4FieldSetup.cc
+    G4FieldSetupMessenger.cc
     G4FieldTrack.cc
     G4FieldUtils.cc
     G4FSALBogackiShampine45.cc
@@ -185,7 +198,6 @@ geant4_add_module(G4magneticfield
     G4NystromRK4.cc
     G4OldMagIntDriver.cc
     G4QuadrupoleMagField.cc
-    G4QSSDriverCreator.cc
     G4RepleteEofM.cc
     G4RKG3_Stepper.cc
     G4RK547FEq1.cc
@@ -205,7 +217,8 @@ geant4_add_module(G4magneticfield
     G4QSSMessenger.cc
 )
 
-geant4_module_link_libraries(G4magneticfield PUBLIC G4globman G4intercoms)
+geant4_module_link_libraries(G4magneticfield PUBLIC G4globman G4intercoms
+  PRIVATE G4geometrymng)
 # List any source specific properties here
 # For new system, must explicitly add path for generated header
 geant4_module_include_directories(G4magneticfield PUBLIC

@@ -6,6 +6,20 @@ It must **not** be used as a substitute for writing good git commit messages!
 
 -------------------------------------------------------------------------------
 
+## 2025-05-16 Ben Morgan (hadr-inclxx-V11-03-01)
+- Replace the URL root.cern.ch with canonical root.cern
+  - Fixes [GitHub PR 87](https://github.com/Geant4/geant4/pull/87)
+  - Pure documentation, no functional change
+
+## 2025-02-13 Gabriele Cosmo (hadr-inclxx-V11-03-00)
+- Fixed one more reported Coverity defect for use of std::move() in G4INCLCascade.
+
+## 2024-09-02 Gabriele Cosmo (hadr-inclxx-V11-02-01)
+- Fixed reported Coverity defects for use of std::move().
+
+## 2024-04-12 Jean-Christophe David (hadr-inclxx-V11-02-00)
+- Fix in G4INCLInteractionAvatar to not use local energy for all antibaryons.
+
 ## 2023-12-01 Ben Morgan (hadr-inclxx-V11-01-04)
 - Replace raw std::getenv calls wih G4FindDataDir for G4INCLDATA location.
 

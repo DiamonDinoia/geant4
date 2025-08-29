@@ -94,8 +94,6 @@
 #include "G4PhysicalConstants.hh"
 #include "G4SystemOfUnits.hh"
 
-#include <set>
-
 #define G4warn G4cout
 
 G4VSceneHandler::G4VSceneHandler (G4VGraphicsSystem& system, G4int id, const G4String& name):
@@ -356,9 +354,8 @@ void G4VSceneHandler::AddCompound (const G4THitsMap<G4double>& hits) {
       if (mesh && mesh->IsActive()) {
 	MeshScoreMap scoreMap = mesh->GetScoreMap();
         const G4String& mapNam = const_cast<G4THitsMap<G4double>&>(hits).GetName();
-	for(MeshScoreMap::const_iterator i = scoreMap.cbegin();
-	    i != scoreMap.cend(); ++i) {
-	  const G4String& scoreMapName = i->first;
+	for(const auto& i : scoreMap) {
+	  const G4String& scoreMapName = i.first;
 	  if (scoreMapName == mapNam) {
 	    G4DefaultLinearColorMap colorMap("G4VSceneHandlerColorMap");
 	    scoreMapHits = true;
@@ -398,10 +395,9 @@ void G4VSceneHandler::AddCompound (const G4THitsMap<G4StatDouble>& hits) {
       G4VScoringMesh* mesh = scoringManager->GetMesh((G4int)iMesh);
       if (mesh && mesh->IsActive()) {
 	MeshScoreMap scoreMap = mesh->GetScoreMap();
-	for(MeshScoreMap::const_iterator i = scoreMap.cbegin();
-	    i != scoreMap.cend(); ++i) {
-	  const G4String& scoreMapName = i->first;
-	  const G4THitsMap<G4StatDouble>* foundHits = i->second;
+	for(const auto& i : scoreMap) {
+	  const G4String& scoreMapName = i.first;
+	  const G4THitsMap<G4StatDouble>* foundHits = i.second;
 	  if (foundHits == &hits) {
 	    G4DefaultLinearColorMap colorMap("G4VSceneHandlerColorMap");
 	    scoreMapHits = true;
@@ -474,8 +470,8 @@ void G4VSceneHandler::AddPrimitive (const G4Polymarker& polymarker) {
       G4Circle dot (polymarker);
       dot.SetWorldSize  (0.);
       dot.SetScreenSize (0.1);  // Very small circle.
-      for (std::size_t iPoint = 0; iPoint < polymarker.size (); ++iPoint) {
-        dot.SetPosition (polymarker[iPoint]);
+      for (const auto& iPoint : polymarker) {
+        dot.SetPosition (iPoint);
         AddPrimitive (dot);
       }
     }
@@ -483,8 +479,8 @@ void G4VSceneHandler::AddPrimitive (const G4Polymarker& polymarker) {
     case G4Polymarker::circles:
     {
       G4Circle circle (polymarker);  // Default circle
-      for (std::size_t iPoint = 0; iPoint < polymarker.size (); ++iPoint) {
-        circle.SetPosition (polymarker[iPoint]);
+      for (const auto& iPoint : polymarker) {
+        circle.SetPosition (iPoint);
         AddPrimitive (circle);
       }
     }
@@ -492,8 +488,8 @@ void G4VSceneHandler::AddPrimitive (const G4Polymarker& polymarker) {
     case G4Polymarker::squares:
     {
       G4Square square (polymarker);  // Default square
-      for (std::size_t iPoint = 0; iPoint < polymarker.size (); ++iPoint) {
-        square.SetPosition (polymarker[iPoint]);
+      for (const auto& iPoint : polymarker) {
+        square.SetPosition (iPoint);
         AddPrimitive (square);
       }
     }
@@ -602,29 +598,30 @@ void G4VSceneHandler::RequestPrimitives (const G4VSolid& solid)
         break;
       } else {  // Print warnings and drop through to cloud
         G4VisManager::Verbosity verbosity = G4VisManager::GetVerbosity();
-        static std::set<const G4VSolid*> problematicSolids;
-        if (verbosity >= G4VisManager::errors &&
-            problematicSolids.find(&solid) == problematicSolids.end()) {
-          problematicSolids.insert(&solid);
-          G4warn <<
-          "ERROR: G4VSceneHandler::RequestPrimitives"
-          "\n  Polyhedron not available for " << solid.GetName ();
-          G4PhysicalVolumeModel* pPVModel = dynamic_cast<G4PhysicalVolumeModel*>(fpModel);
-          if (pPVModel) {
-            G4warn << "\n  Touchable path: " << pPVModel->GetFullPVPath();
+        auto pPVModel = dynamic_cast<G4PhysicalVolumeModel*>(fpModel);
+        if (pPVModel) {
+          auto problematicVolume = pPVModel->GetCurrentPV();
+          if (fProblematicVolumes.find(problematicVolume) == fProblematicVolumes.end()) {
+            fProblematicVolumes[problematicVolume] = "Null polyhedron";
+            if (verbosity >= G4VisManager::errors) {
+              G4warn <<
+              "ERROR: G4VSceneHandler::RequestPrimitives"
+              "\n  Polyhedron not available for " << solid.GetName ();
+              G4warn << "\n  Touchable path: " << pPVModel->GetFullPVPath();
+              static G4bool explanation = false;
+              if (!explanation) {
+                explanation = true;
+                G4warn <<
+                "\n  This means it cannot be visualized in the usual way on most systems."
+                "\n  1) The solid may not have implemented the CreatePolyhedron method."
+                "\n  2) For Boolean solids, the BooleanProcessor, which attempts to create"
+                "\n     the resultant polyhedron, may have failed."
+                "\n  Try RayTracer. It uses Geant4's tracking algorithms instead.";
+              }
+            }
+            G4warn << "\n  Drawing solid with cloud of points.";
+            G4warn << G4endl;
           }
-          static G4bool explanation = false;
-          if (!explanation) {
-            explanation = true;
-            G4warn <<
-            "\n  This means it cannot be visualized in the usual way on most systems."
-            "\n  1) The solid may not have implemented the CreatePolyhedron method."
-            "\n  2) For Boolean solids, the BooleanProcessor, which attempts to create"
-            "\n     the resultant polyhedron, may have failed."
-            "\n  Try RayTracer. It uses Geant4's tracking algorithms instead.";
-          }
-          G4warn << "\n  Drawing solid with cloud of points.";
-          G4warn << G4endl;
         }
       }
     }
@@ -683,10 +680,10 @@ void G4VSceneHandler::ProcessScene()
     return;
 
   if(fpScene->GetExtent() == G4VisExtent::GetNullExtent())
-  {
+    {
     G4Exception("G4VSceneHandler::ProcessScene", "visman0106", JustWarning,
                 "The scene has no extent.");
-  }
+    }
 
   G4VisManager* visManager = G4VisManager::GetInstance();
 
@@ -697,38 +694,36 @@ void G4VSceneHandler::ProcessScene()
 
   fReadyForTransients = false;
 
-  // Reset fMarkForClearingTransientStore. (Leaving
-  // fMarkForClearingTransientStore true causes problems with
-  // recomputing transients below.)  Restore it again at end...
-  G4bool tmpMarkForClearingTransientStore = fMarkForClearingTransientStore;
-  fMarkForClearingTransientStore          = false;
-
   // Traverse geometry tree and send drawing primitives to window(s).
 
   const std::vector<G4Scene::Model>& runDurationModelList =
-    fpScene->GetRunDurationModelList();
+  fpScene->GetRunDurationModelList();
 
-  if(runDurationModelList.size())
-  {
-    if(verbosity >= G4VisManager::confirmations)
-    {
+  if(runDurationModelList.size()) {
+    if(verbosity >= G4VisManager::confirmations) {
       G4cout << "Traversing scene data..." << G4endl;
+      static G4int first = true;
+      if (first) {
+        first = false;
+        G4cout <<
+        "(This could happen more than once - in fact, up to three times"
+        "\nper rebuild, for opaque, transparent and non-hidden markers.)"
+        << G4endl;
+      }
     }
 
     // Reset visibility of all objects to false - visible objects will then set to true
     fpViewer->AccessSceneTree().ResetVisibility();
-    
+
     BeginModeling();
 
     // Create modeling parameters from view parameters...
     G4ModelingParameters* pMP = CreateModelingParameters();
 
-    for(std::size_t i = 0; i < runDurationModelList.size(); ++i)
-    {
-      if(runDurationModelList[i].fActive)
-      {
-	fpModel = runDurationModelList[i].fpModel;
-	fpModel->SetModelingParameters(pMP);
+    for(const auto& i : runDurationModelList) {
+      if(i.fActive) {
+        fpModel = i.fpModel;
+        fpModel->SetModelingParameters(pMP);
 
         // Describe to the current scene handler
         fpModel->DescribeYourselfTo(*this);
@@ -737,17 +732,20 @@ void G4VSceneHandler::ProcessScene()
         // uncomment the next line and DrawExtent in namespace above.
         // DrawExtent(fpModel);
 
-        // Enter models in the scene tree, and for PV models, describe
+        // Enter models in the scene tree. Then for PV models, describe
         // the model to the scene tree, i.e., enter all the touchables.
-        auto& sceneTreeScene = fpViewer->AccessSceneTreeScene();
-        sceneTreeScene.SetViewer(fpViewer);
-        sceneTreeScene.SetModel(fpModel);
-        if (dynamic_cast<G4PhysicalVolumeModel*>(fpModel)) {
+        fpViewer->InsertModelInSceneTree(fpModel);
+        auto pPVModel = dynamic_cast<G4PhysicalVolumeModel*>(fpModel);
+        if (pPVModel) {
+          G4VViewer::SceneTreeScene sceneTreeScene(fpViewer, pPVModel);
           fpModel->DescribeYourselfTo(sceneTreeScene);
+          const auto& maxDepth = pPVModel->GetMaxFullDepth();
+          if (fMaxGeometryDepth < maxDepth) {fMaxGeometryDepth = maxDepth;}
+          // This will be the maximum geometry depth for this scene handler
         }
 
         // Reset modeling parameters pointer
-	fpModel->SetModelingParameters(0);
+        fpModel->SetModelingParameters(0);
       }
     }
 
@@ -757,6 +755,58 @@ void G4VSceneHandler::ProcessScene()
     EndModeling();
   }
 
+  // Some printing
+  if(verbosity >= G4VisManager::parameters) {
+    for (const auto& model: runDurationModelList) {
+      if (model.fActive) {
+        auto pvModel = dynamic_cast<G4PhysicalVolumeModel*>(model.fpModel);
+        if (pvModel) {
+
+          G4cout << "Numbers of all touchables by depth \""
+          << pvModel->GetGlobalDescription() << "\":";
+          for (const auto& dn : pvModel->GetMapOfAllTouchables()) {
+            G4cout << "\n  Depth " << dn.first << ": " << dn.second;
+          }
+          G4cout << "\n  Total number of all touchables: "
+          << pvModel->GetTotalAllTouchables() << G4endl;
+
+          G4cout << "Numbers of touchables drawn by depth \""
+          << pvModel->GetGlobalDescription() << "\":";
+          for (const auto& dn : pvModel->GetMapOfDrawnTouchables()) {
+            G4cout << "\n  Depth " << dn.first << ": " << dn.second;
+          }
+          G4cout << "\n  Total number of drawn touchables: "
+          << pvModel->GetTotalDrawnTouchables() << G4endl;
+        }
+      }
+    }
+  }
+  if(verbosity >= G4VisManager::warnings) {
+    if (fProblematicVolumes.size() > 0) {
+      G4cout << "Problematic volumes:";
+      for (const auto& prob: fProblematicVolumes) {
+        G4cout << "\n  " << prob.first->GetName() << " (" << prob.second << ')';
+      }
+      G4cout << G4endl;
+    }
+  }
+
+  ProcessTransients();
+}
+
+void G4VSceneHandler::ProcessTransients()
+{
+  // Assumes transient store has already been cleared
+
+  // Reset fMarkForClearingTransientStore. (Leaving
+  // fMarkForClearingTransientStore true causes problems with
+  // recomputing transients below.)  Restore it again at end...
+  G4bool tmpMarkForClearingTransientStore = fMarkForClearingTransientStore;
+  fMarkForClearingTransientStore          = false;
+
+  G4VisManager* visManager = G4VisManager::GetInstance();
+  G4VisManager::Verbosity verbosity = visManager->GetVerbosity();
+
   fReadyForTransients = true;
 
   // Refresh event from end-of-event model list.
@@ -764,81 +814,82 @@ void G4VSceneHandler::ProcessScene()
   G4StateManager* stateManager = G4StateManager::GetStateManager();
   G4ApplicationState state     = stateManager->GetCurrentState();
   if(state == G4State_Idle || state == G4State_GeomClosed)
-  {
+    {
     visManager->SetEventRefreshing(true);
 
     if(visManager->GetRequestedEvent())
-    {
+      {
       DrawEvent(visManager->GetRequestedEvent());
-    }
+      }
     else
-    {
+      {
       G4RunManager* runManager = G4RunManagerFactory::GetMasterRunManager();
       if(runManager)
-      {
+        {
         const G4Run* run = runManager->GetCurrentRun();
         // Draw a null event in order to pick up models for the scene tree even before a run
         if (run == nullptr) DrawEvent(0);
         const std::vector<const G4Event*>* events =
-          run ? run->GetEventVector() : 0;
+        run ? run->GetEventVector() : 0;
         std::size_t nKeptEvents = 0;
         if(events)
           nKeptEvents = events->size();
         if(nKeptEvents)
-        {
-          if(fpScene->GetRefreshAtEndOfEvent())
           {
-            if(verbosity >= G4VisManager::confirmations)
+          if(fpScene->GetRefreshAtEndOfEvent())
             {
+            if(verbosity >= G4VisManager::confirmations)
+              {
               G4cout << "Refreshing event..." << G4endl;
-            }
+              }
             const G4Event* event = 0;
             if(events && events->size())
               event = events->back();
             if(event)
               DrawEvent(event);
-          }
+            }
           else
-          {  // Accumulating events.
+            {  // Accumulating events.
 
-            if(verbosity >= G4VisManager::confirmations)
-            {
-              G4cout << "Refreshing events in run..." << G4endl;
-            }
-            for(const auto& event : *events)
-            {
-              if(event)
-                DrawEvent(event);
-            }
+              if(verbosity >= G4VisManager::confirmations)
+                {
+                G4cout << "Refreshing events in run..." << G4endl;
+                }
+              for(const auto& event : *events)
+                {
+                if(event)
+                  DrawEvent(event);
+                }
 
-            if(!fpScene->GetRefreshAtEndOfRun())
-            {
-              if(verbosity >= G4VisManager::warnings)
-              {
-                G4warn << "WARNING: Cannot refresh events accumulated over more"
-                          "\n  than one runs.  Refreshed just the last run."
-                       << G4endl;
-              }
+              if(!fpScene->GetRefreshAtEndOfRun())
+                {
+                if(verbosity >= G4VisManager::warnings)
+                  {
+                  G4warn << "WARNING: Cannot refresh events accumulated over more"
+                  "\n  than one runs.  Refreshed just the last run."
+                  << G4endl;
+                  }
+                }
             }
           }
         }
       }
-    }
     visManager->SetEventRefreshing(false);
-  }
+    }
 
   // Refresh end-of-run model list.
   // Allow only in Idle or GeomClosed state...
   if(state == G4State_Idle || state == G4State_GeomClosed)
-  {
+    {
     DrawEndOfRunModels();
-  }
+    }
 
   fMarkForClearingTransientStore = tmpMarkForClearingTransientStore;
 }
 
 void G4VSceneHandler::DrawEvent(const G4Event* event)
 {
+  if(!fpViewer->ReadyToDraw()) return;
   const std::vector<G4Scene::Model>& EOEModelList =
     fpScene -> GetEndOfEventModelList ();
   std::size_t nModels = EOEModelList.size();
@@ -854,12 +905,10 @@ void G4VSceneHandler::DrawEvent(const G4Event* event)
         fpModel -> DescribeYourselfTo (*this);
 
         // Enter models in the scene tree
-        auto& sceneTreeScene = fpViewer->AccessSceneTreeScene();
-        sceneTreeScene.SetViewer(fpViewer);
-        sceneTreeScene.SetModel(fpModel);
+        fpViewer->InsertModelInSceneTree(fpModel);
 
         // Reset modeling parameters pointer
-	fpModel -> SetModelingParameters(0);
+        fpModel -> SetModelingParameters(0);
       }
     }
     fpModel = 0;
@@ -869,6 +918,7 @@ void G4VSceneHandler::DrawEvent(const G4Event* event)
 
 void G4VSceneHandler::DrawEndOfRunModels()
 {
+  if(!fpViewer->ReadyToDraw()) return;
   const std::vector<G4Scene::Model>& EORModelList =
     fpScene -> GetEndOfRunModelList ();
   std::size_t nModels = EORModelList.size();
@@ -881,12 +931,10 @@ void G4VSceneHandler::DrawEndOfRunModels()
         fpModel -> SetModelingParameters(pMP);
 
         // Describe to the current scene handler
-	fpModel -> DescribeYourselfTo (*this);
+        fpModel -> DescribeYourselfTo (*this);
 
         // Enter models in the scene tree
-        auto& sceneTreeScene = fpViewer->AccessSceneTreeScene();
-        sceneTreeScene.SetViewer(fpViewer);
-        sceneTreeScene.SetModel(fpModel);
+        fpViewer->InsertModelInSceneTree(fpModel);
 
         // Reset modeling parameters pointer
         fpModel -> SetModelingParameters(0);
@@ -967,8 +1015,13 @@ G4ModelingParameters* G4VSceneHandler::CreateModelingParameters ()
   
   pModelingParams->SetVisAttributesModifiers(vp.GetVisAttributesModifiers());
 
+  pModelingParams->SetTimeParameters(vp.GetTimeParameters());
+
   pModelingParams->SetSpecialMeshRendering(vp.IsSpecialMeshRendering());
   pModelingParams->SetSpecialMeshVolumes(vp.GetSpecialMeshVolumes());
+
+  pModelingParams->SetTransparencyByDepth(vp.GetTransparencyByDepth());
+  pModelingParams->SetTransparencyByDepthOption(vp.GetTransparencyByDepthOption());
 
   return pModelingParams;
 }
@@ -1072,7 +1125,7 @@ G4DisplacedSolid* G4VSceneHandler::CreateCutawaySolid()
       break;
   }
 
-  G4Exception("G4VSceneHandler::CreateCutawaySolid", "visman107", JustWarning,
+  G4Exception("G4VSceneHandler::CreateCutawaySolid", "visman0107", JustWarning,
               "Not programmed for more than 3 cutaway planes");
   return nullptr;
 }
@@ -1280,8 +1333,8 @@ std::ostream& operator << (std::ostream& os, const G4VSceneHandler& sh) {
 
   os << "Scene handler " << sh.fName << " has "
      << sh.fViewerList.size () << " viewer(s):";
-  for (std::size_t i = 0; i < sh.fViewerList.size (); ++i) {
-    os << "\n  " << *(sh.fViewerList [i]);
+  for (const auto* i : sh.fViewerList) {
+    os << "\n  " << *i;
   }
 
   if (sh.fpScene) {

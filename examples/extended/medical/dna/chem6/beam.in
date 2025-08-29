@@ -1,5 +1,4 @@
-#
-/run/numberOfThreads 2
+#/run/numberOfThreads 2
 /process/dna/e-SolvationSubType Meesungnoen2002
 #/process/dna/e-SolvationSubType Ritchie1994
 #/process/dna/e-SolvationSubType Terrisol1990
@@ -7,9 +6,9 @@
 # use Step-by-Step (SBS), independent reaction time (IRT)
 # or synchronized IRT (IRT_syn),
 # SBS ( is only for TDC, set 0 )
-/chem6/TimeStepModel IRT
-#/chem6/TimeStepModel IRT_syn
-#/chem6/TimeStepModel SBS
+/process/chem/TimeStepModel IRT
+#/process/chem/TimeStepModel SBS
+#/process/chem/TimeStepModel IRT_syn
 
 /run/initialize
 
@@ -29,10 +28,10 @@
 /chem/reaction/add H3Op + OHm -> H2O                | Fix |  1.13e11  | 0
 
 # partially diffusion-controlled (PDC)              | Fix |  reactionRate[dm3/(mol*s)] | PDC (1)
-/chem/reaction/add OH + H -> H2O                    | Fix |  1.55e10 | 1
-/chem/reaction/add OH + OH -> H2O2                  | Fix |  0.55e10 | 1
-/chem/reaction/add e_aq + OH -> OHm                 | Fix |  2.95e10 | 1
-/chem/reaction/add e_aq + H2O2 -> OHm + OH          | Fix |  1.10e10 | 1
+/chem/reaction/add °OH + H -> H2O                   | Fix |  1.55e10 | 1
+/chem/reaction/add °OH + °OH -> H2O2                | Fix |  0.55e10 | 1
+/chem/reaction/add e_aq + °OH -> OHm                | Fix |  2.95e10 | 1
+/chem/reaction/add e_aq + H2O2 -> OHm + °OH         | Fix |  1.10e10 | 1
 /chem/reaction/add e_aq + H3Op -> H + H2O           | Fix |  2.11e10 | 1
 
 /chem/reaction/print

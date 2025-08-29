@@ -45,6 +45,8 @@
 #include "G4THitsMap.hh"
 #include "G4PseudoScene.hh"
 
+#include <map>
+
 class G4Scene;
 class G4VGraphicsSystem;
 class G4AttHolder;
@@ -318,6 +320,12 @@ protected:
   virtual void ProcessScene ();
 
   //////////////////////////////////////////////////////////////
+  // As above, but transients only. For example, at end of run, in "Idle"
+  // state, you might wish to re-draw the trajectories with a different
+  // time window.
+  virtual void ProcessTransients ();
+
+  //////////////////////////////////////////////////////////////
   // Default routine used by default AddSolid ().
   virtual void RequestPrimitives (const G4VSolid& solid);
 
@@ -451,6 +459,7 @@ protected:
   G4int              fNestingDepth;    // For Begin/EndPrimitives.
   const G4VisAttributes* fpVisAttribs; // Working vis attributes.
   const G4Transform3D fIdentityTransformation;
+  std::map<G4VPhysicalVolume*,G4String> fProblematicVolumes;
 
 private:
 

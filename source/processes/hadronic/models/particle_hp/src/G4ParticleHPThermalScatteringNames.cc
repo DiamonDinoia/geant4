@@ -41,44 +41,13 @@
 
 #include "G4ElementTable.hh"
 #include "G4Neutron.hh"
-// #include "G4ParticleHPData.hh"
 
 G4ParticleHPThermalScatteringNames::G4ParticleHPThermalScatteringNames()
 {
-  // --------------------------------------------------------------------------------------------------------------------------
-  // Old Geant4 naming - before 23/03/2022 - TSL linked to ENDF/BVII.1 nuclear cross-section
-  // G4NDL4.5
-  // --------------------------------------------------------------------------------------------------------------------------
-  /*names.insert ( std::pair < G4String , G4String > ( "TS_Aluminium_Metal" , "al_metal" ) );
-  names.insert ( std::pair < G4String , G4String > ( "TS_Beryllium_Metal" , "be_metal" ) );
-  names.insert ( std::pair < G4String , G4String > ( "TS_Be_of_Beryllium_Oxide" , "be_beo" ) );
-  names.insert ( std::pair < G4String , G4String > ( "TS_C_of_Graphite" , "graphite" ) );
-  names.insert ( std::pair < G4String , G4String > ( "TS_D_of_Heavy_Water" , "d_heavy_water" ) );
-  names.insert ( std::pair < G4String , G4String > ( "TS_H_of_Water" , "h_water" ) );
-  names.insert ( std::pair < G4String , G4String > ( "TS_H_of_Zirconium_Hydride" , "h_zrh" ) );
-  names.insert ( std::pair < G4String , G4String > ( "TS_H_of_Polyethylene" , "h_polyethylene" ) );
-  names.insert ( std::pair < G4String , G4String > ( "TS_Iron_Metal" , "fe_metal" ) );
-  names.insert ( std::pair < G4String , G4String > ( "TS_O_of_Uranium_Dioxide" , "o_uo2" ) );
-  names.insert ( std::pair < G4String , G4String > ( "TS_O_of_Beryllium_Oxide" , "o_beo" ) );
-  names.insert ( std::pair < G4String , G4String > ( "TS_U_of_Uranium_Dioxide" , "u_uo2" ) );
-  names.insert ( std::pair < G4String , G4String > ( "TS_U235_of_Uranium_Dioxide" , "u235_uo2" ) );
-  names.insert ( std::pair < G4String , G4String > ( "TS_U238_of_Uranium_Dioxide" , "u238_uo2" ) );
-  names.insert ( std::pair < G4String , G4String > ( "TS_Zr_of_Zirconium_Hydride" , "zr_zrh" ) );
-  //// ENDF-B71
 
-
-  names.insert ( std::pair < G4String , G4String > ( "TS_H_of_Para_Hydrogen" , "h_para_h2" ) );
-  names.insert ( std::pair < G4String , G4String > ( "TS_H_of_Ortho_Hydrogen" , "h_ortho_h2" ) );
-
-  names.insert ( std::pair < G4String , G4String > ( "TS_D_of_Para_Deuterium" , "d_para_d2" ) );
-  names.insert ( std::pair < G4String , G4String > ( "TS_D_of_Ortho_Deuterium" , "d_ortho_d2" ) );
-
-  names.insert ( std::pair < G4String , G4String > ( "TS_H_of_Liquid_Methane", "h_l_ch4" ) );
-  names.insert ( std::pair < G4String , G4String > ( "TS_H_of_Solid_Methane", "h_s_ch4" ) ); */
-
-  // --------------------------------------------------------------------------------------------------------------------------
+  // --------------------------------------------------------------------------------------------
   // New Geant4 naming - after 23/03/2022 - TSL linked to JEFF-3.3 nuclear cross-section G4NDL4.6
-  // --------------------------------------------------------------------------------------------------------------------------
+  // --------------------------------------------------------------------------------------------
   /// 23/03/2022 - Added by L. Thulliez (CEA-Saclay)
   names.insert(
     std::pair<G4String, G4String>("TS_Benzene", "h_benzen"));  /// ENDF/BVIII.0 and ENDF/BVII.1
@@ -211,19 +180,16 @@ G4ParticleHPThermalScatteringNames::G4ParticleHPThermalScatteringNames()
   // "G4_BENZENE" , "C" ) , "benzen" ) );
 }
 
-G4ParticleHPThermalScatteringNames::~G4ParticleHPThermalScatteringNames()
-{
-  ;
-}
-
-G4bool G4ParticleHPThermalScatteringNames::IsThisThermalElement(G4String aname)
+G4bool G4ParticleHPThermalScatteringNames::
+IsThisThermalElement(const G4String& aname) const
 {
   G4bool result = false;
   if (names.find(aname) != names.end()) result = true;
   return result;
 }
 
-G4bool G4ParticleHPThermalScatteringNames::IsThisThermalElement(G4String material, G4String element)
+G4bool G4ParticleHPThermalScatteringNames::
+IsThisThermalElement(const G4String& material, const G4String& element) const
 {
   G4bool result = false;
   if (nist_names.find(std::pair<G4String, G4String>(material, element)) != nist_names.end())
@@ -232,8 +198,8 @@ G4bool G4ParticleHPThermalScatteringNames::IsThisThermalElement(G4String materia
 }
 
 // Name of G4Element , Name of NDL file
-void G4ParticleHPThermalScatteringNames::AddThermalElement(G4String nameG4Element,
-                                                           G4String filename)
+void G4ParticleHPThermalScatteringNames::AddThermalElement(const G4String& nameG4Element,
+                                                           const G4String& filename)
 {
   if (names.find(nameG4Element) == names.end())
     names.insert(std::pair<G4String, G4String>(nameG4Element, filename));

@@ -59,32 +59,21 @@ G4LENDManager::G4LENDManager()
 
    //printBanner();
 
-   G4String xmcf;
-   G4String xmcf_gamma;
-   G4String xmcf_p;
-   G4String xmcf_d;
-   G4String xmcf_t;
-   G4String xmcf_he3;
-   G4String xmcf_a;
-   if( G4FindDataDir("G4LENDDATA") == NULL ) {
+   const char *dataDir = G4FindDataDir("G4LENDDATA");
+   if( dataDir == NULL ) {
       throw G4HadronicException(__FILE__, __LINE__, " Please setenv G4LENDDATA to point to the LEND files." );
-   } else {
-      xmcf = G4FindDataDir("G4LENDDATA");
-      //xmcf += "/xmcf.n_1.map";
-      xmcf += "/neutrons.map";
-      xmcf_gamma = G4FindDataDir("G4LENDDATA");
-      xmcf_gamma += "/gammas.map";
-      xmcf_p = G4FindDataDir("G4LENDDATA");
-      xmcf_p += "/protons.map";
-      xmcf_d = G4FindDataDir("G4LENDDATA");
-      xmcf_d += "/deuterons.map";
-      xmcf_t = G4FindDataDir("G4LENDDATA");
-      xmcf_t += "/tritons.map";
-      xmcf_he3 = G4FindDataDir("G4LENDDATA");
-      xmcf_he3 += "/He3s.map";
-      xmcf_a = G4FindDataDir("G4LENDDATA");
-      xmcf_a += "/alphas.map";
    }
+
+   std::string G4LENDDATA(dataDir);
+   G4GIDI_initialize(G4LENDDATA);
+
+   G4String xmcf = G4LENDDATA + "/neutrons.map";
+   G4String xmcf_gamma = G4LENDDATA + "/gammas.map";
+   G4String xmcf_p = G4LENDDATA + "/protons.map";
+   G4String xmcf_d = G4LENDDATA + "/deuterons.map";
+   G4String xmcf_t = G4LENDDATA + "/tritons.map";
+   G4String xmcf_h = G4LENDDATA + "/helions.map";
+   G4String xmcf_a = G4LENDDATA + "/alphas.map";
 
 //Example of xmcf.n_1.map
 //<map>
@@ -118,10 +107,10 @@ G4LENDManager::G4LENDManager()
    } else  {
       aFile.close(); 
    }
-   aFile.open( xmcf_he3.c_str() );
+   aFile.open( xmcf_h.c_str() );
    if ( aFile.good() ) {
       aFile.close(); 
-      proj_lend_map.insert ( std::pair < G4ParticleDefinition* , G4GIDI* > ( G4He3::He3() , new G4GIDI( 5 , xmcf_he3 ) ) );
+      proj_lend_map.insert ( std::pair < G4ParticleDefinition* , G4GIDI* > ( G4He3::He3() , new G4GIDI( 5 , xmcf_h ) ) );
    } else  {
       aFile.close(); 
    }
@@ -185,15 +174,13 @@ G4LENDManager::~G4LENDManager()
 {
    
 // deleting target
-   for ( std::vector < lend_target >::iterator 
-         it = v_lend_target.begin() ; it != v_lend_target.end() ; it++ )
+   for ( auto it = v_lend_target.cbegin() ; it != v_lend_target.cend() ; ++it )
    {
         (*it).lend->freeTarget( it->target ); 
    }
 
 // deleting lend
-   for ( std::map < G4ParticleDefinition* , G4GIDI* >::iterator 
-         it = proj_lend_map.begin() ; it != proj_lend_map.end() ; it++ )
+   for ( auto it = proj_lend_map.cbegin() ; it != proj_lend_map.cend() ; ++it )
    {
       delete it->second;
    }
@@ -205,7 +192,7 @@ G4LENDManager::~G4LENDManager()
 
 
 
-G4GIDI_target* G4LENDManager::GetLENDTarget( G4ParticleDefinition* proj , G4String evaluation , G4int iZ , G4int iA , G4int iM )
+G4GIDI_target* G4LENDManager::GetLENDTarget( G4ParticleDefinition* proj , const G4String& evaluation , G4int iZ , G4int iA , G4int iM )
 {
 
    G4GIDI_target* anLENDTarget = NULL;
@@ -217,8 +204,7 @@ G4GIDI_target* G4LENDManager::GetLENDTarget( G4ParticleDefinition* proj , G4Stri
    G4int iTarg = GetNucleusEncoding( iZ , iA , iM );
 
    // Searching in current map
-   for ( std::vector < lend_target >::iterator 
-         it = v_lend_target.begin() ; it != v_lend_target.end() ; it++ )
+   for ( auto it = v_lend_target.cbegin() ; it != v_lend_target.cend() ; ++it )
    {
       if ( it->proj == proj && it->target_code == iTarg && it->evaluation == evaluation ) 
       {
@@ -228,7 +214,7 @@ G4GIDI_target* G4LENDManager::GetLENDTarget( G4ParticleDefinition* proj , G4Stri
    }
 
 
-   if ( proj_lend_map.find ( proj ) == proj_lend_map.end() ) {
+   if ( proj_lend_map.find ( proj ) == proj_lend_map.cend() ) {
       G4cout << proj->GetParticleName() << " is not supported by this LEND library." << G4endl;
       return anLENDTarget; // return NULL 
    }
@@ -252,7 +238,7 @@ G4GIDI_target* G4LENDManager::GetLENDTarget( G4ParticleDefinition* proj , G4Stri
       new_target.evaluation = evaluation;
       new_target.target_code = iTarg;
       
-      v_lend_target.push_back( new_target );
+      v_lend_target.push_back( std::move(new_target) );
 
 //    found EXACT
       return anLENDTarget;
@@ -275,8 +261,7 @@ G4GIDI_target* G4LENDManager::GetLENDTarget( G4ParticleDefinition* proj , G4Stri
          {
             G4cout << " However you can use following evaluation(s) for the target. " << G4endl;
 
-            std::vector< std::string >::iterator its;
-            for ( its = available->begin() ; its != available->end() ; its++ ) 
+            for ( auto its = available->cbegin() ; its != available->cend() ; ++its ) 
                G4cout << *its << G4endl;
 
             G4cout << G4endl;
@@ -298,8 +283,7 @@ G4GIDI_target* G4LENDManager::GetLENDTarget( G4ParticleDefinition* proj , G4Stri
             if ( verboseLevel > 1 ) {
                G4cout << " However you can use following evaluation(s) for natural abundace of the target. " << G4endl;
 
-               std::vector< std::string >::iterator its;
-               for ( its = available_nat->begin() ; its != available_nat->end() ; its++ ) 
+               for ( auto its = available_nat->cbegin() ; its != available_nat->cend() ; ++its ) 
                   G4cout << *its << G4endl;
                G4cout << G4endl;
             }
@@ -319,7 +303,7 @@ std::vector< G4String > G4LENDManager::IsLENDTargetAvailable ( G4ParticleDefinit
 {
 
    std::vector< G4String > vEvaluation; 
-   if ( proj_lend_map.find ( proj ) == proj_lend_map.end() ) 
+   if ( proj_lend_map.find ( proj ) == proj_lend_map.cend() ) 
    {
       G4cout << proj->GetParticleName() << " is not supported by this LEND." << G4endl;
       return vEvaluation; // return empty 
@@ -329,8 +313,7 @@ std::vector< G4String > G4LENDManager::IsLENDTargetAvailable ( G4ParticleDefinit
    std::vector< std::string >* available =  xlend->getNamesOfAvailableLibraries( iZ, iA , iM );
 
    if ( available->size() > 0 ) {
-      std::vector< std::string >::iterator its;
-      for ( its = available->begin() ; its != available->end() ; its++ ) 
+      for ( auto its = available->cbegin() ; its != available->cend() ; ++its ) 
          vEvaluation.push_back ( *its );
    }
    delete available;
@@ -409,7 +392,7 @@ G4double G4LENDManager::GetExcitationEnergyOfExcitedIsomer( G4int iZ , G4int iA 
    G4double EE = 0.0;
    G4int nucCode = GetNucleusEncoding( iZ , iA , iM );
    auto it = mExcitationEnergy.find( nucCode );
-   if ( it != mExcitationEnergy.end() ) {
+   if ( it != mExcitationEnergy.cend() ) {
       EE = it->second;
    } else {
       if ( iM == 0 ) {

@@ -27,7 +27,7 @@
 //
 // Implementation for singleton container
 //
-// 9.10.2018 G.Cosmo, CERN - Initial version
+// Author: Gabriele Cosmo (CERN), 9 October 2018
 // --------------------------------------------------------------------
 
 #include "G4AssemblyVolume.hh"
@@ -70,7 +70,7 @@ void G4AssemblyStore::Clean()
 {
   // Do nothing if geometry is closed
   //
-  if (G4GeometryManager::IsGeometryClosed())
+  if (G4GeometryManager::GetInstance()->IsGeometryClosed())
   {
     G4cout << "WARNING - Attempt to delete the assembly store"
            << " while geometry closed !" << G4endl;
@@ -87,7 +87,7 @@ void G4AssemblyStore::Clean()
   for(const auto & pos : *store)
   {
     if (fgNotifier != nullptr) { fgNotifier->NotifyDeRegistration(); }
-    if (pos != nullptr) { delete pos; }
+    delete pos;
   }
 
   locked = false;

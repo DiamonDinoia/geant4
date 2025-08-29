@@ -25,9 +25,9 @@
 // 
 // G4Navigator class Implementation
 //
-// Original author: Paul Kent, July 95/96
-// Responsible 1996-present: John Apostolakis, Gabriele Cosmo
-// Additional revisions by: Pedro Arce, Vladimir Grichine
+// Original author: Paul Kent (CERN), July 1995-1996
+// Responsible 1996-present: John Apostolakis, Gabriele Cosmo (CERN)
+// Additional revisions by: Pedro Arce (CIEMAT), Vladimir Grichine (CERN)
 // --------------------------------------------------------------------
 
 #include <iomanip>
@@ -655,7 +655,9 @@ G4Navigator::LocateGlobalPointWithinVolume(const G4ThreeVector& pGlobalpoint)
 //
 // Save the state, in case this is a parasitic call
 // Save fValidExitNormal, fExitNormal, fExiting, fEntering, 
-//      fBlockedPhysicalVolume, fBlockedReplicaNo, fLastStepWasZero; 
+//      fBlockedPhysicalVolume, fBlockedReplicaNo, fLastStepWasZero,
+//      fLastLocatedPointLocal, fLocatedOutsideWorld, fEnteredDaughter,
+//      fExitedMother, fPreviousSftOrigin, fPreviousSafety.
 // ********************************************************************
 //
 void G4Navigator::SetSavedState()
@@ -1031,7 +1033,7 @@ G4double G4Navigator::ComputeStep( const G4ThreeVector& pGlobalpoint,
                 << "    (local position: " << newLocalPoint << ")" << G4endl
                 << "    (local direction: " << localDirection << ")." << G4endl
                 << "  Previous phys volume: '"
-                << ( fLastMotherPhys != nullptr ? fLastMotherPhys->GetName() : "" )
+                << ( fLastMotherPhys != nullptr ? fLastMotherPhys->GetName() : G4String("") )
                 << "'" << G4endl << G4endl;
         if( actAndReport || abandon )
         {

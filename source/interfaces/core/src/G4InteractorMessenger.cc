@@ -193,9 +193,9 @@ G4InteractorMessenger::~G4InteractorMessenger()
 
 void G4InteractorMessenger::SetNewValue(G4UIcommand* command, G4String newValue)
 {
-  auto paramn = (G4int)command->GetParameterEntries();
+  const auto paramn = command->GetParameterEntries();
   auto params = new G4String[paramn];
-  if (GetValues(newValue, paramn, params)) {
+  if (GetValues(newValue, (G4int)paramn, params)) {
     if (command == addMenu) {
       session->AddMenu((const char*)params[0], (const char*)params[1]);
     }
@@ -254,7 +254,7 @@ G4bool GetValues(G4String newValue, G4int paramn, G4String* params)
       return false;
     }
 
-    params[i] = token;
+    params[i] = std::move(token);
 
     tok = strtok(nullptr, " ");
   }

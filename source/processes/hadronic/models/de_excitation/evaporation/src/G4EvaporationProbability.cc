@@ -47,29 +47,59 @@
 #include "G4NucleiProperties.hh"
 #include "G4KalbachCrossSection.hh"
 #include "G4ChatterjeeCrossSection.hh"
+#include "G4InterfaceToXS.hh"
+#include "G4IsotopeList.hh"
+#include "G4Neutron.hh"
+#include "G4Proton.hh"
+#include "G4Deuteron.hh"
+#include "G4Triton.hh"
+#include "G4He3.hh"
+#include "G4Alpha.hh"
 #include "Randomize.hh"
 #include "G4Exp.hh"
 #include "G4Log.hh"
 #include "G4Pow.hh"
 
-static const G4double explim = 160.;
+namespace
+{
+  const G4double explim = 160.;
+}
 
 G4EvaporationProbability::G4EvaporationProbability(G4int anA, G4int aZ, 
 						   G4double aGamma) 
   : G4VEmissionProbability(aZ, anA), fGamma(aGamma)
 {
-  resA13 = lastA = muu = freeU = a0 = delta1 = 0.0;
+  resA13 = lastA = muu = freeU = a0 = a1 = delta0 = delta1 = 0.0;
   pcoeff = fGamma*pEvapMass*CLHEP::millibarn
     /((CLHEP::pi*CLHEP::hbarc)*(CLHEP::pi*CLHEP::hbarc)); 
 
-  if(0 == theZ)      { index = 0; }
-  else if(1 == theZ) { index = theA; }
-  else               { index = theA + 1; }
-  if(0 == aZ) {
-    ResetIntegrator(30, 0.15*CLHEP::MeV, 0.02);
-  } else {
-    ResetIntegrator(30, 0.25*CLHEP::MeV, 0.03);
+  if (1 == theZ && 1 == theA) { index = 1; }
+  else if (1 == theZ && 2 == theA) { index = 2; }
+  else if (1 == theZ && 3 == theA) { index = 3; }
+  else if (2 == theZ && 3 == theA) { index = 4; }
+  else if (2 == theZ && 4 == theA) { index = 5; }
+
+  if (OPTxs == 1) {
+    const G4ParticleDefinition* part = nullptr;
+    if (index == 1) { part = G4Proton::Proton(); }
+    else if (index == 2) { part = G4Deuteron::Deuteron(); }
+    else if (index == 3) { part = G4Triton::Triton(); }
+    else if (index == 4) { part = G4He3::He3(); }
+    else if (index == 5) { part = G4Alpha::Alpha(); }
+    else { part = G4Neutron::Neutron(); }
+    fXSection = new G4InterfaceToXS(part, index);
   }
+  
+  if (0 == aZ) {
+    ResetIntegrator(0.15*CLHEP::MeV, 0.01);
+  } else {
+    ResetIntegrator(0.20*CLHEP::MeV, 0.01);
+  }
+}
+
+G4EvaporationProbability::~G4EvaporationProbability()
+{
+  delete fXSection;
 }
 
 G4double G4EvaporationProbability::CalcAlphaParam(const G4Fragment&)
@@ -87,11 +117,11 @@ G4double G4EvaporationProbability::TotalProbability(
   G4double CB, G4double exEnergy)
 {
   G4int fragA = fragment.GetA_asInt();
-  G4int fragZ = fragment.GetZ_asInt();
-  G4double U = fragment.GetExcitationEnergy(); 
-  a0 = pNuclearLevelData->GetLevelDensity(fragZ,fragA,U);
+  G4int fragZ = fragment.GetZ_asInt(); 
   freeU = exEnergy;
-  delta1 = pNuclearLevelData->GetPairingCorrection(resZ,resA);
+  a0 = pNuclearLevelData->GetLevelDensity(fragZ, fragA, freeU);
+  delta0 = pNuclearLevelData->GetPairingCorrection(fragZ, fragA);
+  delta1 = pNuclearLevelData->GetPairingCorrection(resZ, resA);
   resA13 = pG4pow->Z13(resA);
   /*      
   G4cout << "G4EvaporationProbability: Z= " << theZ << " A= " << theA 
@@ -112,7 +142,7 @@ G4double G4EvaporationProbability::TotalProbability(
     G4double Beta = CalcBetaParam(fragment);
 
     // to be checked where to use a0, where - a1	
-    G4double a1 = pNuclearLevelData->GetLevelDensity(resZ,resA,freeU);
+    a1 = pNuclearLevelData->GetLevelDensity(resZ,resA,freeU);
     G4double GlobalFactor = fGamma*Alpha*pEvapMass*RN2*resA13*resA13/(a1*a1);
     
     G4double maxea = maxEnergy*a1;
@@ -139,46 +169,52 @@ G4double G4EvaporationProbability::TotalProbability(
   return pProbability;
 }
 
-G4double G4EvaporationProbability::ComputeProbability(G4double K, G4double CB)
-{ 
-  G4double E0 = freeU;
+G4double G4EvaporationProbability::ComputeProbability(G4double kinE, G4double CB)
+{
+  const G4double Kmin = 20*CLHEP::keV;
+  G4double K = std::max(kinE, Kmin);
   // abnormal case - should never happens
-  if(pMass < pEvapMass + pResMass) { return 0.0; }
+  if(pMass < pEvapMass + pResMass + K) { return 0.0; }
     
-  G4double m02 = pMass*pMass;
-  G4double m12 = pEvapMass*pEvapMass;
-  G4double mres = std::sqrt(m02 + m12 - 2.*pMass*(pEvapMass + K));
+  G4double K1 = pMass - pEvapMass - K;
+  G4double mres = std::sqrt(K1*K1 - K*(2*pEvapMass + K));
 
   G4double excRes = mres - pResMass;
-  G4double E1 = excRes - delta1;
-  if(E1 <= 0.0) { return 0.0; }
-  G4double a1 = pNuclearLevelData->GetLevelDensity(resZ,resA,excRes);
-  G4double xs = CrossSection(K, CB); 
+  if (excRes < 0.0) { return 0.0; }
+  G4double K2 = 0.5*(pMass + pEvapMass + mres)*(pMass - pEvapMass - mres)/mres;
+  G4double xs = CrossSection(K2, CB);
+  if (xs <= 0.0) { return 0.0; }
+
+  a1 = pNuclearLevelData->GetLevelDensity(resZ, resA, excRes);
+  G4double E0 = std::max(freeU - delta0, 0.0);
+  G4double E1 = std::max(excRes - delta1, 0.0);
   G4double prob = pcoeff*G4Exp(2.0*(std::sqrt(a1*E1) - std::sqrt(a0*E0)))*K*xs;
   return prob;
 }
 
 G4double 
-G4EvaporationProbability::CrossSection(G4double K, G4double CB)
+G4EvaporationProbability::CrossSection(G4double kine, G4double CB)
 {
+  const G4double Kmin = 20*CLHEP::keV;
+  G4double K = std::max(kine, Kmin);
   // compute power once
-  if(resA != lastA) {
+  if (OPTxs > 1 && 0 < index && resA != lastA) {
     lastA = resA;
-    if(0 < index) 
-      muu = G4KalbachCrossSection::ComputePowerParameter(resA, index);
+    muu = G4KalbachCrossSection::ComputePowerParameter(resA, index);
   }
-  G4double res = 0.0;
-  if(OPTxs <= 2) { 
-    res = G4ChatterjeeCrossSection::ComputeCrossSection(K, CB, resA13, muu,
-							index, theZ, resA); 
-  } else {
-    // added barrier penetration factor
-    G4double elim = 0.6*CB;
-    if (K > elim) {
-      res = G4KalbachCrossSection::ComputeCrossSection(K, CB, resA13, muu,
-    						       index, theZ, theA, resA);
-      //res *= (1.0 - elim/K);
-    }
+  if (OPTxs == 1) {
+    const G4double lim = 2*CLHEP::MeV;
+    G4double e1 = lowEnergyLimitMeV[theZ];
+    if (e1 == 0.0) { e1 = lim; }
+    K = std::max(K, e1);
+    recentXS = fXSection->GetElementCrossSection(K, resZ)/CLHEP::millibarn;
+
+  } else if (OPTxs == 2) { 
+    recentXS = G4ChatterjeeCrossSection::ComputeCrossSection(K, CB, resA13, muu,
+                                                             index, theZ, resA); 
+  } else if (OPTxs == 3) {
+    recentXS = G4KalbachCrossSection::ComputeCrossSection(K, CB, resA13, muu,
+                                                          index, theZ, theA, resA);
   }
-  return res;
+  return recentXS;
 }

@@ -52,13 +52,13 @@ G4ParticleHPManager::G4ParticleHPManager()
 {
   messenger = new G4ParticleHPMessenger(this);
   verboseLevel = G4HadronicParameters::Instance()->GetVerboseLevel();
-  char* ss = std::getenv("NeutronHPNames");
+  const char* ss = G4FindDataDir("NeutronHPNames");
   if (nullptr != ss) { CHECK_HP_NAMES = true; }
-  ss = std::getenv("G4PHP_DO_NOT_CHECK_DIFF_COEFF_REPR");
+  ss = G4FindDataDir("G4PHP_DO_NOT_CHECK_DIFF_COEFF_REPR");
   if (nullptr != ss) { PHP_CHECK = false; }
-  ss = std::getenv("G4PHP_MULTIPLICITY_METHOD");
+  ss = G4FindDataDir("G4PHP_MULTIPLICITY_METHOD");
   if (nullptr != ss && "BetweenInts" == G4String(ss)) { PHP_USE_POISSON = false; }
-  ss = std::getenv("G4ParticleHPDebug");
+  ss = G4FindDataDir("G4ParticleHPDebug");
   if (nullptr != ss) { DEBUG = true; }
 
   // identify and check data path once - it should exist
@@ -72,7 +72,7 @@ G4ParticleHPManager::G4ParticleHPManager()
   // path may be defined by two environment variables
   // it is not mandatory to access PHP data - path may be not defined
   const char* ttp = G4FindDataDir("G4PARTICLEHPDATA");
-  G4String tendl = (nullptr == ttp) ? "" : G4String(ttp);
+  G4String tendl = (nullptr == ttp) ? G4String("") : G4String(ttp);
   const char* ssp = G4FindDataDir("G4PROTONHPDATA");
   fDataPath[1] = (nullptr == ssp) ? tendl + "/Proton" : G4String(ssp);
 
@@ -252,7 +252,7 @@ void G4ParticleHPManager::register_data_file(const G4String& filename, const G4S
   mDataEvaluation.insert(std::pair<G4String, G4String>(filename, source));
 }
 
-void G4ParticleHPManager::DumpDataSource()
+void G4ParticleHPManager::DumpDataSource() const
 {
   G4cout << "Data source of this Partile HP calculation are " << G4endl;
   for (const auto& it : mDataEvaluation) {
@@ -280,6 +280,7 @@ void G4ParticleHPManager::DumpSetting()
          << " PHP check                       " << PHP_CHECK << G4endl
          << " CHECK HP NAMES                  " << CHECK_HP_NAMES << G4endl
          << " Enable DEBUG                    " << DEBUG << G4endl
+         << " Use probability tables from     " << G4HadronicParameters::Instance()->GetTypeTablePT() << G4endl
          << "=======================================================" << G4endl << G4endl;
   isPrinted = true;
 }

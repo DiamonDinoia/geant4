@@ -27,7 +27,6 @@
 /// \file ExGflasha.cc
 /// \brief Main program of the parameterisations/gflash/gflasha example
 //
-// Created by Joanna Weng 26.11.2004
 
 // G4 includes
 #include "G4PhysListFactory.hh"
@@ -75,9 +74,10 @@ int main(int argc, char** argv)
   G4PhysListFactory listFactory;
   G4String name;
   auto list_name = std::getenv("PHYSLIST");
-  if (list_name == nullptr || std::strlen(list_name) == 0 ) {
+  if (list_name == nullptr || std::strlen(list_name) == 0) {
     name = "FTFP_BERT";
-  } else {
+  }
+  else {
     name = list_name;
   }
   G4VModularPhysicsList* physicsList = listFactory.GetReferencePhysList(name);
@@ -109,9 +109,6 @@ int main(int argc, char** argv)
   visManager->Initialize();
 
   G4UImanager* UImanager = G4UImanager::GetUIpointer();
-  UImanager->ApplyCommand("/run/verbose 0");
-  runManager->Initialize();
-  UImanager->ApplyCommand("/Step/Verbose 0");
 
   if (ui != nullptr)  // Define UI terminal for interactive mode
   {

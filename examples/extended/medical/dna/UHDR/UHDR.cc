@@ -25,15 +25,24 @@
 //
 #include "ActionInitialization.hh"
 #include "DetectorConstruction.hh"
+#include "PhysicsList.hh"
+
 #include "G4AnalysisManager.hh"
 #include "G4RunManagerFactory.hh"
+#include "G4UIExecutive.hh"
 #include "G4UImanager.hh"
 #include "G4VisExecutive.hh"
-#include "PhysicsList.hh"
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv)
+{
   G4int seed(0);
+  // Detect interactive mode (if no arguments) and define UI session
+  G4UIExecutive* ui = nullptr;
+  if (argc == 1) {
+    ui = new G4UIExecutive(argc, argv);
+  }
   if (argc > 2) {
     seed = std::stoi(argv[2]);
     long enterseed = seed;
@@ -46,16 +55,16 @@ int main(int argc, char **argv) {
 
   auto pDetector = new DetectorConstruction();
   runManager->SetUserInitialization(pDetector);
-  runManager->SetUserInitialization(new PhysicsList(pDetector));
-  runManager->SetUserInitialization(new ActionInitialization(pDetector));
+  runManager->SetUserInitialization(new PhysicsList());
+  runManager->SetUserInitialization(new ActionInitialization());
 
   ///
-  G4AnalysisManager *analysisManager = G4AnalysisManager::Instance();
+  G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
   analysisManager->SetDefaultFileType("root");
   analysisManager->SetNtupleDirectoryName("ntuple");
   // open output file
   //
-  std::string name = "Dose_" + std::to_string(seed);
+  G4String name = "Dose_" + std::to_string(seed);
   G4bool fileOpen = analysisManager->OpenFile(name);
   if (!fileOpen) {
     G4cout << "\n---> HistoManager::book(): cannot open " << name << G4endl;
@@ -63,14 +72,23 @@ int main(int argc, char **argv) {
   }
   analysisManager->SetFirstNtupleId(1);
   ///////
-  G4UImanager *UI = G4UImanager::GetUIpointer();
-  if (argc > 1) // batch mode
-  {
+  // Visualization
+  G4VisExecutive* visManager = nullptr;
+  // Get the pointer to the User Interface manager
+  G4UImanager* UImanager = G4UImanager::GetUIpointer();
+  if (nullptr == ui) {
+    // Batch mode
     G4String command = "/control/execute ";
     G4String fileName = argv[1];
-    UI->ApplyCommand(command + fileName);
-  } else {
-    UI->ApplyCommand("/control/execute beam.in");
+    UImanager->ApplyCommand(command + fileName);
+  }
+  else {
+    visManager = new G4VisExecutive;
+    visManager->Initialize();
+    UImanager->ApplyCommand("/control/execute vis.mac");
+    ui->SessionStart();
+    delete ui;
+    delete visManager;
   }
   analysisManager->Write();
   analysisManager->CloseFile();

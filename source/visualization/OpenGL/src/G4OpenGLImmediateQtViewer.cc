@@ -33,12 +33,12 @@
 #include "G4OpenGLImmediateSceneHandler.hh"
 
 #include "G4ios.hh"
-#ifdef G4MULTITHREADED
 #include "G4Threading.hh"
-#endif
 #include <qapplication.h>
 #include <qtabwidget.h>
-
+#if 0x060000 <= QT_VERSION
+#include "G4Qt.hh"
+#endif
 
 G4OpenGLImmediateQtViewer::G4OpenGLImmediateQtViewer
 (G4OpenGLImmediateSceneHandler& sceneHandler,
@@ -48,6 +48,7 @@ G4OpenGLImmediateQtViewer::G4OpenGLImmediateQtViewer
   G4OpenGLQtViewer (sceneHandler),
   G4OpenGLImmediateViewer (sceneHandler)
 {
+#if QT_VERSION < 0x060000
   fQGLWidgetInitialiseCompleted = false;
 
   setFocusPolicy(Qt::StrongFocus); // enable keybord events
@@ -56,18 +57,20 @@ G4OpenGLImmediateQtViewer::G4OpenGLImmediateQtViewer
   fUpdateGLLock = false;
 
   if (fViewId < 0) return;  // In case error in base class instantiation.
+#else
+  setFocusPolicy(Qt::StrongFocus); // enable keybord events
+#endif
 }
 
-G4OpenGLImmediateQtViewer::~G4OpenGLImmediateQtViewer() {
-  //  makeCurrent();  // Not sure why this - commented out 12-Apr-2021 JA
-}
+G4OpenGLImmediateQtViewer::~G4OpenGLImmediateQtViewer() {}
 
 void G4OpenGLImmediateQtViewer::Initialise() {
-  makeCurrent();
+#if QT_VERSION < 0x060000
   
   fQGLWidgetInitialiseCompleted = false;
   CreateMainWindow (this,QString(GetName()));
 
+  makeCurrent();
   glDrawBuffer (GL_BACK);
   
   // set the good tab active
@@ -79,8 +82,14 @@ void G4OpenGLImmediateQtViewer::Initialise() {
   }
   
   fQGLWidgetInitialiseCompleted = true;
+#else
+  CreateMainWindow (this,QString(GetName()));
+  // Set jpg as default export format for Qt viewer
+  setExportImageFormat("jpg");
+#endif
 }
 
+#if QT_VERSION < 0x060000
 void G4OpenGLImmediateQtViewer::initializeGL () {
 
   InitializeGLView ();
@@ -103,25 +112,31 @@ void G4OpenGLImmediateQtViewer::initializeGL () {
   // Set jpg as default export format for Qt viewer
   setExportImageFormat("jpg");
 }
+#endif
 
 
 void  G4OpenGLImmediateQtViewer::DrawView() {
-#ifdef G4MULTITHREADED
-  if (G4Threading::G4GetThreadId() == G4Threading::MASTER_ID) {
+#if QT_VERSION < 0x060000
+#else
+  if(IsGettingPickInfos()) {
+    paintGL();
+    return;
+  }
+#endif
+  if (G4Threading::IsMasterThread()) {
     updateQWidget();
   }
-#else
-  updateQWidget();
-#endif
 }
 
 
 void G4OpenGLImmediateQtViewer::ComputeView () {
 
+#if QT_VERSION < 0x060000
   makeCurrent();
   // If a double buffer context has been forced upon us, ignore the
   // back buffer for this OpenGLImmediate view.
   //  glDrawBuffer (GL_FRONT);
+#endif
 
   G4ViewParameters::DrawingStyle dstyle = GetViewParameters().GetDrawingStyle();
 
@@ -143,7 +158,9 @@ void G4OpenGLImmediateQtViewer::ComputeView () {
     savePPMToTemp();
   }
    
+#if QT_VERSION < 0x060000
   fHasToRepaint = true;
+#endif
 }
 
 /**
@@ -154,16 +171,25 @@ void G4OpenGLImmediateQtViewer::resizeGL(
 ,int aHeight)
 {  
   if ((aWidth > 0) && (aHeight > 0)) {
+#if QT_VERSION < 0x060000
     ResizeWindow(aWidth,aHeight);
     fHasToRepaint = sizeHasChanged();
+#else
+    ResizeWindow(devicePixelRatio()*aWidth,devicePixelRatio()*aHeight);
+#endif
   }
 }
 
 
 void G4OpenGLImmediateQtViewer::paintGL()
 {
+#if QT_VERSION < 0x060000
   updateToolbarAndMouseContextMenu();
+#else
+  //G.Barrand: don't do any change in the GUI here, just "paint" this widget!
+#endif
 
+#if QT_VERSION < 0x060000
   if (fPaintEventLock) {
 //    return ;
   }
@@ -197,15 +223,26 @@ void G4OpenGLImmediateQtViewer::paintGL()
       }
     }
   }
+#else
+  if ((getWinWidth() == 0) && (getWinHeight() == 0)) return; //G.Barrand: needed?
+#endif
+
+#if QT_VERSION < 0x060000
+#else
+  InitializeGLView ();
+  glDrawBuffer (GL_BACK);
+#endif
 
   SetView();
    
   ClearView (); //ok, put the background correct
   ComputeView();
 
+#if QT_VERSION < 0x060000
   fHasToRepaint = false; // could be set to false by ComputeView
 
   fPaintEventLock = false;
+#endif
 }
 
 void G4OpenGLImmediateQtViewer::mousePressEvent(QMouseEvent *event)
@@ -228,13 +265,14 @@ void G4OpenGLImmediateQtViewer::wheelEvent (QWheelEvent * event)
   G4wheelEvent(event);
 }
 
+#if QT_VERSION < 0x060000
 void G4OpenGLImmediateQtViewer::showEvent (QShowEvent *) 
 {
   if (fQGLWidgetInitialiseCompleted) {
     fHasToRepaint = true;
   }
 }
-
+#endif
 
 /**
  * This function was build in order to make a zoom on double clic event.
@@ -261,6 +299,7 @@ void G4OpenGLImmediateQtViewer::contextMenuEvent(QContextMenuEvent *e)
   G4manageContextMenuEvent(e);
 }
 
+#if QT_VERSION < 0x060000
 void G4OpenGLImmediateQtViewer::paintEvent(QPaintEvent *) {
   if (! fQGLWidgetInitialiseCompleted) {
     return;
@@ -276,9 +315,11 @@ void G4OpenGLImmediateQtViewer::paintEvent(QPaintEvent *) {
 #endif
   }
 }
+#endif
 
 
 void G4OpenGLImmediateQtViewer::updateQWidget() {
+#if QT_VERSION < 0x060000
   if (fUpdateGLLock) {
     return;
   }
@@ -293,14 +334,21 @@ void G4OpenGLImmediateQtViewer::updateQWidget() {
   updateViewerPropertiesTableWidget();
   updateSceneTreeWidget();
   fUpdateGLLock= false;
+#else
+  //if (!isCurrentWidget()) return; //G.Barrand: Qt must know if it has to activate paintGL() if the widget is not visible.
+  //G.Barrand: don't do any change in the GUI here, just ask to "paint" this widget!
+  update();
+#endif
 }
 
 
-void G4OpenGLImmediateQtViewer::ShowView (
-) 
-//////////////////////////////////////////////////////////////////////////////
-//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+void G4OpenGLImmediateQtViewer::ShowView ()
 {
+#if QT_VERSION < 0x060000
   fHasToRepaint = true;
   activateWindow();
+#else
+  activateWindow();
+  ((QApplication*)G4Qt::getInstance ())->processEvents();
+#endif
 }

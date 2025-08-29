@@ -493,15 +493,16 @@ G4double G4PenelopeRayleighModelMI::CrossSectionPerVolume(const G4Material* mate
       MaxStoichiometricFactor = (*StoichiometricFactors)[i];
   }
   for (std::size_t i=0;i<nElements;++i) {
-    (*StoichiometricFactors)[i] /=  MaxStoichiometricFactor;
+    if (MaxStoichiometricFactor > 0.)
+      (*StoichiometricFactors)[i] /=  MaxStoichiometricFactor;
   }
 
   //Equivalent atoms per molecule
-  G4double atPerMol = 0;
+  G4double atPerMol = 0.;
   for (std::size_t i=0;i<nElements;++i)
     atPerMol += (*StoichiometricFactors)[i]; 	
   G4double moleculeDensity = 0.;
-  if (atPerMol) moleculeDensity = atomDensity/atPerMol;
+  if (atPerMol != 0.) moleculeDensity = atomDensity/atPerMol;
   
   if (fVerboseLevel > 2)
     G4cout << "Material " << material->GetName() << " has " << atPerMol << " atoms "

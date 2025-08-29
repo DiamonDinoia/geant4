@@ -11,7 +11,7 @@ Environment variable "G4FORCE_RUN_MANAGER_TYPE" enabled with value == Serial. Fo
 
 
 **************************************************************
- Geant4 version Name: geant4-11-02-patch-01    (16-February-2024)
+ Geant4 version Name: geant4-11-03-ref-06    (30-June-2025)
                        Copyright : Geant4 Collaboration
                       References : NIM A 506 (2003), 250-303
                                  : IEEE-TNS 53 (2006), 270-278
@@ -30,28 +30,35 @@ Registered graphics systems are:
   ASCIITree (ATree)
   DAWNFILE (DAWNFILE)
   G4HepRepFile (HepRepFile)
-  RayTracer (RayTracer)
+  RayTracer (RT)
   VRML2FILE (VRML2FILE)
   gMocrenFile (gMocrenFile)
-  TOOLSSG_OFFSCREEN (TSG_OFFSCREEN)
   TOOLSSG_OFFSCREEN (TSG_OFFSCREEN, TSG_FILE)
   OpenGLImmediateQt (OGLIQt, OGLI)
-  OpenGLStoredQt (OGLSQt, OGL, OGLS)
+  OpenGLStoredQt (OGLSQt, OGLS)
   OpenGLImmediateXm (OGLIXm, OGLIQt_FALLBACK)
   OpenGLStoredXm (OGLSXm, OGLSQt_FALLBACK)
   OpenGLImmediateX (OGLIX, OGLIQt_FALLBACK, OGLIXm_FALLBACK)
   OpenGLStoredX (OGLSX, OGLSQt_FALLBACK, OGLSXm_FALLBACK)
-  RayTracerX (RayTracerX)
+  RayTracerX (RTX)
+  RayTracerQt (RTQt)
   Qt3D (Qt3D)
   TOOLSSG_X11_GLES (TSG_X11_GLES, TSGX11, TSG_XT_GLES_FALLBACK)
+  TOOLSSG_X11_ZB (TSG_X11_ZB, TSGX11ZB)
   TOOLSSG_XT_GLES (TSG_XT_GLES, TSGXt, TSG_QT_GLES_FALLBACK)
   TOOLSSG_XT_ZB (TSG_XT_ZB, TSGXtZB)
-  TOOLSSG_QT_GLES (TSG_QT_GLES, TSGQt, TSG)
+  TOOLSSG_QT_GLES (TSG_QT_GLES, TSGQt, TSG, OGL)
   TOOLSSG_QT_ZB (TSG_QT_ZB, TSGQtZB)
-Default graphics system is: TSG_OFFSCREEN (based on batch session).
-Default window size hint is: 600x600-0+0 (based on G4VisManager initialisation).
-Note: Parameters specified on the command line will override these defaults.
-      Use "vis/open" without parameters to get these defaults.
+You may choose a graphics system (driver) with a parameter of
+the command "/vis/open" or "/vis/sceneHandler/create",
+or you may omit the driver parameter and choose at run time:
+- by argument in the construction of G4VisExecutive
+- by environment variable "G4VIS_DEFAULT_DRIVER"
+- by entry in "~/.g4session"
+- by build flags.
+- Note: This feature is not allowed in batch mode.
+For further information see "examples/basic/B1/exampleB1.cc"
+and "vis.mac".
 
 Registering model factories...
 
@@ -88,6 +95,12 @@ Some /vis commands (optionally) take a string to specify colour.
 Command is ignored.
 Checking overlaps for volume target:0 (G4Tubs) ... OK! 
 - Split for e-e created in e-_G4DNAIonisation process activatedwith split number 200 in region Target-- 
+G4DNASamplingTable::LoadData from file:
+/dna/sigmadiff_ionisation_e_born.dat
+    Nenergy= 83 NmaxT= 151
+G4DNASamplingTable::LoadData from file:
+/dna/sigmadiff_ionisation_p_born.dat
+    Nenergy= 31 NmaxT= 151
 PhysicsList::SetCuts:CutLength : 1 um 
 Warning : Region <Target> does not have specific production cuts,
 even though it appears in the current tracking world.
@@ -113,10 +126,13 @@ Bremsstrahlung energy threshold above which
   primary e+- is added to the list of secondary    100 TeV
 Bremsstrahlung energy threshold above which primary
   muon/hadron is added to the list of secondary    100 TeV
+Positron annihilation at rest model                SimplePositronium
+Enable 3 gamma annihilation on fly                 0
 Lowest triplet kinetic energy                      1 MeV
 Enable sampling of gamma linear polarisation       0
 5D gamma conversion model type                     0
 5D gamma conversion model on isolated ion          0
+Use RiGe 5D e+e- pair production model by muons    0
 Livermore data directory                           epics_2017
 =======================================================================
 ======                 Ionisation Parameters                   ========
@@ -248,7 +264,7 @@ DNABornIonisationModel : Emin=  500 keV Emax=   10 MeV  deltaBorn
 
 proton_G4DNAChargeDecrease:  for proton SubType=56 BuildTable=0
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
-DNADingfelderChargeDecreaseModel : Emin=    0 eV  Emax=  100 MeV
+DNADingfelderChargeDecreaseModel : Emin=    0 eV  Emax=  100 TeV
 
 msc:  for GenericIon  SubType= 10
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
@@ -294,7 +310,7 @@ DNARuddIonisationModel : Emin=    0 eV  Emax=   10 MeV  deltaRudd
 
 alpha_G4DNAChargeDecrease:  for alpha SubType=56 BuildTable=0
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
-DNADingfelderChargeDecreaseModel : Emin=    0 eV  Emax=  400 MeV
+DNADingfelderChargeDecreaseModel : Emin=    0 eV  Emax=  100 TeV
 
 alpha+_G4DNAExcitation:  for alpha+ SubType=52 BuildTable=0
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
@@ -306,11 +322,11 @@ DNARuddIonisationModel : Emin=    0 eV  Emax=  400 MeV  deltaRudd
 
 alpha+_G4DNAChargeDecrease:  for alpha+ SubType=56 BuildTable=0
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
-DNADingfelderChargeDecreaseModel : Emin=    0 eV  Emax=  400 MeV
+DNADingfelderChargeDecreaseModel : Emin=    0 eV  Emax=  100 TeV
 
 alpha+_G4DNAChargeIncrease:  for alpha+ SubType=57 BuildTable=0
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
-DNADingfelderChargeIncreaseModel : Emin=    0 eV  Emax=  400 MeV
+DNADingfelderChargeIncreaseModel : Emin=    0 eV  Emax=  100 TeV
 
 helium_G4DNAExcitation:  for helium SubType=52 BuildTable=0
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
@@ -322,7 +338,7 @@ DNARuddIonisationModel : Emin=    0 eV  Emax=  400 MeV  deltaRudd
 
 helium_G4DNAChargeIncrease:  for helium SubType=57 BuildTable=0
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
-DNADingfelderChargeIncreaseModel : Emin=    0 eV  Emax=  400 MeV
+DNADingfelderChargeIncreaseModel : Emin=    0 eV  Emax=  100 TeV
 
 hydrogen_G4DNAIonisation:  for hydrogen SubType=53 BuildTable=0
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
@@ -334,7 +350,7 @@ DNAMillerGreenExcitationModel : Emin=    0 eV  Emax=  500 keV
 
 hydrogen_G4DNAChargeIncrease:  for hydrogen SubType=57 BuildTable=0
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
-DNADingfelderChargeIncreaseModel : Emin=    0 eV  Emax=  100 MeV
+DNADingfelderChargeIncreaseModel : Emin=    0 eV  Emax=  100 TeV
 
 ========= Table of registered couples ============================
 
@@ -348,8 +364,6 @@ Index : 0     used in the geometry : Yes
 
 ==================================================================
 
-G4VisManager: Using G4TrajectoryDrawByCharge as fallback trajectory model.
-See commands in /vis/modeling/trajectories/ for other options.
 ### Run 0 starts.
 --> Event 0 starts.
 --> Event 10 starts.
@@ -364,17 +378,10 @@ See commands in /vis/modeling/trajectories/ for other options.
  Run terminated.
 Run Summary
   Number of events processed : 100
-  User=21.150000s Real=21.343032s Sys=0.050000s
-There are histograms that can be viewed with visualization:
-  2 h1 histograms(s)
-  List them with "/analysis/list".
-  View them immediately with "/vis/plot" or "/vis/reviewPlots".
-  But...there are no entries. To make your histograms available for
-  plotting in this UI session, use CloseFile(false) in your
-  EndOfRunAction and Reset() in your BeginOfRunAction.
+  User=12.300000s Real=12.357872s Sys=0.030000s
 Graphics systems deleted.
 Visualization Manager deleting...
 ================== Deleting memory pools ===================
 Number of memory pools allocated: 9 of which, static: 0
-Dynamic pools deleted: 9 / Total memory freed: 40 MB
+Dynamic pools deleted: 9 / Total memory freed: 43 MB
 ============================================================

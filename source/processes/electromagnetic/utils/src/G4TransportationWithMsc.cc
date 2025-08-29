@@ -55,6 +55,7 @@
 #include "G4StepPoint.hh"
 #include "G4StepStatus.hh"
 #include "G4Track.hh"
+#include "G4TransportationProcessType.hh"
 #include "G4VMscModel.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -68,6 +69,7 @@ static constexpr G4double kMinDisplacement2 = kGeomMin * kGeomMin;
 G4TransportationWithMsc::G4TransportationWithMsc(ScatteringType type, G4int verbosity)
   : G4Transportation(verbosity, "TransportationWithMsc"), fType(type)
 {
+  SetProcessSubType(static_cast<G4int>(TRANSPORTATION_WITH_MSC));
   SetVerboseLevel(1);
 
   fEmManager = G4LossTableManager::Instance();
@@ -159,7 +161,6 @@ void G4TransportationWithMsc::PreparePhysicsTable(const G4ParticleDefinition& pa
     if (fType == ScatteringType::MultipleScattering) {
       for (G4int i = 0; i < numberOfModels; ++i) {
         auto msc = static_cast<G4VMscModel*>(fModelManager->GetModel(i));
-        msc->SetMasterThread(master);
         msc->SetPolarAngleLimit(theParameters->MscThetaLimit());
         G4double emax = std::min(msc->HighEnergyLimit(), theParameters->MaxKinEnergy());
         msc->SetHighEnergyLimit(emax);

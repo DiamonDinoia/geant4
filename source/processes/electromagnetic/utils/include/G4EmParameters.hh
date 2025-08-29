@@ -60,8 +60,9 @@
 #include "G4EmFluoDirectory.hh"
 #include "G4EmSaturation.hh"
 #include "G4ThreeVector.hh"
+#include "G4ChemTimeStepModel.hh"
 #include <vector>
-
+#include <map>
 enum G4eSingleScatteringType
 {
   fWVI = 0,
@@ -81,6 +82,14 @@ enum G4EmFluctuationType
   fDummyFluctuation = 0,
   fUniversalFluctuation,
   fUrbanFluctuation
+};
+
+enum G4PositronAtRestModelType 
+{
+  fSimplePositronium = 0,
+  fAllisonPositronium,
+  fOrePowell,
+  fOrePowellPolar
 };
 
 class G4EmParametersMessenger;
@@ -173,6 +182,9 @@ public:
   void SetFluctuationType(G4EmFluctuationType val);
   G4EmFluctuationType FluctuationType() const;
 
+  void SetPositronAtRestModelType(G4PositronAtRestModelType val);
+  G4PositronAtRestModelType PositronAtRestModelType() const;
+
   void SetDNAFast(G4bool val);
   G4bool DNAFast() const;
 
@@ -207,6 +219,15 @@ public:
 
   G4bool MscPositronCorrection() const;
   void SetMscPositronCorrection(G4bool v);
+
+  G4bool UseEPICS2017XS() const;
+  void SetUseEPICS2017XS(G4bool v);
+
+  G4bool Use3GammaAnnihilationOnFly() const;
+  void Set3GammaAnnihilationOnFly(G4bool v);
+
+  G4bool UseRiGePairProductionModel() const;
+  void SetUseRiGePairProductionModel(G4bool v);
 
   // 5d
   void SetOnIsolated(G4bool val);
@@ -327,6 +348,9 @@ public:
   void SetDNAeSolvationSubType(G4DNAModelSubType val);
   G4DNAModelSubType DNAeSolvationSubType() const;
 
+  //DNA chemistry model
+  void SetTimeStepModel(const G4ChemTimeStepModel& model);
+  G4ChemTimeStepModel GetTimeStepModel() const;
   //5d
   void  SetConversionType(G4int val);
   G4int GetConversionType() const;
@@ -383,10 +407,14 @@ public:
   // create and access saturation class
   G4EmSaturation* GetEmSaturation();
 
+  // defined fluctuations per G4Region
+  void SetFluctuationsForRegion(const G4String& regionName, G4bool flag);
+
   // initialisation methods
   void DefineRegParamForLoss(G4VEnergyLossProcess*) const;
   void DefineRegParamForEM(G4VEmProcess*) const;
   void DefineRegParamForDeex(G4VAtomDeexcitation*) const;
+  void DefineFluctuationFlags(std::vector<G4bool>* theFluctFlags);
 
   const G4String& GetDirLEDATA() const;
 
@@ -430,6 +458,9 @@ private:
   G4bool fMuDataFromFile;
   G4bool fPEKShell;
   G4bool fMscPosiCorr;
+  G4bool fUseEPICS2017XS;
+  G4bool f3GammaAnnihilationOnFly;
+  G4bool fUseRiGePairProductionModel;
   G4bool onIsolated; // 5d model conversion on free ions
   G4bool fDNA;
   G4bool fIsPrinted;
@@ -469,8 +500,10 @@ private:
   G4NuclearFormfactorType nucFormfactor;
   G4eSingleScatteringType fSStype;
   G4EmFluctuationType fFluct;
+  G4PositronAtRestModelType fPositronium;
 
   G4String fDirLEDATA;
+  std::vector<std::pair<G4String, G4bool> > fluctRegions;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

@@ -41,6 +41,9 @@
 #include "G4ios.hh"
 #include "Randomize.hh"
 
+G4double G4PrimaryTransformer::kETolerance = 1.0 * CLHEP::MeV;
+G4ExceptionSeverity G4PrimaryTransformer::kETSeverity = JustWarning;
+
 G4PrimaryTransformer::G4PrimaryTransformer()
 {
   particleTable = G4ParticleTable::GetParticleTable();
@@ -51,10 +54,12 @@ void G4PrimaryTransformer::CheckUnknown()
 {
   unknown = particleTable->FindParticle("unknown");
   unknownParticleDefined = unknown != nullptr;
+  chargedunknown = particleTable->FindParticle("chargedunknown");
+  chargedUnknownParticleDefined = chargedunknown != nullptr;
   opticalphoton = particleTable->FindParticle("opticalphoton");
   opticalphotonDefined = opticalphoton != nullptr;
 }
-    
+
 G4TrackVector*
 G4PrimaryTransformer::GimmePrimaries(G4Event* anEvent, G4int trackIDCounter)
 {
@@ -114,7 +119,7 @@ GenerateSingleTrack( G4PrimaryParticle* primaryParticle,
   if(!IsGoodForTrack(partDef))
   {  // The particle cannot be converted to G4Track, check daughters
 #ifdef G4VERBOSE
-    if(verboseLevel>2)
+    if(verboseLevel>1)
     {
       G4cout << "Primary particle (PDGcode " << primaryParticle->GetPDGcode()
              << ") --- Ignored" << G4endl;
@@ -139,6 +144,23 @@ GenerateSingleTrack( G4PrimaryParticle* primaryParticle,
              << G4endl;
     }
 #endif
+    // Check the mass of the "real" particle
+    // N.B. PDG code 0 is used for artificial particle such as geantino
+    if(primaryParticle->GetPDGcode() != 0 && kETSeverity != IgnoreTheIssue)
+    { 
+      G4double pmas = partDef->GetPDGMass();
+      if(std::abs(pmas - primaryParticle->GetMass()) > kETolerance) {
+        G4ExceptionDescription ed;
+        ed << "Primary particle PDG=" << primaryParticle->GetPDGcode()
+           << " deltaMass(MeV)=" << (std::abs(pmas - primaryParticle->GetMass()))/CLHEP::MeV
+           << " is larger than the tolerance(MeV)=" << kETolerance/CLHEP::MeV
+           << "\n Specified mass(MeV)=" << (primaryParticle->GetMass())/CLHEP::MeV
+           << " while PDG mass(MEV)=" << pmas/CLHEP::MeV
+           << "\n To change the tolerance or the exception severity,"
+           << " use G4PrimaryTransformer::SetKETolerance() method."; 
+        G4Exception("G4PrimaryParticle::Set4Momentum", "part0005", kETSeverity, ed);
+      }
+    }
     auto* DP = 
       new G4DynamicParticle(partDef,
                             primaryParticle->GetMomentumDirection(),
@@ -328,7 +350,7 @@ SetDecayProducts(G4PrimaryParticle* mother, G4DynamicParticle* motherDP)
   }
 }
 
-void G4PrimaryTransformer::SetUnknnownParticleDefined(G4bool vl)
+void G4PrimaryTransformer::SetUnknownParticleDefined(G4bool vl)
 {
   unknownParticleDefined = vl;
   if(unknownParticleDefined && (unknown == nullptr))
@@ -337,6 +359,18 @@ void G4PrimaryTransformer::SetUnknnownParticleDefined(G4bool vl)
            << "G4UnknownParticle is not defined in the physics list." << G4endl
            << "Command ignored." << G4endl;
     unknownParticleDefined = false;
+  }
+}
+
+void G4PrimaryTransformer::SetChargedUnknownParticleDefined(G4bool vl)
+{
+  chargedUnknownParticleDefined = vl;
+  if(chargedUnknownParticleDefined && (chargedunknown == nullptr))
+  {
+    G4cerr << "chargedUnknownParticleDefined cannot be set true because" << G4endl
+           << "G4ChargedUnknownParticle is not defined in the physics list." << G4endl
+           << "Command ignored." << G4endl;
+    chargedUnknownParticleDefined = false;
   }
 }
 
@@ -364,9 +398,16 @@ G4PrimaryTransformer::GetDefinition(G4PrimaryParticle* pp)
   {
     partDef = particleTable->FindParticle(pp->GetPDGcode());
   }
-  if(unknownParticleDefined && ((partDef == nullptr)||partDef->IsShortLived()))
+  if((partDef == nullptr) || partDef->IsShortLived())
   {
-    partDef = unknown;
+    if (chargedUnknownParticleDefined && pp->GetCharge()!=0.0)
+    {
+      partDef = chargedunknown;
+    }
+    else if (unknownParticleDefined)
+    {
+      partDef = unknown;
+    }
   }
   return partDef;
 }

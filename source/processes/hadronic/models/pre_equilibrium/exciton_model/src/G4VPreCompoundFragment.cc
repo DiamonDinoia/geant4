@@ -36,6 +36,7 @@
 #include "G4NuclearLevelData.hh"
 #include "G4DeexPrecoParameters.hh"
 #include "G4VCoulombBarrier.hh"
+#include "G4InterfaceToXS.hh"
 
 G4VPreCompoundFragment::G4VPreCompoundFragment(
   const G4ParticleDefinition* part, G4VCoulombBarrier* aCoulombBarrier)
@@ -47,12 +48,26 @@ G4VPreCompoundFragment::G4VPreCompoundFragment(
   theMass = particle->GetPDGMass();
   fNucData = G4NuclearLevelData::GetInstance();
   theParameters = fNucData->GetParameters();
+  OPTxs = theParameters->GetDeexModelType();
   g4calc = G4Pow::GetInstance();
+
+  if (1 == theZ && 1 == theA) { index = 1; }
+  else if (1 == theZ && 2 == theA) { index = 2; }
+  else if (1 == theZ && 3 == theA) { index = 3; }
+  else if (2 == theZ && 3 == theA) { index = 4; }
+  else if (2 == theZ && 4 == theA) { index = 5; }
+
+  if (OPTxs == 1) {
+    fXSection = new G4InterfaceToXS(particle, index);
+  }
+  InitialiseIntegrator(0.005, 0.25, 1.05, CLHEP::MeV,
+		       0.2*CLHEP::MeV, 5*CLHEP::MeV);
 }
 
 G4VPreCompoundFragment::~G4VPreCompoundFragment()
 {
   delete theCoulombBarrierPtr;
+  delete fXSection;
 }
 
 std::ostream& 
@@ -72,7 +87,7 @@ operator << (std::ostream &out, const G4VPreCompoundFragment *theFragment)
   return out;
 }
 
-void 
+G4bool 
 G4VPreCompoundFragment::Initialize(const G4Fragment& aFragment)
 {
   theFragA = aFragment.GetA_asInt();
@@ -81,33 +96,62 @@ G4VPreCompoundFragment::Initialize(const G4Fragment& aFragment)
   theResZ = theFragZ - theZ;
 
   theMinKinEnergy = theMaxKinEnergy = theCoulombBarrier = 0.0;
-  if ((theResA < theResZ) || (theResA < theA) || (theResZ < theZ)) {
-    return;
+  if ((theResA < theResZ) || (theResA < theA) || (theResZ < theZ)
+      || (theResA == theA && theResZ < theZ)
+      || ((theResA > 1) && (theResA == theResZ || theResZ == 0))) {
+    return false;
   }
+  pFragment = &aFragment;
+  theResMass = G4NucleiProperties::GetNuclearMass(theResA, theResZ);
+  G4double Ecm = aFragment.GetMomentum().m();
+  if (Ecm <= theResMass + theMass) { return 0.0; }
 
   theResA13 = g4calc->Z13(theResA);
 
+  G4double elim = 0.0;
   if (0 < theZ) {
     theCoulombBarrier = theCoulombBarrierPtr->
       GetCoulombBarrier(theResA, theResZ, aFragment.GetExcitationEnergy());
+    elim = (0 < OPTxs) ? theCoulombBarrier*0.5 : theCoulombBarrier;
   }
-  G4double elim = (0 == OPTxs) ? theCoulombBarrier : theCoulombBarrier*0.6;
-  
+      
+  // Compute Maximal Kinetic Energy which can be carried by fragments 
+  // after separation - the true assimptotic value
+  theMaxKinEnergy =
+    0.5*((Ecm - theResMass)*(Ecm + theResMass) + theMass*theMass)/Ecm - theMass;
+  G4double resM = Ecm - theMass - elim;
+  if (resM < theResMass) { return false; }
+  theMinKinEnergy =
+    0.5*((Ecm - resM)*(Ecm + resM) + theMass*theMass)/Ecm - theMass;
+
+  if (theMinKinEnergy >= theMaxKinEnergy) { return false; }
   // Calculate masses
-  theResMass = G4NucleiProperties::GetNuclearMass(theResA, theResZ);
   theReducedMass = theResMass*theMass/(theResMass + theMass);
 
   // Compute Binding Energies for fragments 
   // needed to separate a fragment from the nucleus
   theBindingEnergy = theResMass + theMass - aFragment.GetGroundStateMass();
-    
-  // Compute Maximal Kinetic Energy which can be carried by fragments 
-  // after separation - the true assimptotic value
-  G4double Ecm = aFragment.GetMomentum().m();
-  G4double twoEcm = Ecm + Ecm;
-  theMaxKinEnergy = std::max(((Ecm-theResMass)*(Ecm+theResMass) +
-			      theMass*theMass)/twoEcm - theMass, 0.0);
-  theMinKinEnergy = (elim == 0.0) ? 0.0 :
-    std::max(((theMass+elim)*(twoEcm-theMass-elim) +
-	      theMass*theMass)/twoEcm - theMass, 0.0);
+  return true;
+}
+
+G4double G4VPreCompoundFragment::CalcEmissionProbability(const G4Fragment& fr)
+{
+  G4bool ok = Initialize(fr);
+  theEmissionProbability = 0.0;
+  if (ok) {
+    theEmissionProbability = ComputeIntegral(theMinKinEnergy, theMaxKinEnergy);
+  }
+  return theEmissionProbability;
+}
+
+G4double G4VPreCompoundFragment::SampleKineticEnergy(const G4Fragment&)
+{
+  G4double ekin = SampleValue();
+  return ekin;
+}
+
+G4double G4VPreCompoundFragment::ProbabilityDensityFunction(G4double ekin)
+{
+  G4double e = std::max(ekin, 0.02);
+  return ProbabilityDistributionFunction(e, *pFragment);
 }

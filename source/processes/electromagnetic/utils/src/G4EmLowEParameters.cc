@@ -76,6 +76,7 @@ void G4EmLowEParameters::Initialise()
   dnaStationary = false;
   dnaMsc = false;
   dnaElectronSolvation = fMeesungnoen2002eSolvation;
+  fTimeStepModel = G4ChemTimeStepModel::Unknown;
 
   fFluoDirectory = fluoDefault;
   namePIXE = "Empirical";
@@ -195,6 +196,16 @@ G4DNAModelSubType G4EmLowEParameters::DNAeSolvationSubType() const
   return dnaElectronSolvation;
 }
 
+void G4EmLowEParameters::SetChemTimeStepModel(G4ChemTimeStepModel val)
+{
+  fTimeStepModel = val;
+}
+
+G4ChemTimeStepModel G4EmLowEParameters::GetChemTimeStepModel() const
+{
+  return fTimeStepModel;
+}
+
 void G4EmLowEParameters::SetPIXECrossSectionModel(const G4String& sss)
 {
   namePIXE = sss;
@@ -246,7 +257,7 @@ void G4EmLowEParameters::AddMicroElec(const G4String& region)
   for(std::size_t i=0; i<nreg; ++i) {
     if(r == m_regnamesME[i]) { return; }
   }
-  m_regnamesME.push_back(r);
+  m_regnamesME.push_back(std::move(r));
 }
 
 const std::vector<G4String>& G4EmLowEParameters::RegionsMicroElec() const
@@ -261,7 +272,7 @@ void G4EmLowEParameters::AddDNA(const G4String& region, const G4String& type)
   for(std::size_t i=0; i<nreg; ++i) {
     if(r == m_regnamesDNA[i]) { return; }
   }
-  m_regnamesDNA.push_back(r);
+  m_regnamesDNA.push_back(std::move(r));
   m_typesDNA.push_back(type);
 }
 
@@ -297,7 +308,7 @@ G4EmLowEParameters::SetDeexActiveRegion(const G4String& region, G4bool fdeex,
       return; 
     }
   }
-  m_regnamesDeex.push_back(r);
+  m_regnamesDeex.push_back(std::move(r));
   m_fluo.push_back(fdeex);
   m_auger.push_back(fauger);
   m_pixe.push_back(fpixe);

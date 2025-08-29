@@ -59,6 +59,7 @@ void G4EmDNAPhysics_option4::ConstructProcess()
   G4EmParameters* param = G4EmParameters::Instance();
   const G4double emaxDNA = 1.*CLHEP::MeV;
   const G4double emaxIonDNA = 300.*CLHEP::MeV;
+  const G4double emaxLightIonDNA = 300.*CLHEP::MeV;
   const G4double eminBorn = 500.*CLHEP::keV;
   const G4bool fast = param->DNAFast();
   const G4bool st = param->DNAStationary();
@@ -79,19 +80,19 @@ void G4EmDNAPhysics_option4::ConstructProcess()
   // DNA physics
   G4EmDNABuilder::ConstructDNAElectronPhysics(emaxDNA, 4, fast, st);
   G4EmDNABuilder::ConstructDNAProtonPhysics(eminBorn, emaxIonDNA, 4, fast, st);
-  G4EmDNABuilder::ConstructDNAIonPhysics(emaxIonDNA, st);
+  G4EmDNABuilder::ConstructDNAIonPhysics(emaxIonDNA, 4);
 
   G4ParticleDefinition* part = genericIonsManager->GetIon("hydrogen");
   G4EmDNABuilder::ConstructDNALightIonPhysics(part, 0, 4, emaxIonDNA, fast, st);
 
   part = G4Alpha::Alpha();
-  G4EmDNABuilder::ConstructDNALightIonPhysics(part, 2, 4, emaxIonDNA, fast, st);
+  G4EmDNABuilder::ConstructDNALightIonPhysics(part, 2, 4, emaxLightIonDNA, fast, st);
 
   part = genericIonsManager->GetIon("alpha+");
-  G4EmDNABuilder::ConstructDNALightIonPhysics(part, 1, 4, emaxIonDNA, fast, st);
+  G4EmDNABuilder::ConstructDNALightIonPhysics(part, 1, 4, emaxLightIonDNA, fast, st);
 
   part = genericIonsManager->GetIon("helium");
-  G4EmDNABuilder::ConstructDNALightIonPhysics(part, 0, 4, emaxIonDNA, fast, st);
+  G4EmDNABuilder::ConstructDNALightIonPhysics(part, 0, 4, emaxLightIonDNA, fast, st);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

@@ -32,23 +32,22 @@
 #include "G4VUserActionInitialization.hh"
 
 class DetectorConstruction;
+class PrimaryGeneratorAction;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 class ActionInitialization : public G4VUserActionInitialization
 {
-public:
-  
-  ActionInitialization(DetectorConstruction*);
- ~ActionInitialization() override = default;
+  public:
+    ActionInitialization(DetectorConstruction*);
+    ~ActionInitialization() override;
 
-  void Build() const override;
-  void BuildForMaster() const override;
+    void Build() const override;
+    void BuildForMaster() const override;
 
-private:
-
-  DetectorConstruction* fDetector = nullptr;
-
+  private:
+    DetectorConstruction* fDetector = nullptr;
+    PrimaryGeneratorAction* fKin = nullptr;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

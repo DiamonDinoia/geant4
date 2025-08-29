@@ -39,7 +39,6 @@
 #include "G4Run.hh"
 #include "G4SDManager.hh"
 #include "G4ScoringManager.hh"
-#include "G4TiMemory.hh"
 #include "G4Timer.hh"
 #include "G4TransportationManager.hh"
 #include "G4UImanager.hh"
@@ -55,6 +54,8 @@
 #include "G4VVisManager.hh"
 #include "G4WorkerRunManagerKernel.hh"
 #include "G4WorkerThread.hh"
+
+#include "G4GeometryManager.hh"   // For parallel geometry initialisation
 
 #include <fstream>
 #include <sstream>
@@ -125,6 +126,7 @@ G4WorkerRunManager::~G4WorkerRunManager()
   userWorkerInitialization = nullptr;
   userWorkerThreadInitialization = nullptr;
   userActionInitialization = nullptr;
+  physicsList->TerminateWorker();
   physicsList = nullptr;
   if (verboseLevel > 1) G4cout << "Destroying WorkerRunManager (" << this << ")" << G4endl;
 }
@@ -137,10 +139,21 @@ void G4WorkerRunManager::InitializeGeometry()
                 "G4VUserDetectorConstruction is not defined!");
     return;
   }
+
   if (fGeometryHasBeenDestroyed) {
     G4TransportationManager::GetTransportationManager()->ClearParallelWorlds();
   }
 
+  // Step 0: Contribute to the voxelisation of the geometry
+  G4GeometryManager* geomManager = G4GeometryManager::GetInstance();
+  if( geomManager->IsParallelOptimisationConfigured() && ! geomManager->IsParallelOptimisationFinished() ) {
+    G4cout << "G4RunManager::InitializeGeometry calling GeometryManager's UndertakeOptimisation"
+           << G4endl;  // TODO - suppress / delete this in final version
+    geomManager->UndertakeOptimisation();
+  }
+  //  A barrier must ensure that all that all threads have finished this work.
+  //  Currently we rely on the (later) barrier at the end of initialisation.
+  
   // Step1: Get pointer to the physiWorld (note: needs to get the "super
   // pointer, i.e. the one shared by all threads"
   G4RunManagerKernel* masterKernel = G4MTRunManager::GetMasterRunManagerKernel();
@@ -216,10 +229,6 @@ void G4WorkerRunManager::RunInitialization()
            << G4Threading::G4GetThreadId() << "." << G4endl;
   }
   if (userRunAction != nullptr) userRunAction->BeginOfRunAction(currentRun);
-
-#if defined(GEANT4_USE_TIMEMORY)
-  workerRunProfiler.reset(new ProfilerConfig(currentRun));
-#endif
 
   if (isScoreNtupleWriter) {
     G4VScoreNtupleWriter::Instance()->OpenFile();
@@ -408,22 +417,28 @@ G4Event* G4WorkerRunManager::GenerateEvent(G4int i_event)
 }
 
 // --------------------------------------------------------------------
-void G4WorkerRunManager::MergePartialResults()
+void G4WorkerRunManager::MergePartialResults(G4bool mergeEvents)
 {
   // Merge partial results into global run
   G4MTRunManager* mtRM = G4MTRunManager::GetMasterRunManager();
   G4ScoringManager* ScM = G4ScoringManager::GetScoringManagerIfExist();
   if (ScM != nullptr) mtRM->MergeScores(ScM);
-  mtRM->MergeRun(currentRun);
+#ifdef G4VERBOSE
+  if(mergeEvents && verboseLevel>3) {
+    auto eventVector = currentRun->GetEventVector();
+    if(eventVector!=nullptr || !(eventVector->empty())) {
+      G4cout<<"G4WorkerRunManager::MergePartialResults : merging "
+            <<eventVector->size()<<" events."<<G4endl;
+    }
+  }
+#endif
+  if(mergeEvents) mtRM->MergeRun(currentRun);
 }
 
 // --------------------------------------------------------------------
 void G4WorkerRunManager::RunTermination()
 {
   if (!fakeRun) {
-#if defined(GEANT4_USE_TIMEMORY)
-    workerRunProfiler.reset();
-#endif
     MergePartialResults();
 
     // Call a user hook: note this is before the next barrier

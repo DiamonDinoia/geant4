@@ -142,7 +142,7 @@ G4bool G4PhysicsTable::RetrievePhysicsTable(const G4String& fileName,
 {
   std::ifstream fIn;
   // open input file
-  if(ascii)
+  if(!ascii)
   {
     fIn.open(fileName, std::ios::in | std::ios::binary);
   }
@@ -230,6 +230,11 @@ std::ostream& operator<<(std::ostream& out, G4PhysicsTable& right)
   for(auto itr = right.cbegin(); itr != right.cend(); ++itr)
   {
     out << std::setw(8) << i << "-th Vector   ";
+    if (nullptr == (*itr)) {
+      out << "empty" << G4endl;
+      ++i;
+      continue;
+    }
     out << ": Type    " << G4int((*itr)->GetType());
     out << ": Flag    ";
     if(right.GetFlag(i))

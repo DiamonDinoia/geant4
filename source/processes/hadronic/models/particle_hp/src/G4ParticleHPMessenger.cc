@@ -406,4 +406,5 @@ void G4ParticleHPMessenger::SetNewValue(G4UIcommand* command, G4String newValue)
 #endif
     }
   }
+
 }

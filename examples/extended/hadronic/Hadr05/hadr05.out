@@ -11,7 +11,7 @@ Environment variable "G4FORCE_RUN_MANAGER_TYPE" enabled with value == Serial. Fo
 
 
 **************************************************************
- Geant4 version Name: geant4-11-02-patch-01    (16-February-2024)
+ Geant4 version Name: geant4-11-03-ref-06    (30-June-2025)
                        Copyright : Geant4 Collaboration
                       References : NIM A 506 (2003), 250-303
                                  : IEEE-TNS 53 (2006), 270-278
@@ -38,7 +38,7 @@ Environment variable "G4FORCE_RUN_MANAGER_TYPE" enabled with value == Serial. Fo
                      transverse sizeYZ =    1.5 m  
 -------------------------------------------------------------
 
- Material: Galactic    density:  0.000 mg/cm3  RadL: 204310098.490 pc   Nucl.Int.Length: 113427284.261 pc 
+ Material: Galactic    density:  0.000 mg/cm3  RadL: 204310098.490 pc   Nucl.Int.Length: 3240.779 pc 
                        Imean:  19.200 eV   temperature:   2.73 K  pressure:   0.00 atm
 
    --->  Element: H (H)   Z =  1.0   N =     1   A =  1.008 g/mole
@@ -78,7 +78,6 @@ Environment variable "G4FORCE_RUN_MANAGER_TYPE" enabled with value == Serial. Fo
 /gun/energy 5 GeV
 /run/printProgress 100
 /run/beamOn 1000
-### G4LevelReader: broken transition 0 from level 24 to 24 for isotope Z= 89 A= 219 - use ground level
 
 ========= Table of registered couples ============================
 
@@ -119,35 +118,35 @@ Index : 2     used in the geometry : Yes
  Run terminated.
 Run Summary
   Number of events processed : 1000
-  User=82.210000s Real=85.650752s Sys=0.010000s
+  User=40.020000s Real=44.532008s Sys=0.040000s
 
  ---> The run is 1000 proton of 5 GeV through calorimeter
 
  Process calls frequency :
-                  Decay=      3839            He3Inelastic=         1               NoProcess=   4064395
-        Radioactivation=     60660                    Rayl=    219009          Transportation=   3589301
-         alphaInelastic=         2                 annihil=     58178                   compt=   2649693
-                   conv=     54908              dInelastic=       125                   eBrem=    389600
-                  eIoni=   6184407   hBertiniCaptureAtRest=       469                   hIoni=   1435617
-             hadElastic=   4504966              ionElastic=         1                 ionIoni=   4139238
-         kaon+Inelastic=        10         kaon0LInelastic=        12         kaon0SInelastic=         1
-        lambdaInelastic=        10                     msc=    263980                  muIoni=      7650
-   muMinusCaptureAtRest=        10                nCapture=     52891        neutronInelastic=     92206
-                   phot=    848867           photonNuclear=       188            pi+Inelastic=      1038
-           pi-Inelastic=       905         protonInelastic=      4026         sigma+Inelastic=         2
-             tInelastic=         4 
+                  Decay=      4475            He3Inelastic=         1               NoProcess=   4159176
+       RadioactiveDecay=     60253                    Rayl=    215626          Transportation=   3580315
+         alphaInelastic=         1                 annihil=     59207                   compt=   2601735
+                   conv=     55807              dInelastic=       110                   eBrem=    389491
+                  eIoni=   6104021   hBertiniCaptureAtRest=       667                   hIoni=   1438682
+             hadElastic=   4612176              ionElastic=         1                 ionIoni=   4233993
+         kaon+Inelastic=         7         kaon0LInelastic=         7         kaon0SInelastic=         2
+        lambdaInelastic=         7                     msc=    258734                  muIoni=     10330
+   muMinusCaptureAtRest=         8                nCapture=     52491        neutronInelastic=     91547
+                   phot=    840648           photonNuclear=       205            pi+Inelastic=      1125
+           pi-Inelastic=       961         protonInelastic=      4244         sigma-Inelastic=         1
+             tInelastic=        10 
 
 ------------------------------------------------------------
         material      Edep        rmsE        sqrt(E0(GeV))*rmsE/Edep     total tracklen 
  
- 1          Iron     4.043 GeV   297.5 MeV     16.45 +-  0.52 %        2.16 m   +-  49.4 cm 
- 2  Scintillator     114.3 MeV   33.52 MeV     65.58 +-  2.07 %       22.47 cm  +-  6.94 cm 
+ 1          Iron    4.0362 GeV   276.7 MeV     15.33 +- 0.485 %        2.18 m   +-  45.1 cm 
+ 2  Scintillator    113.91 MeV   32.66 MeV      64.1 +-  2.03 %        22.9 cm  +-  6.94 cm 
 
- Total energy deposited = 4.157 GeV +- 299.9 MeV
- Leakage :  primary = 0 eV    secondaries = 186.9 MeV  ---> total = 186.9 MeV +- 176.5 MeV
- Total energy released :  Edep + Eleak = 4.344 GeV +- 188.4 MeV
+ Total energy deposited = 4.15 GeV +- 278.3 MeV
+ Leakage :  primary = 0 eV    secondaries = 192.3 MeV  ---> total = 192.3 MeV +- 160.9 MeV
+ Total energy released :  Edep + Eleak = 4.342 GeV +- 186.1 MeV
 ------------------------------------------------------------
 ================== Deleting memory pools ===================
-Number of memory pools allocated: 13 of which, static: 0
-Dynamic pools deleted: 13 / Total memory freed: 0.3 MB
+Number of memory pools allocated: 11 of which, static: 0
+Dynamic pools deleted: 11 / Total memory freed: 0.31 MB
 ============================================================

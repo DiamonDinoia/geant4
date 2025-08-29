@@ -80,6 +80,7 @@
 #include "G4Evaporation.hh"
 #include "G4PhotonEvaporation.hh"
 #include "G4StatMF.hh"
+#include "G4FermiBreakUpAN.hh"
 #include "G4FermiBreakUpVI.hh"
 #include "G4NuclearLevelData.hh"
 #include "G4PhysicsModelCatalog.hh"
@@ -93,7 +94,7 @@ G4ExcitationHandler::G4ExcitationHandler()
   nist = G4NistManager::Instance();
   
   theMultiFragmentation = new G4StatMF();
-  theFermiModel = new G4FermiBreakUpVI();
+  theFermiModel = nullptr;
   thePhotonEvaporation = new G4PhotonEvaporation();
   SetEvaporation(new G4Evaporation(thePhotonEvaporation), true);
   theResults.reserve(60);
@@ -123,6 +124,9 @@ G4ExcitationHandler::~G4ExcitationHandler()
 
 void G4ExcitationHandler::SetParameters()
 {
+  // initialisation only once
+  if (isInitialised) { return; }
+
   G4NuclearLevelData* ndata = G4NuclearLevelData::GetInstance();
   auto param = ndata->GetParameters();
   isActive = true;
@@ -139,57 +143,74 @@ void G4ExcitationHandler::SetParameters()
   minEForMultiFrag = param->GetMinExPerNucleounForMF();
   minExcitation = param->GetMinExcitation();
   maxExcitation = param->GetPrecoHighEnergy();
-  icID = G4PhysicsModelCatalog::GetModelID("model_e-InternalConversion");
 
   // allowing local debug printout 
   fVerbose = std::max(fVerbose, param->GetVerbose());
   if (isActive) {
+    // photon evaporation initialisation
     if (nullptr == thePhotonEvaporation) { 
       SetPhotonEvaporation(new G4PhotonEvaporation());
     }
+    thePhotonEvaporation->Initialise();
+
+    // FermiBreakUp initialisation 
     if (nullptr == theFermiModel) {
-      SetFermiModel(new G4FermiBreakUpVI());
+      auto type = param->GetFermiBreakUpType();
+      if (type == bModelVI) {
+	theFermiModel = new G4FermiBreakUpVI();
+      } else if (type == bModelAN) {
+	theFermiModel = new G4FermiBreakUpAN(fVerbose);
+      } else {
+	theFermiModel = new G4VFermiBreakUp();
+      }
+      SetFermiModel(theFermiModel);
     }
+    theFermiModel->Initialise();
+
+    // multi-fragmentation initialisation
     if (nullptr == theMultiFragmentation) {
       SetMultiFragmentation(new G4StatMF());
     }
+
+    // evaporation initialisation
     if (nullptr == theEvaporation) { 
       SetEvaporation(new G4Evaporation(thePhotonEvaporation), true); 
     }
+    theEvaporation->SetPhotonEvaporation(thePhotonEvaporation);
+    theEvaporation->SetFermiBreakUp(theFermiModel);
+    SetDeexChannelsType(param->GetDeexChannelsType());
+    theEvaporation->InitialiseChannels();
   }
-  theFermiModel->SetVerbose(fVerbose);
-  if(fVerbose > 1) {
+  if (fVerbose > 1) {
     G4cout << "G4ExcitationHandler::SetParameters() done " << this << G4endl;
   }
 }
 
 void G4ExcitationHandler::Initialise()
 {
-  if(isInitialised) { return; }
-  if(fVerbose > 1) {
+  // initialisation only once
+  if (isInitialised) { return; }
+  if (fVerbose > 1) {
     G4cout << "G4ExcitationHandler::Initialise() started " << this << G4endl;
   }
   G4DeexPrecoParameters* param = 
     G4NuclearLevelData::GetInstance()->GetParameters();
-  isInitialised = true;
   SetParameters();
-  if(isActive) {
-    theFermiModel->Initialise();
-    theEvaporation->InitialiseChannels();
-  }
+
   // dump level is controlled by parameter class
   param->Dump();
+  isInitialised = true;
 }
 
 void G4ExcitationHandler::SetEvaporation(G4VEvaporation* ptr, G4bool flag)
 {
-  if(nullptr != ptr && ptr != theEvaporation) {
+  if (!isInitialised && nullptr != ptr && ptr != theEvaporation) {
+    delete theEvaporation;
     theEvaporation = ptr;
-    theEvaporation->SetPhotonEvaporation(thePhotonEvaporation);
-    theEvaporation->SetFermiBreakUp(theFermiModel);
     isEvapLocal = flag;
     if(fVerbose > 1) {
-      G4cout << "G4ExcitationHandler::SetEvaporation()  " << ptr << " done for " << this << G4endl;
+      G4cout << "G4ExcitationHandler::SetEvaporation() " << ptr
+	     << " done for " << this << G4endl;
     }
   }
 }
@@ -197,7 +218,7 @@ void G4ExcitationHandler::SetEvaporation(G4VEvaporation* ptr, G4bool flag)
 void 
 G4ExcitationHandler::SetMultiFragmentation(G4VMultiFragmentation* ptr)
 {
-  if(nullptr != ptr && ptr != theMultiFragmentation) {
+  if (!isInitialised && nullptr != ptr && ptr != theMultiFragmentation) {
     delete theMultiFragmentation;
     theMultiFragmentation = ptr;
   }
@@ -205,25 +226,19 @@ G4ExcitationHandler::SetMultiFragmentation(G4VMultiFragmentation* ptr)
 
 void G4ExcitationHandler::SetFermiModel(G4VFermiBreakUp* ptr)
 {
-  if(nullptr != ptr && ptr != theFermiModel) {
+  if (!isInitialised && nullptr != ptr && ptr != theFermiModel) {
     delete theFermiModel;
     theFermiModel = ptr;
-    if(nullptr != theEvaporation) {
-      theEvaporation->SetFermiBreakUp(theFermiModel);
-    }
   }
 }
 
 void 
 G4ExcitationHandler::SetPhotonEvaporation(G4VEvaporationChannel* ptr)
 {
-  if(nullptr != ptr && ptr != thePhotonEvaporation) {
+  if (!isInitialised && nullptr != ptr && ptr != thePhotonEvaporation) {
     delete thePhotonEvaporation;
     thePhotonEvaporation = ptr;
-    if(nullptr != theEvaporation) {
-      theEvaporation->SetPhotonEvaporation(ptr);
-    }
-    if(fVerbose > 1) {
+    if (fVerbose > 1) {
       G4cout << "G4ExcitationHandler::SetPhotonEvaporation() " << ptr 
              << " for handler " << this << G4endl;
     }
@@ -233,7 +248,7 @@ G4ExcitationHandler::SetPhotonEvaporation(G4VEvaporationChannel* ptr)
 void G4ExcitationHandler::SetDeexChannelsType(G4DeexChannelType val)
 {
   G4Evaporation* evap = static_cast<G4Evaporation*>(theEvaporation);
-  if(fVerbose > 1) {
+  if (fVerbose > 1) {
     G4cout << "G4ExcitationHandler::SetDeexChannelsType " << val 
 	   << " for " << this << G4endl;
   }
@@ -384,7 +399,7 @@ G4ExcitationHandler::BreakItUp(const G4Fragment & theInitialState)
   }
 
   // In case A <= 1 the fragment will not perform any nucleon emission
-  if (A <= 1 || !isActive) {
+  if (A <= 1 || !isActive || theInitialStatePtr->IsLongLived()) {
     theResults.push_back( theInitialStatePtr );
 
     // check if a fragment is stable
@@ -436,7 +451,7 @@ G4ExcitationHandler::BreakItUp(const G4Fragment & theInitialState)
   std::size_t kk;
   for (kk=0; kk<theEvapList.size(); ++kk) {
     G4Fragment* frag = theEvapList[kk];
-    if (fVerbose > 3) { 	
+    if (fVerbose > 3) {
       G4cout << "Next evaporate: " << G4endl;  
       G4cout << *frag << G4endl;  
     }
@@ -476,8 +491,13 @@ G4ExcitationHandler::BreakItUp(const G4Fragment & theInitialState)
     // apply Evaporation, residual nucleus is always added to the results
     // photon evaporation is possible 
     theEvaporation->BreakFragment(&results, frag); 
-    if (fVerbose > 3) { 
-      G4cout << "Evaporation Nsec= " << results.size() << G4endl; 
+    if (fVerbose > 3) {
+      G4cout << kk << ". Evaporation: Nsec=" << results.size()
+	     << " Z=" << frag->GetZ_asInt()
+	     << " A=" << frag->GetA_asInt()
+	     << " Eex=" << frag->GetExcitationEnergy()
+	     << " stable=" << frag->IsLongLived()
+	     << G4endl; 
     }
     if (0 == results.size()) {
       theResults.push_back(frag);
@@ -506,7 +526,7 @@ G4ExcitationHandler::BreakItUp(const G4Fragment & theInitialState)
   // in memory for the vector
   theReactionProductVector->reserve( theResults.size() );
 
-  if (fVerbose > 2) { 	
+  if (fVerbose > 1) {
     G4cout << "### ExcitationHandler provides " << theResults.size() 
 	   << " evaporated products:" << G4endl;
   }
@@ -587,6 +607,7 @@ G4ExcitationHandler::BreakItUp(const G4Fragment & theInitialState)
 	G4cout << "### EXCH: Find ion Z= " << fragmentZ 
                << " A= " << fragmentA
 	       << " Eexc(MeV)= " << eexc/MeV << " idx= " << idxf 
+	       << " " << theKindOfFragment->GetParticleName() 
 	       << G4endl;
       }
     }
@@ -608,11 +629,7 @@ G4ExcitationHandler::BreakItUp(const G4Fragment & theInitialState)
       }
       theNew->SetTotalEnergy(etot);
       theNew->SetFormationTime(frag->GetCreationTime());
-      if (theKindOfFragment == theElectron) {
-	theNew->SetCreatorModelID(icID);
-      } else {
-	theNew->SetCreatorModelID(frag->GetCreatorModelID());
-      }
+      theNew->SetCreatorModelID(frag->GetCreatorModelID());
       theReactionProductVector->push_back(theNew);
 
       // fragment not found out ground state is created

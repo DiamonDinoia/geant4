@@ -11,7 +11,7 @@ Environment variable "G4FORCE_RUN_MANAGER_TYPE" enabled with value == Serial. Fo
 
 
 **************************************************************
- Geant4 version Name: geant4-11-02-patch-01    (16-February-2024)
+ Geant4 version Name: geant4-11-03-ref-06    (30-June-2025)
                        Copyright : Geant4 Collaboration
                       References : NIM A 506 (2003), 250-303
                                  : IEEE-TNS 53 (2006), 270-278
@@ -31,7 +31,6 @@ Environment variable "G4FORCE_RUN_MANAGER_TYPE" enabled with value == Serial. Fo
          --->  Isotope:   F19   Z =  9   N =  19   A =  19.00 g/mole   abundance: 100.000 %
           ElmMassFraction:  61.26 %  ElmAbundance  50.00 % 
 
-PhysicsList::SetCuts:CutLength : 1 (mm)
 /control/cout/ignoreThreadsExcept 0
 /run/verbose 2
 #
@@ -59,10 +58,13 @@ Bremsstrahlung energy threshold above which
   primary e+- is added to the list of secondary    100 TeV
 Bremsstrahlung energy threshold above which primary
   muon/hadron is added to the list of secondary    100 TeV
+Positron annihilation at rest model                SimplePositronium
+Enable 3 gamma annihilation on fly                 0
 Lowest triplet kinetic energy                      1 MeV
 Enable sampling of gamma linear polarisation       0
 5D gamma conversion model type                     0
 5D gamma conversion model on isolated ion          0
+Use RiGe 5D e+e- pair production model by muons    0
 Livermore data directory                           epics_2017
 =======================================================================
 ======                 Ionisation Parameters                   ========
@@ -108,6 +110,12 @@ Type of electron single scattering model           0
 Type of nuclear form-factor                        1
 Screening factor                                   1
 =======================================================================
+
+Rayl:  for gamma SubType=11 BuildTable=1
+      Lambda table from 100 eV  to 150 keV, 7 bins/decade, spline: 0
+      LambdaPrime table from 150 keV to 100 TeV in 62 bins 
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+   LivermoreRayleigh : Emin=    0 eV  Emax=  100 TeV  CullenGenerator
 
 phot:  for gamma SubType=12 BuildTable=0
       LambdaPrime table from 200 keV to 100 TeV in 61 bins 
@@ -175,17 +183,20 @@ Region <DefaultRegionForParallelWorld> --  -- is not associated to any world.
 Index : 0     used in the geometry : Yes
  Material : FluorCarbonate
  Range cuts        :  gamma  1 mm     e-  1 mm     e+  1 mm  proton 1 mm 
- Energy thresholds :  gamma  3.64815 keV    e-  431.054 keV    e+  417.356 keV proton -1 MeV
+ Energy thresholds :  gamma  3.64815 keV    e-  431.054 keV    e+  417.356 keV proton 100 keV
  Region(s) which use this couple : 
     DefaultRegionForTheWorld
 
 ==================================================================
 
 Start closing geometry.
+--------------------------------------------------------------------------------
 G4GeometryManager::ReportVoxelStats -- Voxel Statistics
 
     Total memory consumed for geometry optimisation:   0 kByte
     Total CPU time elapsed for geometry optimisation: 0 seconds
+--------------------------------------------------------------------------------
+
 ### Run 0 starts.
 
 --------- Ranecu engine status ---------
@@ -209,25 +220,26 @@ G4GeometryManager::ReportVoxelStats -- Voxel Statistics
  Run terminated.
 Run Summary
   Number of events processed : 100000
-  User=0.630000s Real=0.763903s Sys=0.000000s
+  User=0.440000s Real=0.438394s Sys=0.000000s
 
 --------------------End of Global Run------------------------
  The run consists of 100000 gamma of 9 MeV in a volume of C6F6 
- Energy deposit per event:  mean = 928.584 keV    rms = 2.34926 MeV
+ Energy deposit per event:  mean = 925.061 keV    rms = 2.34694 MeV
 ------------------------------------------------------------
 
 --------- Ranecu engine status ---------
  Initial seed (index) = 0
- Current couple of seeds = 2851671, 824097029
+ Current couple of seeds = 427142008, 238030671
 ----------------------------------------
 ... write file : testem4.root - done
 ... close file : testem4.root - done
 G4 kernel has come to Quit state.
-UserDetectorConstruction deleted.
-UserPhysicsList deleted.
-UserActionInitialization deleted.
-UserWorkerInitialization deleted.
-UserWorkerThreadInitialization deleted.
+Deleting G4Run (id:0) 
+UserDetectorConstruction deleted 0x22a3100
+UserPhysicsList deleted 0x22a4310
+UserActionInitialization deleted 0x2308790
+UserWorkerInitialization deleted 0
+UserWorkerThreadInitialization deleted 0
 UserRunAction deleted.
 UserPrimaryGenerator deleted.
 RunManager is deleting RunManagerKernel.

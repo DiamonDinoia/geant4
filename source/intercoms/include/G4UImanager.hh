@@ -53,7 +53,6 @@ class G4LocalThreadCoutMessenger;
 class G4UIaliasList;
 class G4MTcoutDestination;
 class G4UIbridge;
-class G4ProfilerMessenger;
 
 class G4UImanager : public G4VStateDependent
 {
@@ -245,6 +244,11 @@ class G4UImanager : public G4VStateDependent
     inline bool IsLastCommandOutputTreated() { return fLastCommandOutputTreated; }
     inline void SetLastCommandOutputTreated() { fLastCommandOutputTreated = true; }
 
+    void StartRecording(G4String fn, G4bool ifAppend,
+             G4bool ifTemp=false, G4String assocCmd="**NOCMD**");
+    void RecordCommand(const G4String& aCommand);
+    G4int EndRecording();
+
   protected:
     G4UImanager();
 
@@ -266,7 +270,6 @@ class G4UImanager : public G4VStateDependent
     G4UIcontrolMessenger* UImessenger = nullptr;
     G4UnitsMessenger* UnitsMessenger = nullptr;
     G4LocalThreadCoutMessenger* CoutMessenger = nullptr;
-    G4ProfilerMessenger* ProfileMessenger = nullptr;
     G4String savedParameters;
     G4UIcommand* savedCommand = nullptr;
     G4int verboseLevel = 0;
@@ -295,6 +298,12 @@ class G4UImanager : public G4VStateDependent
     G4int lastRC = 0;
 
     G4bool fLastCommandOutputTreated = true;
+
+    G4int fRecordDepth = -1;
+    std::vector<std::ofstream*> fRecordFile;
+    std::vector<std::pair<G4String,G4bool>> fRecordFileName;
+    std::vector<G4String> fAccosiatedCommand;
+    
 };
 
 #endif

@@ -3,6 +3,7 @@
 geant4_add_module(G4emstandard
   PUBLIC_HEADERS
     G4ASTARStopping.hh
+    G4AllisonPositronAtRestModel.hh
     G4AtimaEnergyLossModel.hh
     G4AtimaFluctuations.hh
     G4BetheBlochIonGasModel.hh
@@ -36,6 +37,8 @@ geant4_add_module(G4emstandard
     G4LindhardSorensenData.hh
     G4LindhardSorensenIonModel.hh
     G4LossFluctuationDummy.hh
+    G4LowPAIH2O.hh
+    G4LowDataH2O.hh
     G4ModifiedTsai.hh
     G4MollerBhabhaModel.hh
     G4MottData.hh
@@ -51,10 +54,13 @@ geant4_add_module(G4emstandard
     G4PSTARStopping.hh
     G4PairProductionRelModel.hh
     G4PhotoElectricEffect.hh
+    G4PolarizedOrePowellAtRestModel.hh
     G4SBBremTable.hh
     G4SauterGavrilaAngularDistribution.hh
     G4ScreeningMottCrossSection.hh
     G4SeltzerBergerModel.hh
+    G4SimplePositronAtRestModel.hh
+    G4OrePowellAtRestModel.hh
     G4UniversalFluctuation.hh
     G4UrbanFluctuation.hh
     G4UrbanMscModel.hh
@@ -75,7 +81,7 @@ geant4_add_module(G4emstandard
     G4eSingleCoulombScatteringModel.hh
     G4eeToTwoGammaModel.hh
     G4eplusAnnihilation.hh
-    G4eplusTo2GammaOKVIModel.hh
+    G4eplusTo2or3GammaModel.hh
     G4eplusTo3GammaOKVIModel.hh
     G4hCoulombScatteringModel.hh
     G4hIonisation.hh
@@ -83,6 +89,7 @@ geant4_add_module(G4emstandard
     G4ionIonisation.hh
   SOURCES
     G4ASTARStopping.cc
+    G4AllisonPositronAtRestModel.cc
     G4AtimaEnergyLossModel.cc
     G4AtimaFluctuations.cc
     G4BetheBlochIonGasModel.cc
@@ -116,6 +123,7 @@ geant4_add_module(G4emstandard
     G4LindhardSorensenData.cc
     G4LindhardSorensenIonModel.cc
     G4LossFluctuationDummy.cc
+    G4LowPAIH2O.cc
     G4ModifiedTsai.cc
     G4MollerBhabhaModel.cc
     G4NuclearStopping.cc
@@ -129,10 +137,13 @@ geant4_add_module(G4emstandard
     G4PSTARStopping.cc
     G4PairProductionRelModel.cc
     G4PhotoElectricEffect.cc
+    G4PolarizedOrePowellAtRestModel.cc
     G4SBBremTable.cc
     G4SauterGavrilaAngularDistribution.cc
     G4ScreeningMottCrossSection.cc
     G4SeltzerBergerModel.cc
+    G4SimplePositronAtRestModel.cc
+    G4OrePowellAtRestModel.cc
     G4UniversalFluctuation.cc
     G4UrbanFluctuation.cc
     G4UrbanMscModel.cc
@@ -153,7 +164,7 @@ geant4_add_module(G4emstandard
     G4eSingleCoulombScatteringModel.cc
     G4eeToTwoGammaModel.cc
     G4eplusAnnihilation.cc
-    G4eplusTo2GammaOKVIModel.cc
+    G4eplusTo2or3GammaModel.cc
     G4eplusTo3GammaOKVIModel.cc
     G4hCoulombScatteringModel.cc
     G4hIonisation.cc

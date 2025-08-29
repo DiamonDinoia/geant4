@@ -51,12 +51,13 @@
 
 class ActionInitialization : public G4VUserActionInitialization
 {
-public:
-  ActionInitialization();
-  ~ActionInitialization() override = default;
-  
-  void BuildForMaster() const override;
-  void Build() const override;
+  public:
+    ActionInitialization();
+    ~ActionInitialization() override = default;
+
+    void BuildForMaster() const override;
+    void Build() const override;
+    void BuildMoleculeCounters() const;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

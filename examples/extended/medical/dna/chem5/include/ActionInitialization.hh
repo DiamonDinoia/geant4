@@ -46,12 +46,13 @@
 class DetectorConstruction;
 class ActionInitialization : public G4VUserActionInitialization
 {
-public:
-  ActionInitialization();
-  virtual ~ActionInitialization();
-  
-  virtual void BuildForMaster() const;
-  virtual void Build() const;
+  public:
+    ActionInitialization() = default;
+    ~ActionInitialization() override = default;
+    void BuildMoleculeCounters() const;
+
+    void BuildForMaster() const override;
+    void Build() const override;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

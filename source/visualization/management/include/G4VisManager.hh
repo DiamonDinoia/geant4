@@ -333,15 +333,16 @@ public: // With description
   G4bool FilterHit(const G4VHit&);
   G4bool FilterDigi(const G4VDigi&);
 
-#ifdef G4MULTITHREADED
-
   virtual void SetUpForAThread();
   // This method is invoked by G4WorkerRunManager
+
+  virtual void EventReadyForVis(const G4Event*);
+  // This is invoked by G4SubEvtRunManager.
+  // The event is passed to EndOfEventKernel.
 
   static G4ThreadFunReturnType G4VisSubThread(G4ThreadFunArgType);
   // Vis sub-thread function.
 
-#endif
 
   ////////////////////////////////////////////////////////////////////////
   // Administration routines.
@@ -359,9 +360,10 @@ private:
   void BeginOfEvent ();
 
   void EndOfEvent ();
-  // This is called on change of state (G4ApplicationState).  It is
-  // used to draw hits, digis and trajectories if included in the
-  // current scene at the end of event, as required.
+  void EndOfEventKernel (const G4Event* currentEvent);
+  void EndOfEventCleanup (const G4Event* currentEvent);
+  G4bool RequiredToBeKeptForVis (G4int eventID);
+  // Cluster of methods to handle end of event.
 
   void EndOfRun ();
 
@@ -402,17 +404,20 @@ public: // With description
   G4bool                       GetTransientsDrawnThisEvent () const;
   G4bool                       GetDrawEventOnlyIfToBeKept  () const;
   const G4Event*               GetRequestedEvent           () const;
+  G4int                  GetNKeepForPostProcessingRequests () const;
+  G4int                        GetNKeepTheEventRequests    () const;
   G4int                        GetNKeepRequests            () const;
   G4bool                       GetReviewingKeptEvents      () const;
   G4bool                       GetAbortReviewKeptEvents    () const;
   G4bool                       GetReviewingPlots           () const;
   G4bool                       GetAbortReviewPlots         () const;
   const G4ViewParameters&      GetDefaultViewParameters    () const;
-#ifdef G4MULTITHREADED
   G4int                        GetMaxEventQueueSize        () const;
   G4bool                       GetWaitOnEventQueueFull     () const;
-#endif
-  const G4String&              GetDefaultGraphicsSystemName() const;
+  virtual const G4String&      GetDefaultGraphicsSystemName();
+  // The above has to be virtual so that the derived class, G4VisExecutive,
+  // can override and non-const because on first pass it may/should
+  // determine these defaults.
   const G4String&              GetDefaultXGeometryString   () const;
   const G4String&              GetDefaultGraphicsSystemBasis() const;
   const G4String&              GetDefaultXGeometryStringBasis() const;
@@ -438,10 +443,8 @@ public: // With description
   void              SetReviewingPlots           (G4bool);
   void              SetAbortReviewPlots         (G4bool);
   void              SetDefaultViewParameters    (const G4ViewParameters&);
-#ifdef G4MULTITHREADED
   void              SetMaxEventQueueSize        (G4int);
   void              SetWaitOnEventQueueFull     (G4bool);
-#endif
   void              SetDefaultGraphicsSystemName(const G4String&);
   void              SetDefaultXGeometryString   (const G4String&);
   void              SetDefaultGraphicsSystemBasis(const G4String&);
@@ -471,6 +474,8 @@ public: // With description
   static std::vector<G4String> VerbosityGuidanceStrings;
   // Guidance on the use of visualization verbosity.
 
+  static void PrintAvailableVerbosity (std::ostream& os);
+
   void PrintAvailableGraphicsSystems (Verbosity, std::ostream& = G4cout) const;
 
 protected:
@@ -484,19 +489,18 @@ protected:
 
   void RegisterMessengers              ();   // Command messengers.
 
-  const G4int           fVerbose;
+  const G4int fVerbose;
   // No longer used. Use fVerbosity and access functions instead.
   // fVerbose is kept for backwards compatibility for some user
   // examples.  (It is used in the derived user vis managers to print
   // available graphics systems.)  It is initialised to 1 in the
   // constructor and cannot be changed.
+  static Verbosity fVerbosity;
 
-  static Verbosity      fVerbosity;
-
-  G4String              fDefaultGraphicsSystemName;
-  G4String              fDefaultXGeometryString;
-  G4String              fDefaultGraphicsSystemBasis;
-  G4String              fDefaultXGeometryStringBasis;
+  G4String fDefaultGraphicsSystemName;
+  G4String fDefaultXGeometryString;
+  G4String fDefaultGraphicsSystemBasis;
+  G4String fDefaultXGeometryStringBasis;
 
 private:
 
@@ -538,7 +542,8 @@ private:
   G4bool                fTransientsDrawnThisRun;
   G4bool                fTransientsDrawnThisEvent;
   G4int                 fNoOfEventsDrawnThisRun;
-  G4int                 fNKeepRequests;
+  G4int                 fNKeepForPostProcessingRequests;
+  G4int                 fNKeepTheEventRequests;
   G4bool                fEventKeepingSuspended;
   G4bool                fDrawEventOnlyIfToBeKept;
   const G4Event*        fpRequestedEvent; // If non-zero, scene handler uses.
@@ -550,10 +555,8 @@ private:
   G4bool                fIsDrawGroup;
   G4int                 fDrawGroupNestingDepth;
   G4bool                fIgnoreStateChanges;
-#ifdef G4MULTITHREADED
   G4int                 fMaxEventQueueSize;
   G4bool                fWaitOnEventQueueFull;
-#endif
 
   // Trajectory draw model manager
   G4VisModelManager<G4VTrajectoryModel>* fpTrajDrawModelMgr;

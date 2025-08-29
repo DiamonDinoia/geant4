@@ -13,6 +13,7 @@ geant4_add_module(G4hadronic_deex_util
     G4CookPairingCorrections.hh
     G4CookShellCorrections.hh
     G4CoulombBarrier.hh
+    G4DeexPrecoUtility.hh
     G4KalbachCrossSection.hh
     G4PairingCorrection.hh
     G4ShellCorrection.hh
@@ -28,6 +29,7 @@ geant4_add_module(G4hadronic_deex_util
     G4CookPairingCorrections.cc
     G4CookShellCorrections.cc
     G4CoulombBarrier.cc
+    G4DeexPrecoUtility.cc
     G4KalbachCrossSection.cc
     G4PairingCorrection.cc
     G4ShellCorrection.cc
@@ -38,5 +40,4 @@ geant4_module_link_libraries(G4hadronic_deex_util
     G4globman
   PRIVATE
     G4hadronic_util)
-
 

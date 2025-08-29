@@ -36,17 +36,16 @@
 
 class GB02DetectorConstruction : public G4VUserDetectorConstruction
 {
-public:
-  
-  GB02DetectorConstruction();
-  ~GB02DetectorConstruction();
-  
-public:
-  
-  virtual G4VPhysicalVolume* Construct();
-  virtual void     ConstructSDandField();
-  
+  public:
+    GB02DetectorConstruction(G4bool bf);
+    ~GB02DetectorConstruction() override;
+
+  public:
+    G4VPhysicalVolume* Construct() override;
+    void ConstructSDandField() override;
+
+  private:
+    G4bool fBiasingFlag;
 };
 
 #endif
-

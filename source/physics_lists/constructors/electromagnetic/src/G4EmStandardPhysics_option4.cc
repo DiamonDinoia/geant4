@@ -86,6 +86,7 @@
 #include "G4IonParametrisedLossModel.hh"
 #include "G4LindhardSorensenIonModel.hh"
 #include "G4NuclearStopping.hh"
+#include "G4eplusTo2or3GammaModel.hh"
 
 #include "G4Gamma.hh"
 #include "G4Electron.hh"
@@ -128,15 +129,16 @@ G4EmStandardPhysics_option4::G4EmStandardPhysics_option4(G4int ver,
   param->SetMuHadLateralDisplacement(true);
   param->SetFluo(true);
   param->SetUseICRU90Data(true);
+  param->Set3GammaAnnihilationOnFly(true);
   param->SetFluctuationType(fUrbanFluctuation);
   param->SetMaxNIELEnergy(1*CLHEP::MeV);
+  param->SetPositronAtRestModelType(fAllisonPositronium);
   SetPhysicsType(bElectromagnetic);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-G4EmStandardPhysics_option4::~G4EmStandardPhysics_option4()
-{}
+G4EmStandardPhysics_option4::~G4EmStandardPhysics_option4() = default;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -300,11 +302,17 @@ void G4EmStandardPhysics_option4::ConstructProcess()
   brem->SetEmModel(br2);
   br1->SetHighEnergyLimit(CLHEP::GeV);
 
+  // annihilation
+  auto anni = new G4eplusAnnihilation();
+  if (param->Use3GammaAnnihilationOnFly()) {
+    anni->SetEmModel(new G4eplusTo2or3GammaModel());
+  }
+
   // register processes
   ph->RegisterProcess(eioni, particle);
   ph->RegisterProcess(brem, particle);
   ph->RegisterProcess(ee, particle);
-  ph->RegisterProcess(new G4eplusAnnihilation(), particle);
+  ph->RegisterProcess(anni, particle);
   ph->RegisterProcess(ss, particle);
 
   // generic ion

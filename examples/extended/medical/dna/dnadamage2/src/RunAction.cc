@@ -44,19 +44,17 @@
 /// \brief Implementation of the RunAction class
 
 #include "RunAction.hh"
+
 #include "Run.hh"
 
+#include "G4DNAChemistryManager.hh"
 #include "G4Run.hh"
 #include "G4RunManager.hh"
-#include "G4UnitsTable.hh"
 #include "G4SystemOfUnits.hh"
-
+#include "G4UnitsTable.hh"
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....
 
-RunAction::RunAction()
- : G4UserRunAction()
-{
-}
+RunAction::RunAction() : G4UserRunAction() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....
 
@@ -68,8 +66,12 @@ G4Run* RunAction::GenerateRun()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....
 
-void RunAction::BeginOfRunAction(const G4Run*)
+void RunAction::BeginOfRunAction(const G4Run* run)
 {
+  // ensure that the chemistry is notified!
+  if (G4DNAChemistryManager::GetInstanceIfExists() != nullptr)
+    G4DNAChemistryManager::GetInstanceIfExists()->BeginOfRunAction(run);
+
   // informs the runManager to save random number seed
   G4RunManager::GetRunManager()->SetRandomNumberStore(false);
 }
@@ -78,72 +80,74 @@ void RunAction::BeginOfRunAction(const G4Run*)
 
 void RunAction::EndOfRunAction(const G4Run* run)
 {
+  // ensure that the chemistry is notified!
+  if (G4DNAChemistryManager::GetInstanceIfExists() != nullptr)
+    G4DNAChemistryManager::GetInstanceIfExists()->EndOfRunAction(run);
+
   G4int nofEvents = run->GetNumberOfEvent();
   if (nofEvents == 0) return;
 
   // results
   //
   const Run* dnadamage3Run = static_cast<const Run*>(run);
-  G4double sumDose   = dnadamage3Run->GetSumDose();
+  G4double sumDose = dnadamage3Run->GetSumDose();
 
   // print
   //
-  if (IsMaster())
-  {
+  if (IsMaster()) {
+    G4cout << G4endl << "--------------------End of Global Run-----------------------" << G4endl
+           << "  The run has " << nofEvents << " events " << G4endl;
 
-    G4cout
-      << G4endl
-      << "--------------------End of Global Run-----------------------"
-      << G4endl
-      << "  The run has " << nofEvents << " events "
-      << G4endl;
+    ScoreSpecies* masterScorer = dynamic_cast<ScoreSpecies*>(dnadamage3Run->GetPrimitiveScorer());
 
-    ScoreSpecies* masterScorer=
-      dynamic_cast<ScoreSpecies*>(dnadamage3Run->GetPrimitiveScorer());
-
-    ScoreStrandBreaks* masterSBScorer=
+    ScoreStrandBreaks* masterSBScorer =
       dynamic_cast<ScoreStrandBreaks*>(dnadamage3Run->GetSBScorer());
 
     G4cout << "Number of events recorded by the species scorer = "
-      << masterScorer->GetNumberOfRecordedEvents()
-      << G4endl;
+           << masterScorer->GetNumberOfRecordedEvents() << G4endl;
 
     // LET
     Run* aRun = (Run*)run;
     G4THitsMap<G4double>* totLET = aRun->GetLET();
+    if (!totLET) {
+      G4cout << "No LET data available." << G4endl;
+      return;
+    }
     G4int nOfEvent = totLET->entries();
     G4double LET_mean = 0;
     G4double LET_square = 0;
-    for(G4int i=0;i<nOfEvent;i++){
-      G4double* LET = (*totLET)[i];
-      if(!LET) continue;
-      LET_mean += *LET;
-      LET_square += (*LET)*(*LET);
+
+    if (nOfEvent > 0) {
+      for (G4int i = 0; i < nOfEvent; i++) {
+        G4double* LET = (*totLET)[i];
+        if (!LET) continue;
+        LET_mean += *LET;
+        LET_square += (*LET) * (*LET);
+      }
+      LET_mean /= nOfEvent;
+      G4double variance = LET_square / nOfEvent - std::pow(LET_mean, 2);
+      if (variance >= 0) {
+        LET_square = std::sqrt(variance);
+      }
+      else {
+        G4cerr << "Warning: Negative variance encountered. Setting LET_square to 0." << G4endl;
+        LET_square = 0;
+      }
     }
-    LET_mean /= nOfEvent;
-    LET_square = std::sqrt(LET_square/nOfEvent - std::pow(LET_mean,2));
-
+    else {
+      LET_mean = 0;
+      LET_square = 0;
+    }
     masterScorer->OutputAndClear();
-    masterSBScorer->OutputAndClear(LET_mean,LET_square);
-
+    masterSBScorer->OutputAndClear(LET_mean, LET_square);
   }
-  else
-  {
-    G4cout
-      << G4endl
-      << "--------------------End of Local Run------------------------"
-      << G4endl
-      << "  The run has " << nofEvents << " events"
-      << G4endl;
+  else {
+    G4cout << G4endl << "--------------------End of Local Run------------------------" << G4endl
+           << "  The run has " << nofEvents << " events" << G4endl;
   }
 
-  G4cout
-    << " Total energy deposited in the world volume : "
-    << sumDose/eV << " eV"
-    << G4endl
-    << " ------------------------------------------------------------"
-    << G4endl
-    << G4endl;
+  G4cout << " Total energy deposited in the world volume : " << sumDose / eV << " eV" << G4endl
+         << " ------------------------------------------------------------" << G4endl << G4endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....

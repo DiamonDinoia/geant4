@@ -60,9 +60,6 @@ class G4TrackingManager
 ////////////////////////
 {
  public:
-  using ProfilerConfig = G4Track::ProfilerConfig;
-
- public:
   // Constructor/Destructor
 
   // G4TrackingManger should be dynamically allocated, therefore you
@@ -137,8 +134,6 @@ class G4TrackingManager
 inline G4Track* G4TrackingManager::GetTrack() const { return fpTrack; }
 
 inline G4int G4TrackingManager::GetStoreTrajectory() const { return StoreTrajectory; }
-
-inline void G4TrackingManager::SetStoreTrajectory(G4int value) { StoreTrajectory = value; }
 
 inline G4SteppingManager* G4TrackingManager::GetSteppingManager() const
 {

@@ -108,16 +108,16 @@ class DetectorConstruction : public G4VUserDetectorConstruction
 
 
     /** @brief Returns a pointer to the world material */
-    G4Material* GetMaterial()
-    {
-      return fMaterial;
-    }
+    G4Material* GetMaterial() { return fMaterial; }
 
     /** @brief Prints on screen some parameters for this class */
     void PrintParameters();
 
   private:
     // World physical and logical
+    
+    G4VPhysicalVolume* pWorld = nullptr;
+    
     G4VPhysicalVolume* fPBox = nullptr;
     G4LogicalVolume* fLBox = nullptr;
 

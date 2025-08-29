@@ -8,51 +8,51 @@
 # - NDL
 geant4_add_dataset(
   NAME      G4NDL
-  VERSION   4.7
+  VERSION   4.7.1
   FILENAME  G4NDL
   EXTENSION tar.gz
   ENVVAR    G4NEUTRONHPDATA
-  MD5SUM    b001a2091bf9392e6833830347672ea2
+  MD5SUM    54f0ed3995856f02433d42ec96d70bc6
   )
 
 # - Low energy electromagnetics
 geant4_add_dataset(
   NAME      G4EMLOW
-  VERSION   8.5
+  VERSION   8.7
   FILENAME  G4EMLOW
   EXTENSION tar.gz
   ENVVAR    G4LEDATA
-  MD5SUM    146d0625d8d39f294056e1618271bc46    
+  MD5SUM    949c9422ae668208562be1b991750df1
   )
 
 # - Photon evaporation
 geant4_add_dataset(
   NAME      PhotonEvaporation
-  VERSION   5.7
+  VERSION   6.1
   FILENAME  G4PhotonEvaporation
   EXTENSION tar.gz
   ENVVAR    G4LEVELGAMMADATA
-  MD5SUM    81ff27deb23af4aa225423e6b3a06b39
+  MD5SUM    92d68b937cdad0fd49892a66878863de 
   )
 
 # - Radioisotopes
 geant4_add_dataset(
   NAME      RadioactiveDecay
-  VERSION   5.6
+  VERSION   6.1.2
   FILENAME  G4RadioactiveDecay
   EXTENSION tar.gz
   ENVVAR    G4RADIOACTIVEDATA
-  MD5SUM    acc1dbeb87b6b708b2874ced729a3a8f
+  MD5SUM    20d494f73d4bddabd7fab5c06a58895c
   )
 
 # - Particle XS - replaces Neutron XS
 geant4_add_dataset(
   NAME      G4PARTICLEXS
-  VERSION   4.0
+  VERSION   4.1
   FILENAME  G4PARTICLEXS
   EXTENSION tar.gz
   ENVVAR    G4PARTICLEXSDATA
-  MD5SUM    d82a4d171d50f55864e28b6cd6f433c0
+  MD5SUM    878252a464ba6b38f085741840f053e6
   )
 
 # - PII
@@ -109,13 +109,23 @@ geant4_add_dataset(
 # - ENSDFSTATE
 geant4_add_dataset(
   NAME      G4ENSDFSTATE
-  VERSION   2.3
+  VERSION   3.0
   FILENAME  G4ENSDFSTATE
   EXTENSION tar.gz
   ENVVAR    G4ENSDFSTATEDATA
-  MD5SUM    6f18fce8f217e7aaeaa3711be9b2c7bf
+  MD5SUM    c500728534ce3e9fb2fefa0112eb3a74
   )
-  
+
+# - Channeling
+geant4_add_dataset(
+  NAME      G4CHANNELING
+  VERSION   1.0
+  FILENAME  G4CHANNELING
+  EXTENSION tar.gz
+  ENVVAR    G4CHANNELINGDATA
+  MD5SUM    b2f692ec7109418c6354ea1ecbc62da7
+  )
+
 # - TENDL
 option(GEANT4_INSTALL_DATASETS_TENDL "Install optional TENDL dataset" OFF)
 mark_as_advanced(GEANT4_INSTALL_DATASETS_TENDL)
@@ -129,6 +139,34 @@ if(GEANT4_INSTALL_DATASETS_TENDL)
   ENVVAR    G4PARTICLEHPDATA
   MD5SUM    ab17a1eec5ad4c8fcfafcfbc0de30ed8
   )
-
 endif()
 
+# - NuDEX
+option(GEANT4_INSTALL_DATASETS_NUDEXLIB "Install optional NuDEXLib dataset" OFF)
+mark_as_advanced(GEANT4_INSTALL_DATASETS_NUDEXLIB)
+
+if(GEANT4_INSTALL_DATASETS_NUDEXLIB)
+  geant4_add_dataset(
+  NAME      G4NUDEXLIB
+  VERSION   1.0
+  FILENAME  G4NUDEXLIB
+  EXTENSION tar.gz
+  ENVVAR    G4NUDEXLIBDATA
+  MD5SUM    09a85f907d2282dbf234d1784f436db3
+  )
+endif()
+
+# - G4URRPT
+option(GEANT4_INSTALL_DATASETS_URRPT "Install optional URRPT dataset" OFF)
+mark_as_advanced(GEANT4_INSTALL_DATASETS_URRPT)
+
+if(GEANT4_INSTALL_DATASETS_URRPT)
+  geant4_add_dataset(
+    NAME      G4URRPT
+    VERSION   1.1
+    FILENAME  G4URRPT
+    EXTENSION tar.gz
+    ENVVAR    G4URRPTDATA
+    MD5SUM    ec9a2acb0745c8bfb6365ca3434bd3b8
+    )
+endif()

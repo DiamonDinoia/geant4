@@ -128,6 +128,7 @@ G4VEnergyLossProcess::G4VEnergyLossProcess(const G4String& name,
   G4LossTableBuilder* bld = lManager->GetTableBuilder();
   theDensityFactor = bld->GetDensityFactors();
   theDensityIdx = bld->GetCoupleIndexes();
+  theFluctuationFlags = bld->GetFluctuationFlags();
 
   scTracks.reserve(10);
   secParticles.reserve(12);
@@ -139,7 +140,6 @@ G4VEnergyLossProcess::G4VEnergyLossProcess(const G4String& name,
 G4VEnergyLossProcess::~G4VEnergyLossProcess()
 {
   if (isMaster) {
-    if(nullptr == baseParticle) { delete theData; }
     delete theEnergyOfCrossSectionMax;
     if(nullptr != fXSpeaks) {
       for(auto const & v : *fXSpeaks) { delete v; }
@@ -218,6 +218,7 @@ G4VEnergyLossProcess::PreparePhysicsTable(const G4ParticleDefinition& part)
   }
 
   tablesAreBuilt = false;
+  if (GetProcessSubType() == fIonisation) { SetIonisation(true); }
 
   G4LossTableBuilder* bld = lManager->GetTableBuilder();
   lManager->PreparePhysicsTable(&part, this);
@@ -226,7 +227,7 @@ G4VEnergyLossProcess::PreparePhysicsTable(const G4ParticleDefinition& part)
   InitialiseEnergyLossProcess(particle, baseParticle);
 
   // parameters of the process
-  if(!actLossFluc) { lossFluctuationFlag = theParameters->LossFluctuation(); }
+  lossFluctuationFlag = theParameters->LossFluctuation();
   useCutAsFinalRange = theParameters->UseCutAsFinalRange();
   if(!actMinKinEnergy) { minKinEnergy = theParameters->MinKinEnergy(); }
   if(!actMaxKinEnergy) { maxKinEnergy = theParameters->MaxKinEnergy(); }
@@ -308,13 +309,6 @@ G4VEnergyLossProcess::PreparePhysicsTable(const G4ParticleDefinition& part)
   // subcut processor
   if(isIonisation) { 
     subcutProducer = lManager->SubCutProducer();
-  }
-  if(1 == nSCoffRegions) {
-    if((*scoffRegions)[0]->GetName() == "DefaultRegionForTheWorld") {
-      delete scoffRegions;
-      scoffRegions = nullptr;
-      nSCoffRegions = 0;
-    }
   }
 
   if(1 < verboseLevel) {
@@ -808,7 +802,7 @@ G4VParticleChange* G4VEnergyLossProcess::AlongStepDoIt(const G4Track& track,
     if (useDeexcitation) {
       atomDeexcitation->AlongStepDeexcitation(scTracks, step, 
                                               eloss, (G4int)currentCoupleIndex);
-      if(scTracks.size() > 0) { FillSecondariesAlongStep(weight); }
+      if (!scTracks.empty()) { FillSecondariesAlongStep(weight); }
       eloss = std::max(eloss, 0.0);
     }
     fParticleChange.SetProposedKineticEnergy(0.0);
@@ -870,7 +864,7 @@ G4VParticleChange* G4VEnergyLossProcess::AlongStepDoIt(const G4Track& track,
   if(eloss >= preStepKinEnergy) {
     eloss = preStepKinEnergy;
 
-  } else if (lossFluctuationFlag) {
+  } else if ((*theFluctuationFlags)[currentCoupleIndex]) {
     const G4double tmax = currentModel->MaxSecondaryKinEnergy(dynParticle);
     const G4double tcut = std::min(cut, tmax);
     G4VEmFluctuationModel* fluc = currentModel->GetModelOfFluctuations();
@@ -962,7 +956,18 @@ void G4VEnergyLossProcess::FillSecondariesAlongStep(G4double wt)
     if(nullptr != t) {
       t->SetWeight(weight); 
       pParticleChange->AddSecondary(t);
-      if(i >= n0) { t->SetCreatorModelID(biasID); }
+      G4int pdg = t->GetDefinition()->GetPDGEncoding();
+      if (i < n0) {
+        if (pdg == 22) {
+	  t->SetCreatorModelID(gpixeID);
+        } else if (pdg == 11) {
+          t->SetCreatorModelID(epixeID);
+        } else {
+          t->SetCreatorModelID(biasID);
+	}
+      } else {
+	t->SetCreatorModelID(biasID);
+      }
     }
   }
   scTracks.clear();
@@ -1110,17 +1115,19 @@ G4bool G4VEnergyLossProcess::StorePhysicsTable(
 {
   if (!isMaster || nullptr != baseParticle || part != particle ) return true;
   for(std::size_t i=0; i<7; ++i) {
-    if(nullptr != theData->Table(i)) {
-      if(1 < verboseLevel) {
-	G4cout << "G4VEnergyLossProcess::StorePhysicsTable i=" << i
-	       << "  " << particle->GetParticleName()
-	       << "  " << GetProcessName()
-	       << "  " << tnames[i] << "  " << theData->Table(i) << G4endl;
-      }
-      if(!G4EmTableUtil::StoreTable(this, part, theData->Table(i), 
-				    dir, tnames[i], verboseLevel, ascii)) { 
-	return false;
-      }
+    // ionisation table only for ionisation process
+    if (nullptr == theData->Table(i) || (!isIonisation && 1 == i)) {
+      continue;
+    }
+    if (-1 < verboseLevel) {
+      G4cout << "G4VEnergyLossProcess::StorePhysicsTable i=" << i
+	     << "  " << particle->GetParticleName()
+	     << "  " << GetProcessName()
+	     << "  " << tnames[i] << "  " << theData->Table(i) << G4endl;
+    }
+    if (!G4EmTableUtil::StoreTable(this, part, theData->Table(i),
+				   dir, tnames[i], verboseLevel, ascii)) { 
+      return false;
     }
   }
   return true;
@@ -1134,6 +1141,8 @@ G4VEnergyLossProcess::RetrievePhysicsTable(const G4ParticleDefinition* part,
 {
   if (!isMaster || nullptr != baseParticle || part != particle ) return true;
   for(std::size_t i=0; i<7; ++i) {
+    // ionisation table only for ionisation process
+    if (!isIonisation && 1 == i) { continue; }
     if(!G4EmTableUtil::RetrieveTable(this, part, theData->Table(i), dir, tnames[i],
                                      verboseLevel, ascii, spline)) { 
       return false;
@@ -1407,7 +1416,15 @@ void G4VEnergyLossProcess::SetIonisation(G4bool val)
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
- void G4VEnergyLossProcess::SetLinearLossLimit(G4double val)
+void G4VEnergyLossProcess::SetLossFluctuations(G4bool)
+{
+  G4cout << "### G4VEnergyLossProcess::SetLossFluctuations has no effect and "
+	 << "will be removed for the next major release" << G4endl;
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+
+void G4VEnergyLossProcess::SetLinearLossLimit(G4double val)
 {
   if(0.0 < val && val < 1.0) { 
     linLossLimit = val;
@@ -1419,11 +1436,11 @@ void G4VEnergyLossProcess::SetIonisation(G4bool val)
 
 void G4VEnergyLossProcess::SetStepFunction(G4double v1, G4double v2)
 {
-  if(0.0 < v1 && 0.0 < v2) { 
+  if(0.0 < v1 && 1.0 >= v1 && 0.0 < v2) { 
     dRoverRange = std::min(1.0, v1);
     finalRange = std::min(v2, 1.e+50);
   } else {
-    PrintWarning("SetStepFunctionV1", v1); 
+    PrintWarning("SetStepFunctionV1", v1);
     PrintWarning("SetStepFunctionV2", v2); 
   }
 }

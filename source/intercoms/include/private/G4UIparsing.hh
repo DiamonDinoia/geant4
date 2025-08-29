@@ -35,6 +35,9 @@
 
 #include <cctype>
 
+class G4UIparameter;
+class G4UIcommand;
+
 namespace G4UIparsing
 {
 // Convert G4String to value of type T
@@ -56,6 +59,27 @@ inline G4String TtoS(T value)
   return os.str();
 }
 
+// Check if the value is within the range of (long) int
+inline G4bool ChkMax(const char* str, short maxDigits)
+{
+  if(maxDigits > 10) {
+  // long int assumed
+    auto tmpval = std::stoll(str);
+    if(tmpval > LONG_MAX || tmpval < LONG_MIN) {
+      G4cerr << "input string '" << str << "' out-of-range for conversion to 'long int' value" << G4endl;
+      return false;
+    }
+  } else {
+  // int assumed
+    auto tmpval = std::stol(str);
+    if(tmpval > INT_MAX || tmpval < INT_MIN) {
+      G4cerr << "input string '" << str << "' out-of-range for conversion to 'int' value" << G4endl;
+      return false;
+    }
+  }
+  return true;
+}
+
 // Return true if `str` parses to an integral number no more than `maxDigit` digits
 inline G4bool IsInt(const char* str, short maxDigits)
 {
@@ -74,7 +98,7 @@ inline G4bool IsInt(const char* str, short maxDigits)
         G4cerr << "digit length exceeds" << G4endl;
         return false;
       }
-      return true;
+      return ChkMax(str,maxDigits);
     }
   }
   return false;
@@ -286,6 +310,13 @@ inline G4int CompareDouble(G4double arg1, G4int op, G4double arg2, G4int& errCod
   }
   return result;
 }
+
+// --------------------------------------------------------------------
+// Return true if parameter is within range expression value
+G4bool RangeCheck(const G4UIparameter& p, const char* value);
+
+// Return true if command's parameters are within range expression value
+G4bool RangeCheck(const G4UIcommand& p, const char* value);
 
 }  // namespace G4UIparsing
 

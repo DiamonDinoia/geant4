@@ -317,9 +317,6 @@ void G4PhysicsModelCatalog::Initialize() {
     // Class: G4EvaporationChannel
     InsertModel( 24100, "model_G4EvaporationChannel" );
 
-    // Classes that use it: G4NeutronRadCapture and G4ExcitationHandler
-    InsertModel( 24110, "model_e-InternalConversion" );
-    
     // Class: G4UnstableFragmentBreakUp
     InsertModel( 24120, "model_G4UnstableFragmentBreakUp" );
 
@@ -377,7 +374,7 @@ void G4PhysicsModelCatalog::Initialize() {
     // --- Low-energy data-driven : 25'000 - 25'999 ---
     // ------------------------------------------------
     //    -  25'000 - 25'199 : ParticleHP
-    //    -  25'200 - 25'200 : LEND
+    //    -  25'200 - 25'299 : LEND
     //       ...
     //    -  25'500 - 25'999 : RadioactiveDecay
 
@@ -585,7 +582,7 @@ void G4PhysicsModelCatalog::Initialize() {
     // --- Others ... ---
 
     // ======================================================================
-    // ================== 4th MODELS ADDED AFTER Geant4 11 ==================   
+    // ================== 4th MODELS ADDED AFTER Geant4 11.0 ================   
     // ======================================================================
     // PLEASE ADD MODELS ONLY BELOW HERE, WITH PROPER  modelID .
     // IF YOU ARE NOT SURE, PLEASE CONTACT ONE OF THE COORDINATORS OF THE
@@ -598,6 +595,20 @@ void G4PhysicsModelCatalog::Initialize() {
 
     // Class: G4LightIonQMDReaction
     InsertModel( 23310, "model_LightIonQMDModel" );
+
+    // Class: G4NuDEXEvaporation (to be added in the future)
+    // InsertModel( 24700, "model_nuDEX_evaporation" );
+
+    // Class: G4NuDEXNeutronCapture
+    InsertModel( 25300, "model_nuDEX_neutronCapture" );
+
+    // Optical processes
+    InsertModel( 12020, "model_Cerenkov" );
+    InsertModel( 12030, "model_Scintillation" );
+    InsertModel( 12040, "model_SynRad" );
+    InsertModel( 12050, "model_SynchrotronRadiation" );
+    InsertModel( 12060, "model_XTRenergyLoss" );
+    InsertModel( 12070, "model_XrayTR" );
 
     // ...
     
@@ -684,12 +695,14 @@ const G4String G4PhysicsModelCatalog::GetModelNameFromID( const G4int modelID ) 
 
 // --------------------------------------------------------------------------
 const G4String G4PhysicsModelCatalog::GetModelNameFromIndex( const G4int modelIndex ) {
-  return ( modelIndex >= 0  &&  modelIndex < Entries() ) ? (*theVectorOfModelNames)[ modelIndex ] : "Undefined";
+  return ( modelIndex >= 0  &&  modelIndex < Entries() )
+       ? (*theVectorOfModelNames)[ modelIndex ] : G4String("Undefined");
 }
 
 // --------------------------------------------------------------------------
 G4int G4PhysicsModelCatalog::GetModelID( const G4int modelIndex ) {
-  return ( modelIndex >= 0  &&  modelIndex < Entries() ) ? (*theVectorOfModelIDs)[ modelIndex ] : -1;
+  return ( modelIndex >= 0  &&  modelIndex < Entries() )
+       ? (*theVectorOfModelIDs)[ modelIndex ] : -1;
 }
 
 // --------------------------------------------------------------------------

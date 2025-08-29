@@ -83,7 +83,7 @@ public:
                                         const G4Region* reg = nullptr);
 
   static void ConstructDNAIonPhysics(const G4double emax,
-                                     const G4bool stationary,
+                                     const G4int opt,
                                      const G4Region* reg = nullptr);
 
   static void ConstructDNALightIonPhysics(G4ParticleDefinition* part,
@@ -119,6 +119,9 @@ public:
 
   static G4LowECapture*
   FindOrBuildCapture(const G4double elim, G4ParticleDefinition* part);
+
+  static void FindOrBuildNuclearStopping(G4ParticleDefinition* part,
+					 const G4double elim);
 
 private:
 

@@ -64,6 +64,7 @@
 #include "G4ionIonisation.hh"
 #include "G4eBremsstrahlung.hh"
 #include "G4eplusAnnihilation.hh"
+#include "G4NuclearStopping.hh"
 
 // standard models
 #include "G4LivermorePhotoElectricModel.hh"
@@ -90,6 +91,7 @@
 #include "G4DNASancheExcitationModel.hh"
 #include "G4DNAEmfietzoglouIonisationModel.hh"
 #include "G4DNACPA100IonisationModel.hh"
+#include "G4DNABornIonisationModel.hh"
 #include "G4DNABornIonisationModel1.hh"
 #include "G4DNAMeltonAttachmentModel.hh"
 #include "G4DNAIonElasticModel.hh"
@@ -97,6 +99,8 @@
 #include "G4DNABornExcitationModel.hh"
 #include "G4DNARuddIonisationModel.hh"
 #include "G4DNARuddIonisationExtendedModel.hh"
+#include "G4DNARuddIonisationDynamicModel.hh"
+#include "G4DNAGeneralIonIonisationModel.hh"
 #include "G4DNADingfelderChargeDecreaseModel.hh"
 #include "G4DNADingfelderChargeIncreaseModel.hh"
 #include "G4DNARPWBAExcitationModel.hh"
@@ -105,6 +109,8 @@
 static const G4double lowEnergyRPWBA = 100*CLHEP::MeV;
 static const G4double lowEnergyMSC = 1*CLHEP::MeV;
 static const G4double lowEnergyProtonIoni = 2*CLHEP::MeV;
+static const G4double highEnergyMillerGrean = 0.5*CLHEP::MeV;
+static const G4double highEnergyChargeExchange = 100*CLHEP::MeV;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -313,7 +319,7 @@ G4EmDNABuilder::ConstructDNAElectronPhysics(const G4double emaxDNA,
   G4double emaxT = 7.4*CLHEP::eV;
   // limit for CPA100 models
   G4double emaxCPA100 = 250*CLHEP::keV;
-  if(4 == opt) {
+  if (4 == opt || 8 == opt) {
     emaxE = 10.*CLHEP::keV;
     emaxT = 10.*CLHEP::eV;
   } else if(5 < opt) {
@@ -328,9 +334,9 @@ G4EmDNABuilder::ConstructDNAElectronPhysics(const G4double emaxDNA,
  
   // *** Elastic scattering ***
   auto pElasticProcess = FindOrBuildElastic(part, "e-_G4DNAElastic");
-  G4VEmModel* elast = nullptr;
+  G4VEmModel* elast;
   G4VEmModel* elast2 = nullptr;
-  if(4 == opt) {
+  if(4 == opt || 8 == opt) {
     elast = new G4DNAUeharaScreenedRutherfordElasticModel();
   } else if(5 < opt) {
     auto mod = new G4DNACPA100ElasticModel();
@@ -358,7 +364,7 @@ G4EmDNABuilder::ConstructDNAElectronPhysics(const G4double emaxDNA,
     modE->SelectStationary(stationary);
     modE->SetHighEnergyLimit(emaxE);
   }
-  G4VEmModel* modB = nullptr;
+  G4VEmModel* modB;
   G4VEmModel* modB2 = nullptr;
   if(6 == opt) {
     auto mod = new G4DNACPA100ExcitationModel();
@@ -391,21 +397,16 @@ G4EmDNABuilder::ConstructDNAElectronPhysics(const G4double emaxDNA,
     modE->SelectStationary(stationary);
     modE->SetHighEnergyLimit(emaxE);
   }
-  G4VEmModel* modI = nullptr;
+  G4VEmModel* modI;
   G4VEmModel* modI2 = nullptr;
-  if(6 == opt) {
+  if (6 == opt) {
     auto mod = new G4DNACPA100IonisationModel();
     mod->SelectStationary(stationary);
     mod->SelectFasterComputation(fast);
     modI = mod;
-    auto mod1 = new G4DNABornIonisationModel();
-    mod1->SelectStationary(stationary);
-    modI2 = mod1;
+    modI2 = new G4DNABornIonisationModel1();
   } else {
-    auto mod = new G4DNABornIonisationModel1();
-    mod->SelectStationary(stationary);
-    mod->SelectFasterComputation(fast);
-    modI = mod;
+    modI = new G4DNABornIonisationModel1();
   }
   modI->SetLowEnergyLimit(emaxE);
   modI->SetHighEnergyLimit(emaxDNA);
@@ -445,6 +446,8 @@ G4EmDNABuilder::ConstructDNAProtonPhysics(const G4double e1DNA,
   G4EmParameters* param = G4EmParameters::Instance();
   const G4double emax = param->MaxKinEnergy();
   G4ParticleDefinition* part = G4Proton::Proton();
+  G4double e2DNA = (8 == opt) ?
+    std::min(lowEnergyRPWBA, emax) : std::min(e1DNA, lowEnergyRPWBA);
 
   // *** Elastic scattering ***
   auto pElasticProcess = FindOrBuildElastic(part, "proton_G4DNAElastic");
@@ -454,7 +457,6 @@ G4EmDNABuilder::ConstructDNAProtonPhysics(const G4double e1DNA,
   pElasticProcess->AddEmModel(-1, modE, reg);
 
   // *** Excitation ***
-  G4double e2DNA = std::min(e1DNA, lowEnergyRPWBA);
   auto theDNAExc = FindOrBuildExcitation(part, "proton_G4DNAExcitation");
   auto modMGE = new G4DNAMillerGreenExcitationModel();
   modMGE->SetHighEnergyLimit(e2DNA);
@@ -478,28 +480,24 @@ G4EmDNABuilder::ConstructDNAProtonPhysics(const G4double e1DNA,
 
   // *** Ionisation ***
   auto theDNAIoni = FindOrBuildIonisation(part, "proton_G4DNAIonisation");
-  G4VEmModel* modRI = nullptr;
-  if(2 == opt) {
-    auto mod = new G4DNARuddIonisationExtendedModel();
-    mod->SelectStationary(stationary);
-    modRI = mod;
+  G4VEmModel* modRI;
+  if (2 == opt) {
+    modRI = new G4DNARuddIonisationExtendedModel();
+  } else if (8 == opt) {
+    modRI = new G4DNARuddIonisationDynamicModel();
   } else {
-    auto mod = new G4DNARuddIonisationModel();
-    mod->SelectStationary(stationary);
-    modRI = mod;
+    modRI = new G4DNARuddIonisationModel();
   }
-  modRI->SetHighEnergyLimit(e1DNA);
+  modRI->SetHighEnergyLimit(e2DNA);
   theDNAIoni->AddEmModel(-1, modRI, reg);
 
-  if(e2DNA < lowEnergyRPWBA) {
-    auto modI = new G4DNABornIonisationModel1();
-    modI->SelectFasterComputation(fast);
-    modI->SelectStationary(stationary);
+  if (e2DNA < lowEnergyRPWBA) {
+    G4VEmModel* modI = new G4DNABornIonisationModel1();
     modI->SetLowEnergyLimit(e2DNA);
     modI->SetHighEnergyLimit(lowEnergyRPWBA);
     theDNAIoni->AddEmModel(-2, modI, reg);
   }
-  if(lowEnergyRPWBA < emaxIonDNA) {
+  if (lowEnergyRPWBA < emaxIonDNA) {
     auto modJ = new G4DNARPWBAIonisationModel();
     modJ->SelectFasterComputation(fast);
     modJ->SelectStationary(stationary);
@@ -514,29 +512,35 @@ G4EmDNABuilder::ConstructDNAProtonPhysics(const G4double e1DNA,
   auto modDCD = new G4DNADingfelderChargeDecreaseModel();
   modDCD->SelectStationary(stationary);
   modDCD->SetLowEnergyLimit(0.0);
-  modDCD->SetHighEnergyLimit(emax);
+  modDCD->SetHighEnergyLimit(highEnergyChargeExchange);
   theDNAChargeDecreaseProcess->AddEmModel(-1, modDCD, reg);
 
-  FindOrBuildCapture(0.1*CLHEP::keV, part);
+  // *** Tracking cut ***
+  G4double cut = (8 == opt) ? 0.05*CLHEP::keV : 1*CLHEP::keV; 
+  FindOrBuildCapture(cut, part);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void 
 G4EmDNABuilder::ConstructDNAIonPhysics(const G4double emaxIonDNA,
-                                       const G4bool stationary,
+                                       const G4int opt,
                                        const G4Region* reg)
 {
   G4ParticleDefinition* part = G4GenericIon::GenericIon();
 
   // *** Ionisation ***
   auto theDNAIoni = FindOrBuildIonisation(part, "GenericIon_G4DNAIonisation");
-  auto mod = new G4DNARuddIonisationExtendedModel();
-  mod->SelectStationary(stationary);
+  G4VEmModel* mod = new G4DNAGeneralIonIonisationModel();
   mod->SetHighEnergyLimit(emaxIonDNA);
   theDNAIoni->AddEmModel(-1, mod, reg);
 
-  FindOrBuildCapture(0.1*CLHEP::keV, part);
+  // *** NIEL ***
+  FindOrBuildNuclearStopping(part, CLHEP::MeV);
+
+  // *** Tracking cut ***
+  G4double cut = (8 == opt) ? 0.05*CLHEP::keV : 1*CLHEP::keV; 
+  FindOrBuildCapture(cut, part);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -550,9 +554,13 @@ G4EmDNABuilder::ConstructDNALightIonPhysics(G4ParticleDefinition* part,
                                             const G4bool stationary,
                                             const G4Region* reg)
 {
-  G4EmParameters* param = G4EmParameters::Instance();
-  const G4double emax = param->MaxKinEnergy();
   const G4String& name = part->GetParticleName();
+  G4double elim1 = emaxIonDNA;
+  G4double elim2 = emaxIonDNA;
+  if (part->GetParticleName() == "hydrogen") {
+    elim1 = highEnergyMillerGrean;
+    elim2 = highEnergyChargeExchange;
+  }
 
   // *** Elastic ***
   auto theDNAElastic = FindOrBuildElastic(part, name + "_G4DNAElastic");
@@ -566,23 +574,21 @@ G4EmDNABuilder::ConstructDNALightIonPhysics(G4ParticleDefinition* part,
   auto modMGE = new G4DNAMillerGreenExcitationModel();
   modMGE->SelectStationary(stationary);
   modMGE->SetLowEnergyLimit(0.0);
-  modMGE->SetHighEnergyLimit(emaxIonDNA);
+  modMGE->SetHighEnergyLimit(elim1);
   theDNAExc->AddEmModel(-1, modMGE, reg);
 
   // *** Ionisation ***
   auto theDNAIoni = FindOrBuildIonisation(part, name + "_G4DNAIonisation");
-  G4VEmModel* modRI = nullptr;
-  if(2 == opt) {
-    auto mod = new G4DNARuddIonisationExtendedModel();
-    mod->SelectStationary(stationary);
-    modRI = mod;
+  G4VEmModel* modRI;
+  if (2 == opt) {
+    modRI = new G4DNARuddIonisationExtendedModel();
+  } else if (8 == opt) {
+    modRI = new G4DNARuddIonisationDynamicModel();
   } else {
-    auto mod = new G4DNARuddIonisationModel();
-    mod->SelectStationary(stationary);
-    modRI = mod;
+    modRI = new G4DNARuddIonisationModel();
   }
-  modRI->SetHighEnergyLimit(emaxIonDNA);
-  theDNAIoni->AddEmModel(-1, modRI, reg);
+  modRI->SetHighEnergyLimit(elim2);
+  theDNAIoni->AddEmModel(-2, modRI, reg);
 
   // *** Charge increase ***
   if(2 > charge) {
@@ -591,7 +597,7 @@ G4EmDNABuilder::ConstructDNALightIonPhysics(G4ParticleDefinition* part,
     auto modDCI = new G4DNADingfelderChargeIncreaseModel();
     modDCI->SelectStationary(stationary);
     modDCI->SetLowEnergyLimit(0.0);
-    modDCI->SetHighEnergyLimit(emax);
+    modDCI->SetHighEnergyLimit(elim2);
     theDNAChargeIncrease->AddEmModel(-1, modDCI, reg);
   }
 
@@ -602,10 +608,13 @@ G4EmDNABuilder::ConstructDNALightIonPhysics(G4ParticleDefinition* part,
     auto modDCD = new G4DNADingfelderChargeDecreaseModel();
     modDCD->SelectStationary(stationary);
     modDCD->SetLowEnergyLimit(0.0);
-    modDCD->SetHighEnergyLimit(emax);
+    modDCD->SetHighEnergyLimit(elim2);
     theDNAChargeDecrease->AddEmModel(-1, modDCD, reg);
   }
-  FindOrBuildCapture(1*CLHEP::keV, part);
+
+  // *** Tracking cut ***
+  G4double cut = (8 == opt) ? 0.05*CLHEP::keV : 1*CLHEP::keV; 
+  FindOrBuildCapture(cut, part);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -750,7 +759,7 @@ G4EmDNABuilder::FindOrBuildCapture(const G4double elim, G4ParticleDefinition* pa
 {
   auto p = G4PhysListUtil::FindProcess(part, -1);
   G4LowECapture* ptr = dynamic_cast<G4LowECapture*>(p);
-  if(nullptr == ptr) { 
+  if (nullptr == ptr) { 
     ptr = new G4LowECapture(elim);
     auto mng = part->GetProcessManager();
     mng->AddDiscreteProcess(ptr);
@@ -758,4 +767,19 @@ G4EmDNABuilder::FindOrBuildCapture(const G4double elim, G4ParticleDefinition* pa
   return ptr;
 }
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+void G4EmDNABuilder::FindOrBuildNuclearStopping(G4ParticleDefinition* part,
+                                                const G4double elim)
+{
+  auto p = G4PhysListUtil::FindProcess(part, fNuclearStopping);
+  auto ptr = dynamic_cast<G4NuclearStopping*>(p);
+  if (nullptr == ptr) {
+    ptr = new G4NuclearStopping();
+  }
+  ptr->SetMaxKinEnergy(elim);
+  auto ph = G4PhysicsListHelper::GetPhysicsListHelper();
+  ph->RegisterProcess(ptr, part);
+}
+  
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

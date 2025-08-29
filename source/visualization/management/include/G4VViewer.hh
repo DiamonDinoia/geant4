@@ -105,9 +105,10 @@ public: // With description
   // It is not yet the end of all drawing; that is signalled by
   // ShowView ().)
 
+  virtual G4bool ReadyToDraw() {return true;}
+
   std::vector<G4ThreeVector> ComputeFlyThrough(G4Vector3D*);
 
-#ifdef G4MULTITHREADED
   // Note: the order of calling of MovingToVisSubThread and SwitchToVisSubThread
   // is undefined, so you may need to implement mutexes to ensure your preferred
   // order - see, e.g., G4OpenGLQtViewer. To summarise, the order of calling is
@@ -120,23 +121,22 @@ public: // With description
   // SwitchToMasterThread
 
   // Called on the master thread before starting the vis sub-thread.
-  virtual void DoneWithMasterThread ();
+  virtual void DoneWithMasterThread () {}
 
   // Called on the master thread after starting the vis sub-thread.
-  virtual void MovingToVisSubThread ();
+  virtual void MovingToVisSubThread () {}
 
   // Called on the vis sub-thread at start of vis sub-thread.
-  virtual void SwitchToVisSubThread ();
+  virtual void SwitchToVisSubThread () {}
 
   // Called on the vis sub-thread when all events have been processed.
-  virtual void DoneWithVisSubThread ();
+  virtual void DoneWithVisSubThread () {}
 
   // Called on the vis sub-thread when all events have been processed.
-  virtual void MovingToMasterThread ();
+  virtual void MovingToMasterThread () {}
   
   // Called on the master thread after the vis sub-thread has terminated.
-  virtual void SwitchToMasterThread ();
-#endif
+  virtual void SwitchToMasterThread () {}
 
   //////////////////////////////////////////////////////////////
   // Stuff for scene tree.
@@ -171,25 +171,25 @@ public: // With description
   class SceneTreeScene: public G4PseudoScene {
     // G4PhysicalVolumeModel sends touchables to this scene
   public:
-    SceneTreeScene() = default;
+    SceneTreeScene(G4VViewer*, G4PhysicalVolumeModel*);
     ~SceneTreeScene() = default;
-    void SetViewer(G4VViewer* pViewer) {fpViewer = pViewer;}
-    void SetModel(G4VModel* pModel);  // ...and more (see .cc)
   private:
     void ProcessVolume(const G4VSolid& solid) override;
-    std::list<G4SceneTreeItem>::iterator FindOrInsertModel
-    (const G4String& modelType,const G4String& modelID);
     std::list<G4SceneTreeItem>::iterator FindOrInsertTouchable
     (const G4String& modelID, G4SceneTreeItem& mother,
      G4int depth, const G4String& partialPathString, const G4String& fullPathString);
     G4VViewer* fpViewer = nullptr;
-    G4VModel* fpModel = nullptr;
-    G4int fMaximumExpandedDepth = 0;  // To be calculated in SetModel
+    G4PhysicalVolumeModel* fpPVModel = nullptr;
+    std::list<G4SceneTreeItem>::iterator  fModelIter;  // Points to scene tree item for this model
+    G4int fMaximumExpandedDepth = 0;    // To be calculated in constructor
     const G4int fMaximumExpanded = 30;  // So as not to swamp the GUI
   };
-  SceneTreeScene& AccessSceneTreeScene() {return fSceneTreeScene;}
+  void InsertModelInSceneTree(G4VModel*);
+  const G4SceneTreeItem& GetSceneTree() {return fSceneTree;}
   G4SceneTreeItem& AccessSceneTree() {return fSceneTree;}
   void UpdateGUISceneTree();  // A utility
+  const G4int fMaxAllTouchables = 10000;  // Limits memory to about 50 MB per PV model
+  G4bool fCurtailDescent = false;  // Flag to curtail descent into PV model for scene tree
 
   //////////////////////////////////////////////////////////////
   // Access functions.
@@ -227,6 +227,9 @@ public: // With description
   void ProcessView ();
   // Used by DrawView ().  Invokes SetView ().  The basic logic is here.
 
+  void ProcessTransients ();
+  // Re-draws transients only
+
 protected:
 
   //////////////////////////////////////////////////////////////
@@ -258,12 +261,12 @@ protected:
   G4ViewParameters fDefaultVP; // Default view parameters.
   G4double         fKernelVisitElapsedTimeSeconds = 999.;  // Default to a large number
   // Note: fKernelVisitElapsedTimeSeconds is measured in ProcessView().
-  SceneTreeScene   fSceneTreeScene;  // G4PhysicalVolumeModel sends touchables to this scene
   G4SceneTreeItem  fSceneTree;
 
   //////////////////////////////////////////////////////////////
   // Other parameters.
   G4bool           fNeedKernelVisit;  // See DrawView() for comments.
+  G4bool           fTransientsNeedRedrawing;  // See DrawView() for comments.
 };
 
 #include "G4VViewer.icc"

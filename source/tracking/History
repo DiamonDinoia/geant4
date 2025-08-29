@@ -6,10 +6,52 @@ It must **not** be used as a substitute for writing good git commit messages!
 
 -------------------------------------------------------------------------------
 
-## 2023-12-11 Vladimir Ivanchenko (tracking-V11-01-03)
+## 2025-02-04 John Allison (tracking-V11-03-01)
+- G4RichTrajectoryPoint.hh:
+  - Add accessors for Pre and PostStepPointGlobalTime.
+  - This allows fast access for time windowing feature of trajectory modeling.
+
+## 2025-01-20 John Allison (tracking-V11-03-00)
+- G4VTrajectory and G4VTrajectoryPoint:
+  - Add AttValues caching:
+    - GetAttValues returns a shared_ptr that points to the object created by
+      CreateAttValues if not already created. Thus acts as a cache.
+      - Smart access function - creates on request and stores for future
+        access. An invalid shared pointer means "not available". Usage:
+          const auto trajectoryAttValues = aTrajectory.GetAttValues();
+          if (trajectoryAttValues) { ...
+        then use as a normal pointer, but do not delete - simply allow
+        to go out of scope.
+  - Protect copy and move constructors and copy and move assignment operators.
+
+## 2024-10-28 Makoto Asai (tracking-V11-02-05)
+- Moving check of cloned trajectory from G4Trackingmanager to G4TrackingMessenger
+  to avoid unnecessary check.
+
+## 2024-10-03 Makoto Asai (tracking-V11-02-04)
+- Refining CloneForMaster() method with introducing G4ClonedTrajectory and
+  G4ClonedTrajectoryPoint classes for clean and safe use of G4Allocator.
+  Also G4ClonedSmoothTrajectory and G4ClonedSmoothTrajectoryPoint.
+- G4RichTrajectory and G4RichTrajectoryPoint are modified to directly
+  inherit G4VTrajectory and G4VTrajectoryPoint abstract base-classes to
+  avoid double use of G4Allocator. And G4ClonedRichTrajectory and
+  G4ClonedRichTrajectoryPoint are added.
+
+## 2024-09-30 Makoto Asai (tracking-V11-02-03)
+- G4Trajectory and G4TrajectoryPoint - Adding CloneForMaster() method for
+  merging trajectories created by worker thread in suevent parallel mode.
+
+## 2024-10-10 Gabriele Cosmo (tracking-V11-02-02)
+- Fixed reported Coverity defects for use of std::move() in
+  G4AdjointCrossSurfChecker.
+
+## 2024-05-03 Ben Morgan (tracking-V11-02-01)
+- Remove use of no longer supported TiMemory.
+
+## 2023-12-11 Vladimir Ivanchenko (tracking-V11-02-00)
 - G4TrackingMessenger - fixed Coverity report on memory leak at exit by
-  move static thread local variable to be class member, because G4TrackingManager
-  and its messenger are thread local by nature.
+    move static thread local variable to be class member, because G4TrackingManager
+    and its messenger are thread local by nature.
 
 ## 2023-09-04 Gabriele Cosmo (tracking-V11-01-02)
 - Removed references to G4TouchableHistoryHandle, which is now deprecated.
@@ -28,7 +70,7 @@ It must **not** be used as a substitute for writing good git commit messages!
 
 ## 2022-11-02 Vladimir Ivanchenko (tracking-V11-00-07)
 - G4SteppingManager - removed G4Exception with JustWarning severity
-  for the case if no active at rest processes exist - fix problem #2493
+    for the case if no active at rest processes exist - fix problem #2493
 
 ## 2022-06-21 Ben Morgan (tracking-V11-00-06)
 - Merge `G4SteppingManager` implementation files

@@ -1,8 +1,25 @@
 # Example Par04 History
 
 See `CONTRIBUTING.rst` for details of **required** info/format for each entry,
-which **must** added in reverse chronological order (newest at the top). It must **not**
-be used as a substitute for writing good git commit messages!
+which **must** added in reverse chronological order (newest at the top).
+It must **not** be used as a substitute for writing good git commit messages!
+
+-------------------------------------------------------------------------------
+## 2025-05-27 Anna Zaborowska, Piyush Raikwar (expar04-V11-03-00)
+- Update of VAE training with the new translation script and condor scripts
+- Introduction of the CaloDiT pre-trained model which offers far greater accuracy
+
+## 2024-10-22 Ben Morgan (expar04-V11-02-03)
+- Bump tensorflow version from [GitHub Dependabot PR](https://github.com/Geant4/geant4/pull/75)
+
+## 2024-06-18 Gabriele Cosmo (expar04-V11-02-02)
+- Bump scikit-learn version from [GitHub Dependabot PR](https://github.com/Geant4/geant4/pull/73)
+
+## 2024-06-13 Gabriele Cosmo (expar04-V11-02-01)
+- Bump pymysql version from [GitHub Dependabot PR](https://github.com/Geant4/geant4/pull/72)
+
+## 2024-03-11 Ben Morgan (expar04-V11-02-00)
+- Bump scipy version from [GitHub Dependabot PR](https://github.com/Geant4/geant4/pull/66)
 
 ## 2023-10-25 Dalila Salamani (expar04-V11-01-02)
 - Add CUDA execution provider to run the inference on GPU with ONNXruntime.

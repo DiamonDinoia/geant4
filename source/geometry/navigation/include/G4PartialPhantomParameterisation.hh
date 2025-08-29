@@ -23,18 +23,17 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-// class G4PartialPhantomParameterisation
+// G4PartialPhantomParameterisation
 //
 // Class description:
 // 
 // Describes partial regular parameterisations, i.e. the voxels do not 
-// completely fill the container in the three dimensions
+// completely fill the container in the three dimensions.
 
-// History:
-// - Created: P.Arce, September 2010
+// Author: Pedro Arce (CIEMAT), September 2010
 // --------------------------------------------------------------------
-#ifndef G4PartialPhantomParameterisation_HH
-#define G4PartialPhantomParameterisation_HH
+#ifndef G4PartialPhantomParameterisation_hh
+#define G4PartialPhantomParameterisation_hh 1
 
 #include <map>
 #include <set>
@@ -50,12 +49,21 @@ class G4VPhysicalVolume;
 class G4VSolid;
 class G4Material;
 
+/**
+ * @brief G4PartialPhantomParameterisation describes partial regular
+ * parameterisations, i.e. the voxels do not completely fill the container
+ * in the three dimensions.
+ */
+
 class G4PartialPhantomParameterisation : public G4PhantomParameterisation
 {
-  public:  // with description
+  public:
 
-    G4PartialPhantomParameterisation();
-   ~G4PartialPhantomParameterisation() override;
+    /**
+     * Default Constructor and Destructor.
+     */
+    G4PartialPhantomParameterisation() = default;
+   ~G4PartialPhantomParameterisation() override = default;
 
     void ComputeTransformation(const G4int, G4VPhysicalVolume *) const override;
   
@@ -63,10 +71,15 @@ class G4PartialPhantomParameterisation : public G4PhantomParameterisation
                                       G4VPhysicalVolume *currentVol,
                                 const G4VTouchable *parentTouch = nullptr) override;
 
+    /**
+     * Gets the voxel number corresponding to the point in the container
+     * frame. Use 'localDir' to avoid precision problems at the surfaces.
+     *  @param[in] localPoint Point in local coordinates system.
+     *  @param[in] localDir Local direction to overcome precision issues.
+     *  @returns The voxel number for the specified point.
+     */
     G4int GetReplicaNo( const G4ThreeVector& localPoint,
                         const G4ThreeVector& localDir ) override;
-      // Get the voxel number corresponding to the point in the container
-      // frame. Use 'localDir' to avoid precision problems at the surfaces.
 
     G4ThreeVector GetTranslation(const G4int copyNo ) const;
 
@@ -76,12 +89,12 @@ class G4PartialPhantomParameterisation : public G4PhantomParameterisation
     G4Material* GetMaterial( std::size_t nx, std::size_t ny, std::size_t nz) const;
     G4Material* GetMaterial( std::size_t copyNo ) const;
 
-    void SetFilledIDs( std::multimap<G4int,G4int> fid )
+    inline void SetFilledIDs( std::multimap<G4int,G4int> fid )
     {
       fFilledIDs = std::move(fid); 
     }
 
-    void SetFilledMins( std::map< G4int, std::map<G4int,G4int> > fmins )
+    inline void SetFilledMins( std::map< G4int, std::map<G4int,G4int> > fmins )
     {
       fFilledMins = std::move(fmins);
     }
@@ -90,12 +103,16 @@ class G4PartialPhantomParameterisation : public G4PhantomParameterisation
 
   private:
 
+    /**
+     * Converts the copyNo to voxel numbers in x, y and z.
+     */
     void ComputeVoxelIndices(const G4int copyNo, std::size_t& nx,
                                    std::size_t& ny, std::size_t& nz ) const;
-      // Convert the copyNo to voxel numbers in x, y and z.
 
+    /**
+     * Checks that the copy number is within limits.
+     */
     void CheckCopyNo( const G4long copyNo ) const;
-      // Check that the copy number is within limits.
 
   private:
 

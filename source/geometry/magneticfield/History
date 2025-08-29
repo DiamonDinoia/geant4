@@ -6,6 +6,46 @@ It must **not** be used as a substitute for writing good git commit messages!
 
 -------------------------------------------------------------------------------
 
+## 2025-06-13 Gabriele Cosmo (field-V11-03-02)
+- Fixed compilation warning in G4QSStepper and minor code formatting.
+
+## 2025-06-02 John Apostolakis & Mattias Portnoy (field-V11-03-01)
+- Changed implementation of QSS integration method to QSS v2
+  by Mattias Portnoy (Univ. of Buenos Aires)
+
+## 2025-03-11 Gabriele Cosmo (field-V11-03-00)
+- Added missing guard in G4TMagFieldEquation header and minor cleanup.
+  Fixes [GitHub PR #83](https://github.com/Geant4/geant4/pull/83).
+
+## 2024-11-26 Ivana Hrivnacova (field-V11-02-06)
+- Better names for the G4EquationType enum constants
+
+## 2024-11-04 Philippe Canal (field-V11-02-05)
+- Improve stability of static initialization for StepperType() and
+  StepperDescription() in G4DormandPrince745.
+
+## 2024-09-10 Ivana Hrivnacova (field-V11-02-04)
+- Coverity fixes:
+  - Use std::move, const auto& instead of auto to avoid copying
+
+## 2024-06-20 Ivana Hrivnacova (field-V11-02-03)
+- Fix in G4FieldBuilder for local fields:
+  apply the local fields in the order of user setting
+
+## 2024-04-29 Ivana Hrivnacova (field-V11-02-02)
+- Added classes for automatic field construction from paremeters:
+  - G4FieldBuilder[Messenger], G4FieldParameters[Messenger], G4FieldSetup
+  - No changes in other Geant4 classes
+
+## 2024-04-17 Ben Morgan (field-V11-02-01)
+- Fix maybe-uninitialized warnings found in ATLAS builds
+  - Reported in internal ATLASSIM-6058 ticket.
+
+## 2024-04-02 Gabriele Cosmo (field-V11-02-00)
+- Applied trivial clang-tidy fixes to classes, i.e. use of default
+  constructor/destructor, auto and using statements.
+- Minor cleanup in QSS classes.
+
 ## 2023-11-03 Gabriele Cosmo (field-V11-01-06)
 - Reinstated default DormandPrince745 stepper.
 

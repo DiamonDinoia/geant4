@@ -44,13 +44,13 @@ G4Run::G4Run()
 // --------------------------------------------------------------------
 G4Run::~G4Run()
 {
-  // Objects made by local thread should not be deleted by the master thread
-  G4RunManager::RMType rmType =
-    G4RunManager::GetRunManager()->GetRunManagerType();
-  if(rmType != G4RunManager::masterRM)
+  if(G4RunManager::GetRunManager()->GetRunManagerType()!=G4RunManager::masterRM)
   {
     for(auto& itr : *eventVector)
-    { delete itr; }
+    {
+      G4RunManager::GetRunManager()->ReportEventDeletion(itr);
+      delete itr;
+    }
   }
   delete eventVector;
 }
@@ -73,6 +73,18 @@ void G4Run::Merge(const G4Run* right)
 void G4Run::StoreEvent(G4Event* evt)
 {
   eventVector->push_back(evt);
+}
+
+// --------------------------------------------------------------------
+G4int G4Run::GetNumberOfKeptEvents() const
+{
+  G4int n = 0;
+  if(eventVector!=nullptr && eventVector->size()>0)
+  {
+    for(auto& ev : *eventVector)
+    { if(ev->KeepTheEventFlag()) n++; }
+  }
+  return n;
 }
 
 // --------------------------------------------------------------------

@@ -27,13 +27,16 @@
 /// \brief Implementation of the scavenger::ActionInitialization class
 
 #include "ActionInitialization.hh"
+
+#include "G4DNAChemistryManager.hh"
+#include "G4H2O.hh"
+#include "G4MoleculeCounter.hh"
+#include "G4Scheduler.hh"
+
+#include "EventAction.hh"
 #include "PrimaryGeneratorAction.hh"
 #include "RunAction.hh"
 #include "StackingAction.hh"
-#include "G4DNAChemistryManager.hh"
-#include "G4MoleculeCounter.hh"
-#include "G4Scheduler.hh"
-#include "G4H2O.hh"
 #include "TimeStepAction.hh"
 
 namespace scavenger
@@ -41,34 +44,45 @@ namespace scavenger
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....
 
-ActionInitialization::ActionInitialization()
-  : G4VUserActionInitialization() {
-}
+ActionInitialization::ActionInitialization() : G4VUserActionInitialization() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....
 
-void ActionInitialization::BuildForMaster() const {
+void ActionInitialization::BuildForMaster() const
+{
   SetUserAction(new RunAction());
-  G4DNAChemistryManager::Instance()->ResetCounterWhenRunEnds(false);
+
+  BuildMoleculeCounter();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....
 
-void ActionInitialization::Build() const {
-  G4MoleculeCounter::Instance()->Use();
-  G4MoleculeCounter::Instance()->SetVerbose(0);
-  G4MoleculeCounter::Instance()->DontRegister(G4H2O::Definition());
-  // sequential mode
-  if (!G4Threading::IsMultithreadedApplication()) {
-    G4DNAChemistryManager::Instance()->ResetCounterWhenRunEnds(false);
-  }
-
+void ActionInitialization::Build() const
+{
   SetUserAction(new PrimaryGeneratorAction());
   SetUserAction(new RunAction());
+  SetUserAction(new EventAction);
   SetUserAction(new StackingAction());
   G4Scheduler::Instance()->SetUserAction(new TimeStepAction());
+
+  BuildMoleculeCounter();
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+void ActionInitialization::BuildMoleculeCounter() const
+{
+  G4MoleculeCounterManager::Instance()->SetResetCountersBeforeEvent(true);
+  G4MoleculeCounterManager::Instance()->SetResetCountersBeforeRun(true);
+  G4MoleculeCounterManager::Instance()->SetAccumulateCounterIntoMaster(false);
+
+  auto counter = std::make_unique<G4MoleculeCounter>();
+  counter->SetVerbose(0);
+  counter->SetTimeComparer(G4MoleculeCounterTimeComparer::CreateWithFixedPrecision(1 * ps));
+  counter->IgnoreMolecule(G4H2O::Definition());
+  G4MoleculeCounterManager::Instance()->RegisterCounter(std::move(counter));
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....
 
-}
+}  // namespace scavenger

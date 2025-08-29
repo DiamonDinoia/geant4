@@ -69,6 +69,12 @@
 //      G4double G4Colour::GetGreen () const ; // Get the green component.
 //      G4double G4Colour::GetBlue  () const ; // Get the blue  component.
 //
+// You may add colours to a map. They can then be retrieved with a string.
+// Standard colours are added to map by default when static functions AddToMap,
+// GetMap or GetColour are called. The G4 Vis Manager adds a copious additional
+// set of colours on instantiation - see G4VisManager::InitialiseG4ColourMap.
+// (Issue "/vis/list" to see available colours.)
+//
 // Class Description - End:
 
 #ifndef G4COLOUR_HH
@@ -85,8 +91,7 @@ class G4Colour {
 
 public: // With description
 
-  G4Colour (G4double r_ = 1., G4double g_ = 1., G4double b_ = 1.,
-            G4double a_ = 1.);
+  G4Colour (G4double r = 1., G4double gr = 1., G4double b = 1., G4double a = 1.);
 
   G4Colour (G4ThreeVector);
   // Converts the components of the 3-vector into red, green, blue.
@@ -127,14 +132,26 @@ public: // With description
   static G4Colour Yellow();
 
   static G4bool GetColour(const G4String& key, G4Colour& result);
-  // Get colour for given key, placing it in result.
+  static G4bool GetColor(const G4String& key, G4Colour& result);
+  // Find colour in colour map, placing it in result.
   // The key is usually the name of the colour.
-  // The key is not case sensitive.
+  // The key is case insensitive.
   // Returns false if key doesn't exist, leaving result unchanged.
+  // Usage:
+  //   G4Colour c;  // A successful GetColour will place the colour here
+  //   if (G4Colour::GetColour("pink", c)) {
+  //     logical->SetVisAttributes(c);
+  //   } else {
+  //     logical->SetVisAttributes(G4Colour::Green());
+  //   }
+  // or more simply:
+  //   G4Colour c(G4Colour::Green());  // Default if colour not found
+  //   G4Colour::GetColour("pink", c);
+  //   logical->SetVisAttributes(c);
 
   static void AddToMap(const G4String& key, const G4Colour& colour);
   // Add user defined colour to colour map with given key. Standard
-  // colours are added to map by default.
+  // colours are added to map by default. The G4 Vis Manager adds more.
 
   static void InitialiseColourMap();
   static const std::map<G4String, G4Colour>& GetMap();
@@ -149,10 +166,12 @@ private:
 
 };
 
-inline G4double G4Colour::GetRed   () const {return red;}
-inline G4double G4Colour::GetGreen () const {return green;}
-inline G4double G4Colour::GetBlue  () const {return blue;}
-inline G4double G4Colour::GetAlpha () const {return alpha;}
+// clang-format off
+inline G4double G4Colour::GetRed() const   {return red;}
+inline G4double G4Colour::GetGreen() const {return green;}
+inline G4double G4Colour::GetBlue() const  {return blue;}
+inline G4double G4Colour::GetAlpha() const {return alpha;}
+
 inline G4Colour G4Colour::White()   {return G4Colour(1.0, 1.0, 1.0);}
 inline G4Colour G4Colour::Gray()    {return G4Colour(0.5, 0.5, 0.5);}
 inline G4Colour G4Colour::Grey()    {return G4Colour(0.5, 0.5, 0.5);}
@@ -164,5 +183,9 @@ inline G4Colour G4Colour::Blue()    {return G4Colour(0.0, 0.0, 1.0);}
 inline G4Colour G4Colour::Cyan()    {return G4Colour(0.0, 1.0, 1.0);}
 inline G4Colour G4Colour::Magenta() {return G4Colour(1.0, 0.0, 1.0);}
 inline G4Colour G4Colour::Yellow()  {return G4Colour(1.0, 1.0, 0.0);}
+// clang-format on
+
+inline G4bool G4Colour::GetColor(const G4String& key, G4Colour& result)
+{return G4Colour::GetColour(key, result);}
 
 #endif

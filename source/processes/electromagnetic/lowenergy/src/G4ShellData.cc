@@ -108,7 +108,7 @@ const std::vector<G4double>& G4ShellData::ShellVector(G4int Z) const
 {
   if (Z < zMin || Z > zMax) 
     G4Exception("G4ShellData::ShellVector()","de0001",JustWarning,"Z outside boundaries");
-  auto pos = occupancyPdfMap.find(Z);
+  auto pos = occupancyPdfMap.find(Z);  
   std::vector<G4double>* dataSet = (*pos).second;
   return *dataSet;
 }
@@ -192,31 +192,38 @@ void G4ShellData::PrintData() const
       auto posId = idMap.find(Z);
       std::vector<G4double>* ids = (*posId).second;
       auto posE = bindingMap.find(Z);
-      G4DataVector* energies = (*posE).second;
-      for (G4int i=0; i<nSh; ++i)
+      if (posE != bindingMap.end())
 	{
-	  G4int id = (G4int) (*ids)[i];
-	  G4double e = (*energies)[i] / keV;
-	  G4cout << i << ") ";
-
-	  if (occupancyData) 
+	  G4DataVector* energies = (*posE).second;
+	  for (G4int i=0; i<nSh; ++i)
 	    {
-	      G4cout << " Occupancy: ";
+	      G4int id = (G4int) (*ids)[i];
+	      G4double e = (*energies)[i] / keV;
+	      G4cout << i << ") ";
+	      
+	      if (occupancyData) 
+		{
+		  G4cout << " Occupancy: ";
+		}
+	      else 
+		{
+		  G4cout << " Shell id: ";
+		}
+	      G4cout << id << " - Binding energy = "
+		     << e << " keV ";
+	      if (occupancyData)
+		{
+		  auto posOcc = occupancyPdfMap.find(Z);		  
+		  G4double prob = 0.;
+		  if (posOcc != occupancyPdfMap.end())
+		    {
+		      std::vector<G4double> probs = *((*posOcc).second);
+		      prob = probs[i];
+		    }
+		  G4cout << "- Probability = " << prob;
+		}
+	      G4cout << G4endl;
 	    }
-	  else 
-	    {
-	      G4cout << " Shell id: ";
-	    }
-	  G4cout << id << " - Binding energy = "
-		 << e << " keV ";
-	    if (occupancyData)
-	      {
-		auto posOcc = occupancyPdfMap.find(Z);
-                std::vector<G4double> probs = *((*posOcc).second);
-                G4double prob = probs[i];
-		G4cout << "- Probability = " << prob;
-	      }
-	    G4cout << G4endl;
 	}
       G4cout << "-------------------------------------------------" 
 	     << G4endl;

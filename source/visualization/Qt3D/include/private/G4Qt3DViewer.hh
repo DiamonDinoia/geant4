@@ -53,9 +53,11 @@ public:
   void SwitchToMasterThread();
 
 protected:
+  virtual void resizeEvent(QResizeEvent*);
 
   void KernelVisitDecision ();
   G4bool CompareForKernelVisit(G4ViewParameters&);
+  G4bool CompareForTransientsRedraw(G4ViewParameters&);
 
   void keyPressEvent        (QKeyEvent*);
   void keyReleaseEvent      (QKeyEvent*);

@@ -6,6 +6,41 @@ It must **not** be used as a substitute for writing good git commit messages!
 
 -------------------------------------------------------------------------------
 
+## 2025-05-15 Vladimir Ivanchenko (hadr-cohe-V11-03-03)
+- G4ChargeExchange, G4HadronElastic - cleanup final state generation: use
+    the numerical limit for argument of the exponent to avoid precision loss;
+    in case of numerical problems force scattering angle to zero (do not
+    consider scattering backward); use similar parameterisation and code for
+    both models.
+
+## 2025-05-01 Vladimir Ivanchenko (hadr-cohe-V11-03-02)
+- G4ChargeExchange - fixed Coverity warning
+
+## 2025-04-27 Vladimir Ivanchenko (hadr-cohe-V11-03-01)
+- G4ChargeExchange - fixed problem in final state generation for the case of
+    unstable meson production omega(782) and f2(1270).
+  
+## 2025-04-15 Vladimir Ivanchenko (hadr-cohe-V11-03-00)
+- G4ChargeExchange - fixed problem in kinematic computations, allowed recoil
+  nucleus to be in an excited state.
+
+## 2024-11-15 Vladimir Ivanchenko (hadr-cohe-V11-02-03)
+- G4ChargeExchange - fixed problem of the Hydrogen target; change event weight
+    if cross section biasing factor is applied
+- G4ChargeExchangeProcess - added warning
+
+## 2024-09-22 Vladimir Ivanchenko (hadr-cohe-V11-02-02)
+- G4ChargeExchange - fixed problem 2618 - implemented production and decay of
+    omega(780) and f2(1270) for pion projectile, implemented decay of unstable
+    isomeres if recoil nucleus if not a natural isotope
+
+## 2024-07-30 Vladimir Ivanchenko (hadr-cohe-V11-02-01)
+- G4ChargeExchange - fixed problem 2617 - do not allow unphysical final state
+
+## 2024-05-02 Gabriele Cosmo (hadr-cohe-V11-02-00)
+- Fixed compilation warnings for potentially initialised local variables in
+  SampleThetaCMS() for G4DiffuseElastic and G4NuclNuclDiffuseElastic.
+
 ## 2023-10-23 Vladimir Ivanchenko (hadr-cohe-V11-01-04)
 - G4ChargeExchange - address interface change in G4ChargeExchangeXS
 

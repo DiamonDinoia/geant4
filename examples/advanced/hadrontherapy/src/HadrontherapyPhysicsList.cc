@@ -26,13 +26,25 @@
 // Hadrontherapy advanced example for Geant4
 // See more at: https://twiki.cern.ch/twiki/bin/view/Geant4/AdvancedExamplesHadrontherapy
 //
+// Using the builder concepts of Geant4 we assembled (and tested) two different
+// Physics Lists that are particuilarly suited for Hadronterapy applications:
 //
-//    ******      SUGGESTED PHYSICS FOR ACCURATE SIMULATIONS    *********
-//    ******            IN MEDICAL PHYSICS APPLICATIONS         *********
+// 'HADRONTHERAPY_1' is more suited for protons only
+// 'HADRONTHERAPY_2' is suggested for better precision with ions
 //
-// 'HADRONTHERAPY_1' and 'HADRONTHERAPY_2' are both suggested;
-// It can be activated inside any macro file using the command:
-// /Physics/addPhysics HADRONTHERAPY_1 (HADRONTHERAPY_2)
+// The Reference physics lists (already present in the Geant4 kernel) can
+// be used as well. In this case the more suitable "Reference physics lists" are:
+// "QBBC", "QGSP_BIC", "Shielding", "QGSP_BERT",
+// "QGSP_BIC_AllHP" and "QGSP_BIC_HP"
+//
+// NOTE: to activate the "_HP" physics you have to set the G4PARTICLEHPDATA environment
+// variable pointing to the external dataset named "G4TENDL".
+//
+// All the lists can be  activated inside any macro file using the command:
+// /Physics/addPhysics
+//
+// Examples of usage are:
+// /Physics/addPhysics HADRONTHERAPY_1 or /Physics/addPhysics QGSP_BIC_HP
 
 #include "G4SystemOfUnits.hh"
 #include "G4RunManager.hh"
@@ -61,10 +73,25 @@
 #include "G4ProcessManager.hh"
 #include "G4IonFluctuations.hh"
 #include "G4IonParametrisedLossModel.hh"
+#include "G4EmParameters.hh"
 #include "G4ParallelWorldPhysics.hh"
 #include "G4EmLivermorePhysics.hh"
 #include "G4AutoDelete.hh"
 #include "G4HadronPhysicsQGSP_BIC_AllHP.hh"
+#include "QGSP_BIC_HP.hh"
+#include "QGSP_BIC.hh"
+#include "G4HadronPhysicsQGSP_BERT.hh"
+#include "G4HadronPhysicsQGSP_BERT_HP.hh"
+#include "G4ParallelWorldPhysics.hh"
+// Physics List
+#include "QBBC.hh"
+#include "QGSP_BIC.hh"
+#include "Shielding.hh"
+#include "QGSP_BERT.hh"
+#include "QGSP_BIC_AllHP.hh"
+#include "QGSP_BIC_HP.hh"
+
+
 
 /////////////////////////////////////////////////////////////////////////////
 HadrontherapyPhysicsList::HadrontherapyPhysicsList() : G4VModularPhysicsList()
@@ -81,7 +108,6 @@ HadrontherapyPhysicsList::HadrontherapyPhysicsList() : G4VModularPhysicsList()
     // Elecromagnetic physics
     //
     emPhysicsList = new G4EmStandardPhysics_option4();
-    
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -176,7 +202,7 @@ void HadrontherapyPhysicsList::AddPhysicsList(const G4String& name)
     }
     
     else if (name == "HADRONTHERAPY_2") {
-        // HP models are switched off
+        
         AddPhysicsList("standard_opt4");
         hadronPhys.push_back( new G4DecayPhysics());
         hadronPhys.push_back( new G4RadioactiveDecayPhysics());
@@ -184,10 +210,55 @@ void HadrontherapyPhysicsList::AddPhysicsList(const G4String& name)
         hadronPhys.push_back( new G4EmExtraPhysics());
         hadronPhys.push_back( new G4HadronElasticPhysics());
         hadronPhys.push_back( new G4StoppingPhysics());
-        hadronPhys.push_back( new G4HadronPhysicsQGSP_BIC());
+        hadronPhys.push_back( new G4HadronPhysicsQGSP_BIC_AllHP());
         hadronPhys.push_back( new G4NeutronTrackingCut());
         
-        G4cout << "HADRONTHERAPY_2 PHYSICS LIST has been activated" << G4endl;    }
+        G4cout << "HADRONTHERAPY_2 PHYSICS LIST has been activated" << G4endl;   
+
+    }
+   
+    else if (name == "QGSP_BIC"){
+        auto physicsList = new QGSP_BIC;
+        G4RunManager::GetRunManager() -> SetUserInitialization(physicsList);
+        G4RunManager::GetRunManager() -> PhysicsHasBeenModified();
+        physicsList -> RegisterPhysics(new G4ParallelWorldPhysics("DetectorROGeometry"));
+    }
+    
+    else if (name == "QGSP_BERT"){
+        auto physicsList = new QGSP_BERT;
+        G4RunManager::GetRunManager() -> SetUserInitialization(physicsList);
+        G4RunManager::GetRunManager() -> PhysicsHasBeenModified();
+        physicsList -> RegisterPhysics(new G4ParallelWorldPhysics("DetectorROGeometry"));
+    }
+    
+    else if (name == "QGSP_BIC_AllHP"){
+        auto physicsList = new QGSP_BIC_AllHP;
+        G4RunManager::GetRunManager() -> SetUserInitialization(physicsList);
+        G4RunManager::GetRunManager() -> PhysicsHasBeenModified();
+        physicsList -> RegisterPhysics(new G4ParallelWorldPhysics("DetectorROGeometry"));
+    }
+    
+    else if (name == "QGSP_BIC_HP"){
+        auto physicsList = new QGSP_BIC_HP;
+        G4RunManager::GetRunManager() -> SetUserInitialization(physicsList);
+        G4RunManager::GetRunManager() -> PhysicsHasBeenModified();
+        physicsList -> RegisterPhysics(new G4ParallelWorldPhysics("DetectorROGeometry"));
+    }
+    
+    else if (name == "Shielding"){
+        auto physicsList = new Shielding;
+        G4RunManager::GetRunManager() -> SetUserInitialization(physicsList);
+        G4RunManager::GetRunManager() -> PhysicsHasBeenModified();
+        physicsList -> RegisterPhysics(new G4ParallelWorldPhysics("DetectorROGeometry"));
+    }
+        
+    else if (name == "QBBC"){
+        auto physicsList = new QBBC;
+        G4RunManager::GetRunManager() -> SetUserInitialization(physicsList);
+        G4RunManager::GetRunManager() -> PhysicsHasBeenModified();
+        physicsList -> RegisterPhysics(new G4ParallelWorldPhysics("DetectorROGeometry"));
+    }
+    
     else {
         G4cout << "PhysicsList::AddPhysicsList: <" << name << ">"
         << " is not defined"
@@ -203,6 +274,7 @@ void HadrontherapyPhysicsList::AddStepMax()
     // This process must exist in all threads.
     //
     HadrontherapyStepMax* stepMaxProcess  = new HadrontherapyStepMax();
+    
     
     auto particleIterator = GetParticleIterator();
     particleIterator->reset();

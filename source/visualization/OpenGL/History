@@ -6,6 +6,154 @@ It must **not** be used as a substitute for writing good git commit messages!
 
 -------------------------------------------------------------------------------
 
+## 2025-05-23 Andrea Barresi (opengl-V11-03-06)
+- G4OpenGLWin32Viewer:
+  - Added SwitchToMasterThread method to draw trajectories at the end of run in MT mode.
+
+## 2025-05-12 Andrea Barresi (opengl-V11-03-05)
+- G4OpenGLQtViewer.cc:
+  - Fixed the original pick feature to show pick info window and removed the workaround. 
+
+## 2025-04-29 John Allison (opengl-V11-03-04)
+- G4OpenGLQtViewer.cc:
+  - Restore pick information window (workaround) in the OGLSQt driver.
+    - For some reason - maybe recent "improvements" - the current pick feature
+      does not work. Investigation shows that information is picked, as designed,
+      but the pick information window does not show. So far, we have not
+      been able to find the problem - hence this workaround.
+    - This workaround is a single block of code, ll.4630-4661, that can easily
+      be removed if the original problem is understood and fixed.
+    - In this workaround, each picked object causes a window of information
+      to pop up. They are standalone windows, and may be kept or deleted. They
+      are cleaned up by Qt at end of job.
+  - Remove some commented out statements left over from the previous tag.
+    - With the introduction of the new scene tree, there should never be a
+      reason to use /vis/touchable/set commands. In fact to do so interferes
+      with the new scene tree.
+
+## 2025-04-09 John Allison (opengl-V11-03-03)
+- G4OpenGLQtViewer.cc:
+  - Comment out calls to TouchableSetVisibility/Colour.
+    - No longer needed since the introduction of the new scene tree.
+    - Actually interferes with the new scene tree.
+  - Comment out some debug printing to std::cout.
+
+## 2025-04-07 Gabriele Cosmo (opengl-V11-03-02)
+- Fixed compilation errors on Windows in G4OpenGLWin32Viewer, triggered when
+  enabling GL WIN32 support, as reported in problem report #2599.
+
+## 2025-02-01 John Allison (opengl-V11-03-01)
+- Co-works: visman-V11-03-02.
+- G4OpenGLStoredViewer.cc:
+  - Follow changes in G4ViewParameters.
+
+## 2025-01-06 John Allison (opengl-V11-03-00)
+- Co-works: visman-V11-03-00, interfaces-V11-03-00, modeling-V11-03-00,
+  visQt3D-V11-03-00, vis_toolssg-V11-03-00, openinventor-V11-03-00,
+  greps-V11-03-00.
+- Re-instate the transparency slider (see lengthy explanation in management/History).
+- G4OpenGLImmediateSceneHandler:
+  - Minor improvement to comment.
+- G4OpenGLStoredViewer:
+  - Initiate kernel visit if TransparencyByDepth or its options change.
+- G4OpenGLStoredQtViewer:
+  - Initiate kernel visit if TransparencyByDepth or its options change.
+  - (Not sure the Qt viewer needs its own compare function.)
+
+## 2024-09-13 John Allison (opengl-V11-02-09)
+- G4OpenGLStoredQtSceneHandler.cc:
+  - G4OpenGLStoredQtSceneHandler::ClearStore():
+    -  Commented out some code related to the old scene tree. The old scene
+       tree is currently (partially) disabled, but this code somehow affects
+       the view in rare cases, e.g., after twinkling the volume does not return
+       to its original colour. So I have disabled this, pending a review of
+       the old scene tree. 
+
+## 2024-10-25 John Allison (opengl-V11-02-08)
+- G4OpenGLQtViewer.cc:
+  - G4OpenGLQtViewer::currentTabActivated(): Fix compilation error, see Bug Report 2633.
+    - Use .data().
+
+## 2024-09-13 John Allison (opengl-V11-02-07)
+- G4OpenGLQtViewer.cc:
+  - Comment out code that refers to the old scene tree because it adversely impacts
+    the new scene tree.
+    - I would like to extract the old scene tree code completely, but so far I have
+      found it difficult, since it is so entangled with other code. So my efforts so
+      far have been to bop problems on the head as they arise. Not satisfactory, I
+      know, and I will continue to work on it.
+
+## 2024-08-13 John Allison (opengl-V11-02-06)
+- G4OpenGLQtViewer:
+  - Resolve the timing issues around switching to the vis sub-thread with the
+    use of G4CONDITIONWAITLAMBDA.
+  - Fix small memory leak in G4OpenGLQtViewer::DrawText.
+
+## 2024-07-24 Guy Barrand (opengl-V11-02-05)
+- G4OpenGLImmediateQtViewer, G4OpenGLStoredQtViewer::ShowView: Qt6: do a:
+    ((QApplication*)G4Qt::getInstance ())->processEvents();
+  so that a:
+    /vis/viewer/interpolate viewfiles/movie-1
+  produces truly an animation.
+
+## 2024-07-12 Guy Barrand (opengl-V11-02-04)
+- G4OpenGLQtViewer: Qt6: implement ReadyToDraw(). It permits to avoid a crash in case
+  of /run/beamOn in vis.mac at startup (especially on macOS).
+- G4OpenGLImmediateQtViewer, G4OpenGLStoredQtViewer: Qt5: in Initialise(), displace
+  makeCurrent() after CreateMainWindow(). It avoids a crash in case of /run/beamOn
+  in vis.mac at startup.
+- G4OpenGLQtViewer: Qt5, Qt6: in DoneWithVisSubThread(), SwitchToMasterThread() protect
+  against a possible null qGLW->context(). It permits to avoid a crash in case of
+  doing /run/beamOn in vis.mac at startup.
+- G4OpenGLQtViewer, G4OpenGLImmediateQtViewer, G4OpenGLStoredQtViewer: Qt6:
+  remove unused fields: fHasToRepaint, fUpdateGLLock, fQGLWidgetInitialiseCompleted
+  and fPaintEventLock.
+- G4OpenGLImmediateQtViewer, G4OpenGLStoredQtViewer: Qt6: remove no more needed
+  initializeGL() and showEvent() methods.
+- G4OpenGLImmediateQtViewer, G4OpenGLStoredQtViewer: Qt6: displace setExportImageFormat("jpg")
+  in Initialise().
+
+## 2024-06-21 Ben Morgan (opengl-V11-02-03)
+- Use runtime checks for MT mode where possible.
+
+## 2024-05-30 Guy Barrand (opengl-V11-02-02)
+- G4OpenGLImmediateQtViewer, G4OpenGLStoredQtViewer: Qt6: remove the usage of a paintEvent(),
+  the paintGL() should be sufficient. Having an extra paintEvent() is confusing.
+- G4OpenGLImmediateQtViewer, G4OpenGLStoredQtViewer: Qt6: updateQWidget: use update() to trigger
+  a repaint. It is what is documented.
+- G4OpenGLImmediateQtViewer, G4OpenGLStoredQtViewer: Qt6: Initialise(): do a:
+    if(G4QGLWidgetType::isValid())
+  before the glDrawBuffer(GL_BACK). It avoids a crash at startup on macOS.
+  Do the same on the ClearView(), SetView().
+- G4OpenGLViewer: have ClearView(), SetView(), ResetView() virtual so that we can do a
+    if(G4QGLWidgetType::isValid())
+  in viewers ClearView(), SetView().
+- G4OpenGLQtViewer: updatePickInfosWidget, G4MouseReleaseEvent: Qt6: have a "makeCurrent,ResizeGL".
+  G4OpenGLImmediateQtViewer, G4OpenGLStoredQtViewer: Qt6: DrawView(): have a:
+    if(IsGettingPickInfos()) {
+      paintGL();
+      return;
+    }
+  These modifications permit to restore picking. The today code has some "glGetIntegerv(GL_VIEWPORT)"
+  done "out of makeCurrent()" that returns now, with Qt6::QOpenGLWidget, bad sizes. The
+  "makeCurrent(), ResizeGL" restores good values, and the upper modifications in DrawView() enforces
+  a paintGL() within the "makeCurrent()". Picking looks ok with these modifications.
+- G4OpenGLQtViewer: G4OpenGLStoredQtViewer: Qt6: have ResizeWindow using glWidget->devicePixelRatio().
+  To have good size handling on macOS (it looks ok to have this on Linux and Windows, then no need
+  to "#ifdef __APPLE__").
+- G4OpenGLQtViewer: Qt6: DrawText(): we implemented a "2D draw text" (with code found on stackoverflow)
+  since the renderText() method is no more here on the new Qt6 QOpenGLWidget.
+
+## 2024-05-13 Guy Barrand (opengl-V11-02-01)
+- G4OpenGLQtViewer: MT: have the variables mWaitForVisSubThreadQtOpenGLContextMoved,
+  mWaitForVisSubThreadQtOpenGLContextInitialized,
+  c1_VisSubThreadQtOpenGLContextInitialized, c2_VisSubThreadQtOpenGLContextMoved local
+  to the G4OpenGLQtViewer class. It avoids dead-locks in case of multiple OGLI, OGLS viewers
+  if doing a "/run/beamOn" in each of them.
+
+## 2024-01-11 Ben Morgan (opengl-V11-02-00)
+- Make headers of implementation detail classes private.
+
 ## 2023-09-05 Ben Morgan (opengl-V11-01-13)
 - Set AUTOMOC property on module when Qt used.
 

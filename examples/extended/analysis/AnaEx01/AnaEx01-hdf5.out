@@ -11,7 +11,7 @@ Environment variable "G4FORCE_RUN_MANAGER_TYPE" enabled with value == Serial. Fo
 
 
 **************************************************************
- Geant4 version Name: geant4-11-02-patch-01    (16-February-2024)
+ Geant4 version Name: geant4-11-03-ref-06    (30-June-2025)
                        Copyright : Geant4 Collaboration
                       References : NIM A 506 (2003), 250-303
                                  : IEEE-TNS 53 (2006), 270-278
@@ -22,7 +22,7 @@ Environment variable "G4FORCE_RUN_MANAGER_TYPE" enabled with value == Serial. Fo
 
 ***** Table : Nb of materials = 3 *****
 
- Material: G4_Galactic    density:  0.000 mg/cm3  RadL: 204310098.490 pc   Nucl.Int.Length: 113427284.261 pc 
+ Material: G4_Galactic    density:  0.000 mg/cm3  RadL: 204310098.490 pc   Nucl.Int.Length: 3240.779 pc 
                        Imean:  21.800 eV   temperature:   2.73 K  pressure:   0.00 atm
 
    --->  Element: H (H)   Z =  1.0   N =     1   A =  1.008 g/mole
@@ -55,6 +55,14 @@ Environment variable "G4FORCE_RUN_MANAGER_TYPE" enabled with value == Serial. Fo
 
 <<< Geant4 Physics List simulation engine: FTFP_BERT
 
+Accumulable registered as "accumulable_0"
+Accumulable registered as "accumulable_1"
+Accumulable registered as "accumulable_2"
+Accumulable registered as "accumulable_3"
+Accumulable registered as "accumulable_4"
+Accumulable registered as "accumulable_5"
+Accumulable registered as "accumulable_6"
+Accumulable registered as "accumulable_7"
 Visualization Manager instantiating with verbosity "warnings (3)"...
 Visualization Manager initialising...
 Registering graphics systems...
@@ -64,28 +72,35 @@ Registered graphics systems are:
   ASCIITree (ATree)
   DAWNFILE (DAWNFILE)
   G4HepRepFile (HepRepFile)
-  RayTracer (RayTracer)
+  RayTracer (RT)
   VRML2FILE (VRML2FILE)
   gMocrenFile (gMocrenFile)
-  TOOLSSG_OFFSCREEN (TSG_OFFSCREEN)
   TOOLSSG_OFFSCREEN (TSG_OFFSCREEN, TSG_FILE)
   OpenGLImmediateQt (OGLIQt, OGLI)
-  OpenGLStoredQt (OGLSQt, OGL, OGLS)
+  OpenGLStoredQt (OGLSQt, OGLS)
   OpenGLImmediateXm (OGLIXm, OGLIQt_FALLBACK)
   OpenGLStoredXm (OGLSXm, OGLSQt_FALLBACK)
   OpenGLImmediateX (OGLIX, OGLIQt_FALLBACK, OGLIXm_FALLBACK)
   OpenGLStoredX (OGLSX, OGLSQt_FALLBACK, OGLSXm_FALLBACK)
-  RayTracerX (RayTracerX)
+  RayTracerX (RTX)
+  RayTracerQt (RTQt)
   Qt3D (Qt3D)
   TOOLSSG_X11_GLES (TSG_X11_GLES, TSGX11, TSG_XT_GLES_FALLBACK)
+  TOOLSSG_X11_ZB (TSG_X11_ZB, TSGX11ZB)
   TOOLSSG_XT_GLES (TSG_XT_GLES, TSGXt, TSG_QT_GLES_FALLBACK)
   TOOLSSG_XT_ZB (TSG_XT_ZB, TSGXtZB)
-  TOOLSSG_QT_GLES (TSG_QT_GLES, TSGQt, TSG)
+  TOOLSSG_QT_GLES (TSG_QT_GLES, TSGQt, TSG, OGL)
   TOOLSSG_QT_ZB (TSG_QT_ZB, TSGQtZB)
-Default graphics system is: TSG_OFFSCREEN (based on batch session).
-Default window size hint is: 600x600-0+0 (based on G4VisManager initialisation).
-Note: Parameters specified on the command line will override these defaults.
-      Use "vis/open" without parameters to get these defaults.
+You may choose a graphics system (driver) with a parameter of
+the command "/vis/open" or "/vis/sceneHandler/create",
+or you may omit the driver parameter and choose at run time:
+- by argument in the construction of G4VisExecutive
+- by environment variable "G4VIS_DEFAULT_DRIVER"
+- by entry in "~/.g4session"
+- by build flags.
+- Note: This feature is not allowed in batch mode.
+For further information see "examples/basic/B1/exampleB1.cc"
+and "vis.mac".
 
 Registering model factories...
 
@@ -168,10 +183,13 @@ Bremsstrahlung energy threshold above which
   primary e+- is added to the list of secondary    100 TeV
 Bremsstrahlung energy threshold above which primary
   muon/hadron is added to the list of secondary    100 TeV
+Positron annihilation at rest model                SimplePositronium
+Enable 3 gamma annihilation on fly                 0
 Lowest triplet kinetic energy                      1 MeV
 Enable sampling of gamma linear polarisation       0
 5D gamma conversion model type                     0
 5D gamma conversion model on isolated ion          0
+Use RiGe 5D e+e- pair production model by muons    0
 Livermore data directory                           epics_2017
 =======================================================================
 ======                 Ionisation Parameters                   ========
@@ -290,7 +308,7 @@ eBrem:  for e+  XStype:4  SubType=3
              eBremSB : Emin=    0 eV  Emax=    1 GeV  ModifiedTsai
             eBremLPM : Emin=    1 GeV Emax=  100 TeV  ModifiedTsai
 
-annihil:  for e+ XStype:2 SubType=5 BuildTable=0
+annihil:  for e+ XStype:2 SubType=5 AtRestModel:Simple BuildTable=0
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
             eplus2gg : Emin=    0 eV  Emax=  100 TeV
 
@@ -342,7 +360,7 @@ ionIoni:  for GenericIon  XStype:3  SubType=2
       Lambda tables from threshold to 100 TeV, 7 bins/decade, spline: 1
       StepFunction=(0.2, 0.1 mm), integ: 3, fluct: 1, linLossLim= 0.02
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
-            BraggIon : Emin=    0 eV  Emax=    2 MeV
+               Bragg : Emin=    0 eV  Emax=    2 MeV
           BetheBloch : Emin=    2 MeV Emax=  100 TeV
 
 msc:  for alpha  SubType= 10
@@ -824,7 +842,8 @@ CoulombScat:  for pi- XStype:1 SubType=1 BuildTable=1
 =======================================================================
 ======       Geant4 Native Pre-compound Model Parameters       ========
 =======================================================================
-Type of pre-compound inverse x-section              3
+Type of pre-compound model                          0
+Type of pre-compound inverse x-section              1
 Pre-compound model active                           1
 Pre-compound excitation low energy                  100 keV
 Pre-compound excitation high energy                 30 MeV
@@ -840,21 +859,20 @@ Use HETC submodel for pre-compound model            0
 Type of de-excitation inverse x-section             3
 Type of de-excitation factory                       Evaporation+GEM
 Number of de-excitation channels                    68
+Type of Fermi BreakUp model                         ModelVI
 Min excitation energy                               10 eV 
 Min energy per nucleon for multifragmentation       200 GeV
 Limit excitation energy for Fermi BreakUp           20 MeV
 Level density (1/MeV)                               0.075
 Use simple level density model                      1
-Use discrete excitation energy of the residual      1
+Use discrete excitation energy of the residual      0
 Time limit for long lived isomeres                  1 ns 
 Isomer production flag                              1
 Internal e- conversion flag                         1
-Store e- internal conversion data                   0
+Store e- internal conversion data                   1
 Correlated gamma emission flag                      0
 Max 2J for sampling of angular correlations         10
 =======================================================================
-G4VisManager: Using G4TrajectoryDrawByCharge as fallback trajectory model.
-See commands in /vis/modeling/trajectories/ for other options.
 ### Run 0 start.
 ... create file : AnaEx01.hdf5 - done
 ... open analysis file : AnaEx01.hdf5 - done
@@ -865,32 +883,25 @@ See commands in /vis/modeling/trajectories/ for other options.
 
 --------------------End of Run------------------------------
 
- mean Energy in Absorber : 281.112 MeV +- 0 eV 
- mean Energy in Gap      : 74.1401 MeV +- 0 eV 
+ mean Energy in Absorber : 245.231 MeV +- 0 eV 
+ mean Energy in Gap      : 64.6941 MeV +- 0 eV 
 
- mean trackLength in Absorber : 69.2721 cm  +- 0 fm 
- mean trackLength in Gap      : 37.7451 cm  +- 0 fm 
+ mean trackLength in Absorber : 60.8807 cm  +- 0 fm 
+ mean trackLength in Gap      : 32.6255 cm  +- 0 fm 
 ------------------------------------------------------------
 
 
  ----> print histograms statistic 
 
-EAbs: mean = 281.112 MeV rms = 0 eV 
-EGap: mean = 74.1401 MeV rms = 0 eV 
-LAbs: mean = 69.2721 cm  rms = 0 fm 
-LGap: mean = 37.7451 cm  rms = 0 fm 
+EAbs: mean = 245.231 MeV rms = 0 eV 
+EGap: mean = 64.6941 MeV rms = 0 eV 
+LAbs: mean = 60.8807 cm  rms = 0 fm 
+LGap: mean = 32.6255 cm  rms = 0 fm 
 ... write file : AnaEx01.hdf5 - done
 ... close file : AnaEx01.hdf5 - done
 
 ----> Histograms and ntuples are saved
 
-There are histograms that can be viewed with visualization:
-  4 h1 histograms(s)
-  List them with "/analysis/list".
-  View them immediately with "/vis/plot" or "/vis/reviewPlots".
-  But...there are no entries. To make your histograms available for
-  plotting in this UI session, use CloseFile(false) in your
-  EndOfRunAction and Reset() in your BeginOfRunAction.
 # e- 500MeV
 /gun/particle e-
 /gun/energy 500 MeV
@@ -923,31 +934,24 @@ There are histograms that can be viewed with visualization:
 
 --------------------End of Run------------------------------
 
- mean Energy in Absorber : 190.633 MeV +- 48.8718 MeV
- mean Energy in Gap      : 46.5146 MeV +- 13.3975 MeV
+ mean Energy in Absorber : 188.669 MeV +- 48.7853 MeV
+ mean Energy in Gap      : 46.259 MeV +- 13.3455 MeV
 
- mean trackLength in Absorber : 47.0418 cm  +- 12.1398 cm 
- mean trackLength in Gap      : 23.5952 cm  +- 6.83896 cm 
+ mean trackLength in Absorber : 46.5752 cm  +- 12.122 cm 
+ mean trackLength in Gap      : 23.4524 cm  +- 6.81929 cm 
 ------------------------------------------------------------
 
 
  ----> print histograms statistic 
 
-EAbs: mean = 190.633 MeV rms = 48.8718 MeV
-EGap: mean = 46.5146 MeV rms = 13.3975 MeV
-LAbs: mean = 47.0418 cm  rms = 12.1398 cm 
-LGap: mean = 23.5952 cm  rms = 6.83896 cm 
+EAbs: mean = 188.669 MeV rms = 48.7853 MeV
+EGap: mean = 46.259 MeV rms = 13.3455 MeV
+LAbs: mean = 46.5752 cm  rms = 12.122 cm 
+LGap: mean = 23.4524 cm  rms = 6.81929 cm 
 ... write file : AnaEx01.hdf5 - done
 ... close file : AnaEx01.hdf5 - done
 
 ----> Histograms and ntuples are saved
 
-There are histograms that can be viewed with visualization:
-  4 h1 histograms(s)
-  List them with "/analysis/list".
-  View them immediately with "/vis/plot" or "/vis/reviewPlots".
-  But...there are no entries. To make your histograms available for
-  plotting in this UI session, use CloseFile(false) in your
-  EndOfRunAction and Reset() in your BeginOfRunAction.
 Graphics systems deleted.
 Visualization Manager deleting...
