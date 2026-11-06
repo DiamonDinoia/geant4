@@ -23,10 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 /// \file ExGflashRunAction.hh
 /// \brief Definition of the ExGflashRunAction class
-//
+
 #ifndef ExGflashRunAction_h
 #define ExGflashRunAction_h
 
@@ -38,6 +37,7 @@ class G4Run;
 class ExGflashRunAction : public G4UserRunAction
 {
   public:
+
     ExGflashRunAction();
     ~ExGflashRunAction() override;
 
@@ -45,6 +45,7 @@ class ExGflashRunAction : public G4UserRunAction
     void EndOfRunAction(const G4Run* aRun) override;
 
   private:
+
     G4int fRunID{0};
 };
 

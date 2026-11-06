@@ -48,7 +48,8 @@ G4LambdacPlus* G4LambdacPlus::Definition()
   // search in particle table]
   G4ParticleTable* pTable = G4ParticleTable::GetParticleTable();
   G4ParticleDefinition* anInstance = pTable->FindParticle(name);
-  if (anInstance == nullptr) {
+  if (anInstance == nullptr)
+  {
     // create particle
     //
     //    Arguments for constructor are as follows
@@ -61,11 +62,11 @@ G4LambdacPlus* G4LambdacPlus::Definition()
 
     // clang-format off
    anInstance = new G4ParticleDefinition(
-                 name,     2.28646*GeV,   3.27e-9*MeV,   +1.*eplus,
+                 name,     2.28646*GeV,   3.25e-9*MeV,   +1.*eplus,
                     1,              +1,             0,
                     0,               0,             0,
              "baryon",               0,            +1,        4122,
-                false,    0.2015e-3*ns,       nullptr,
+                false,    0.2026e-3*ns,       nullptr,
                 false,       "lambda_c");
     // clang-format on
   }

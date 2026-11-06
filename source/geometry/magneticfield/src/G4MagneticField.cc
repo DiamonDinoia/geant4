@@ -25,26 +25,22 @@
 //
 // G4MagneticField implementation
 //
-// Created: J.Apostolakis, CERN - 13.01.1996
+// Author: John Apostolakis (CERN), 13.01.1996
 // --------------------------------------------------------------------
 
 #include "G4MagneticField.hh"
 
-G4MagneticField::G4MagneticField()
-  : G4Field( false ) // No gravitational field (default)
-{
-}
+G4MagneticField::G4MagneticField() : G4Field(false)  // No gravitational field (default)
+{}
 
-G4MagneticField::~G4MagneticField() = default;
+G4MagneticField::G4MagneticField(const G4MagneticField&) : G4Field(false) {}
 
-G4MagneticField::G4MagneticField(const G4MagneticField& )
-  : G4Field( false )
+G4MagneticField& G4MagneticField::operator=(const G4MagneticField& p)
 {
-}
-
-G4MagneticField& G4MagneticField::operator = (const G4MagneticField& p)
-{
-  if (&p == this) { return *this; }
-  G4Field::operator=(p); 
+  if (&p == this)
+  {
+    return *this;
+  }
+  G4Field::operator=(p);
   return *this;
 }

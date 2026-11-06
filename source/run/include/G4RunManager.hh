@@ -98,8 +98,8 @@
 
 // Original author: M.Asai, 1996
 // --------------------------------------------------------------------
-#ifndef G4RunManager_hh
-#define G4RunManager_hh 1
+#ifndef G4RUNMANAGER_HH
+#define G4RUNMANAGER_HH
 
 #include "G4Event.hh"
 #include "G4EventManager.hh"
@@ -133,12 +133,14 @@ class G4DCtable;
 class G4Run;
 class G4PrimaryTransformer;
 class G4RunManagerFactory;
+class G4MaterialScanner;
 
 class G4RunManager
 {
     friend class G4RunManagerFactory;
 
   public:
+
     // Static method which returns the singleton pointer of G4RunManager
     // or its derived class.
     // Note this returns the per-thread singleton in case of a
@@ -207,6 +209,7 @@ class G4RunManager
     // InitializeGeometry() and the G4VUserPhysicsList class will be accessed
     // from the method InitializePhysics().
     virtual void InitializeGeometry();
+    virtual void GeometryOptimisation();
     virtual void InitializePhysics();
 
     // These four methods are invoked from the BeamOn() method and they're
@@ -303,7 +306,8 @@ class G4RunManager
 
     inline void SetGeometryToBeOptimized(G4bool vl)
     {
-      if (geometryToBeOptimized != vl) {
+      if (geometryToBeOptimized != vl)
+      {
         geometryToBeOptimized = vl;
         kernel->GeometryHasBeenModified();
         kernel->SetGeometryToBeOptimized(vl);
@@ -323,9 +327,7 @@ class G4RunManager
     virtual void rndmSaveThisRun();
     virtual void rndmSaveThisEvent();
     virtual void RestoreRandomNumberStatus(const G4String& fileN);
-    virtual void RestoreRndmEachEvent(G4bool)
-    { /* No effect in SEQ */
-    }
+    virtual void RestoreRndmEachEvent(G4bool) { /* No effect in SEQ */ }
 
     // Set user-actions and user-initialization to the kernel.
     // Store respective user initialization and action classes.
@@ -394,18 +396,21 @@ class G4RunManager
 
     // Define the default classification for a newly arriving track.
     // Default can be alternated by the UserStackingAction.
-    // G4ExceptionSeverity can be set to warn the user if the classification is changed 
+    // G4ExceptionSeverity can be set to warn the user if the classification is changed
     // by the UserStackingAction.
-    inline void SetDefaultClassification(G4TrackStatus ts,
-                                         G4ClassificationOfNewTrack val,
-            G4ExceptionSeverity es = G4ExceptionSeverity::IgnoreTheIssue)
-    { eventManager->GetStackManager()->SetDefaultClassification(ts,val,es); }
-    inline void SetDefaultClassification(const G4ParticleDefinition* pd,
-                                         G4ClassificationOfNewTrack val,
-            G4ExceptionSeverity es = G4ExceptionSeverity::IgnoreTheIssue)
-    { eventManager->GetStackManager()->SetDefaultClassification(pd,val,es); }
+    inline void
+    SetDefaultClassification(G4TrackStatus ts, G4ClassificationOfNewTrack val,
+                             G4ExceptionSeverity es = G4ExceptionSeverity::IgnoreTheIssue)
+    {
+      eventManager->GetStackManager()->SetDefaultClassification(ts, val, es);
+    }
+    inline void
+    SetDefaultClassification(const G4ParticleDefinition* pd, G4ClassificationOfNewTrack val,
+                             G4ExceptionSeverity es = G4ExceptionSeverity::IgnoreTheIssue)
+    {
+      eventManager->GetStackManager()->SetDefaultClassification(pd, val, es);
+    }
 
-    
     inline const G4String& GetVersionString() const { return kernel->GetVersionString(); }
 
     inline void SetPrimaryTransformer(G4PrimaryTransformer* pt)
@@ -444,7 +449,8 @@ class G4RunManager
       shellCmd += dirStr;
       randomNumberStatusDir = std::move(dirStr);
       G4int sysret = system(shellCmd);
-      if (sysret != 0) {
+      if (sysret != 0)
+      {
         G4String errmsg = "\"" + shellCmd + "\" returns non-zero value. Directory creation failed.";
         G4Exception("GrRunManager::SetRandomNumberStoreDir", "Run0071", JustWarning, errmsg);
         G4cerr << " return value = " << sysret << G4endl;
@@ -457,7 +463,8 @@ class G4RunManager
     }
     inline const G4String& GetRandomNumberStatusForThisEvent() const
     {
-      if (storeRandomNumberStatusToG4Event == 0 || storeRandomNumberStatusToG4Event == 2) {
+      if (storeRandomNumberStatusToG4Event == 0 || storeRandomNumberStatusToG4Event == 2)
+      {
         G4Exception("GrRunManager::SetRandomNumberStoreDir", "Run0072", JustWarning,
                     "Random number status is not available for this event.");
       }
@@ -497,9 +504,11 @@ class G4RunManager
     // previously to the event loop.
     inline const G4Event* GetPreviousEvent(G4int i) const
     {
-      if (i >= 1 && i <= n_perviousEventsToBeStored) {
+      if (i >= 1 && i <= n_perviousEventsToBeStored)
+      {
         auto itr = previousEvents->cbegin();
-        for (G4int j = 1; j < i; ++j) {
+        for (G4int j = 1; j < i; ++j)
+        {
           ++itr;
         }
         return *itr;
@@ -533,59 +542,68 @@ class G4RunManager
     // Actual explanations of these methods are found in G4SubEvtRunManager class
     virtual void RegisterSubEventType(G4int, G4int)
     {
-      G4Exception("G4RunManager::RegisterSubEventType","RunSE1000",FatalException,
+      G4Exception(
+        "G4RunManager::RegisterSubEventType", "RunSE1000", FatalException,
         "Base class method is invoked for a RunManager that is not sub-event parallel mode");
     }
-    virtual void MergeTrajectories(const G4SubEvent*,const G4Event*)
+    virtual void MergeTrajectories(const G4SubEvent*, const G4Event*)
     {
-      G4Exception("G4RunManager::MergeTrajectories","RunSE1001",FatalException,
+      G4Exception(
+        "G4RunManager::MergeTrajectories", "RunSE1001", FatalException,
         "Base class method is invoked for a RunManager that is not sub-event parallel mode");
     }
-    virtual void UpdateScoringForSubEvent(const G4SubEvent*,const G4Event*)
+    virtual void UpdateScoringForSubEvent(const G4SubEvent*, const G4Event*)
     {
-      G4Exception("G4RunManager::UpdateScoringForSubEvent","RunSE1001",FatalException,
+      G4Exception(
+        "G4RunManager::UpdateScoringForSubEvent", "RunSE1001", FatalException,
         "Base class method is invoked for a RunManager that is not sub-event parallel mode");
     }
-    virtual const G4SubEvent* GetSubEvent(G4int, G4bool&, 
-              G4long&, G4long&, G4long&, G4bool)
+    virtual const G4SubEvent* GetSubEvent(G4int, G4bool&, G4long&, G4long&, G4long&, G4bool)
     {
-      G4Exception("G4RunManager::GetSubEvent","RunSE1002",FatalException,
+      G4Exception(
+        "G4RunManager::GetSubEvent", "RunSE1002", FatalException,
         "Base class method is invoked for a RunManager that is not sub-event parallel mode");
       return nullptr;
     }
-    virtual void SubEventFinished(const G4SubEvent*,const G4Event*)
+    virtual void SubEventFinished(const G4SubEvent*, const G4Event*)
     {
-      G4Exception("G4RunManager::SubEventFinished","RunSE1003",FatalException,
+      G4Exception(
+        "G4RunManager::SubEventFinished", "RunSE1003", FatalException,
         "Base class method is invoked for a RunManager that is not sub-event parallel mode");
     }
     virtual G4int GetSubEventType() const
     {
-      G4Exception("G4RunManager::GetSubEventType","RunSE1010",FatalException,
-        "Base class method is invoked for RunManager that is not a worker in sub-event parallel mode");
-      return -1; 
+      G4Exception("G4RunManager::GetSubEventType", "RunSE1010", FatalException,
+                  "Base class method is invoked for RunManager that is not a worker in sub-event "
+                  "parallel mode");
+      return -1;
     }
-    virtual void SetSubEventType(G4int) 
+    virtual void SetSubEventType(G4int)
     {
-      G4Exception("G4RunManager::SetSubEventType","RunSE1011",FatalException,
-        "Base class method is invoked for RunManager that is not a worker in sub-event parallel mode");
+      G4Exception("G4RunManager::SetSubEventType", "RunSE1011", FatalException,
+                  "Base class method is invoked for RunManager that is not a worker in sub-event "
+                  "parallel mode");
     }
-    virtual std::size_t GetMaxNTrack() const
-    { return 0; }
+    virtual std::size_t GetMaxNTrack() const { return 0; }
     virtual void TrajectoriesToBeMerged(G4bool)
     {
-      G4Exception("G4RunManager::TrajectoriesToBeMerged","RunSE1001",FatalException,
+      G4Exception(
+        "G4RunManager::TrajectoriesToBeMerged", "RunSE1001", FatalException,
         "Base class method is invoked for a RunManager that is not sub-event parallel mode");
     }
 
     virtual void ReportEventDeletion(const G4Event* evt);
 
-    // Forcing geometry voxelization at the time of constructing geometry during 
-    // the initialization. If this is not set, voxelization is done when BeamOn 
+    // Forcing geometry voxelization at the time of constructing geometry during
+    // the initialization. If this is not set, voxelization is done when BeamOn
     // starts.
-    inline void ResetNavigatorAtInitialization(G4bool val=true)
-    { if(kernel!=nullptr) kernel->ResetNavigatorAtInitialization(val); }
+    inline void ResetNavigatorAtInitialization(G4bool val = true)
+    {
+      if (kernel != nullptr) kernel->ResetNavigatorAtInitialization(val);
+    }
 
   protected:
+
     // This constructor is called in case of multi-threaded build.
     G4RunManager(RMType rmType);
 
@@ -596,7 +614,7 @@ class G4RunManager
     // program is quiting. So, we delete all the kept G4Event objects.
     virtual void CleanUpPreviousEvents();
 
-    // This method is invoked at the end of processing each event 
+    // This method is invoked at the end of processing each event
     // to delete any G4Event objects that are no longer needed.
     virtual void CleanUpUnnecessaryEvents(G4int keepNEvents);
 
@@ -610,6 +628,7 @@ class G4RunManager
     virtual void DeleteUserInitializations();
 
   protected:
+
     G4RunManagerKernel* kernel = nullptr;
     G4EventManager* eventManager = nullptr;
 
@@ -669,11 +688,12 @@ class G4RunManager
     G4RUN_DLL static G4bool fGeometryHasBeenDestroyed;
 
   private:
+
     // Per-thread static instance of the run manager singleton.
     static G4ThreadLocal G4RunManager* fRunManager;
 
     G4RunMessenger* runMessenger = nullptr;
-
+    G4MaterialScanner* materialScanner = nullptr;
 };
 
 #endif

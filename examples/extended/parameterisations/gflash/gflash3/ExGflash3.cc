@@ -23,16 +23,14 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 /// \file ExGflash3.cc
-/// \brief Main program of the parameterisations/gflash/gflash3 example
-//
+/// \brief Main program of the gflash/gflash3 example
+
 // Created by Joanna Weng 26.11.2004
 
 // G4 includes
 #include "G4RunManagerFactory.hh"
 #include "G4Timer.hh"
-#include "G4Types.hh"
 #include "G4UImanager.hh"
 #include "G4ios.hh"
 
@@ -53,7 +51,8 @@ int main(int argc, char** argv)
 {
   // Instantiate G4UIExecutive if interactive mode
   G4UIExecutive* ui = nullptr;
-  if (argc == 1) {
+  if (argc == 1)
+  {
     ui = new G4UIExecutive(argc, argv);
   }
 
@@ -68,7 +67,6 @@ int main(int argc, char** argv)
   G4cout << "+-------------------------------------------------------+" << G4endl;
 
   auto* runManager = G4RunManagerFactory::CreateRunManager();
-  runManager->SetNumberOfThreads(1);
 
   // UserInitialization classes (mandatory)
   G4cout << "# GFlash Example: Detector Construction" << G4endl;
@@ -105,9 +103,7 @@ int main(int argc, char** argv)
   visManager->Initialize();
 
   G4UImanager* UImanager = G4UImanager::GetUIpointer();
-  UImanager->ApplyCommand("/run/verbose 0");
   runManager->Initialize();
-  UImanager->ApplyCommand("/Step/Verbose 0");
 
   if (ui)  // Define UI terminal for interactive mode
   {

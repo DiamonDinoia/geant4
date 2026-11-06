@@ -36,8 +36,8 @@
 
 // Original authors: X.Dong, A.Dotti - 2013
 // --------------------------------------------------------------------
-#ifndef G4WorkerRunManager_hh
-#define G4WorkerRunManager_hh 1
+#ifndef G4WORKERRUNMANAGER_HH
+#define G4WORKERRUNMANAGER_HH
 
 #include "G4RNGHelper.hh"
 #include "G4RunManager.hh"
@@ -48,6 +48,7 @@ class G4WorkerRunManagerKernel;
 class G4WorkerRunManager : public G4RunManager
 {
   public:
+
     static G4WorkerRunManager* GetWorkerRunManager();
     static G4WorkerRunManagerKernel* GetWorkerRunManagerKernel();
 
@@ -55,6 +56,7 @@ class G4WorkerRunManager : public G4RunManager
     ~G4WorkerRunManager() override;
 
     void InitializeGeometry() override;
+    void GeometryOptimisation() override;
     void RunInitialization() override;
     void DoEventLoop(G4int n_event, const char* macroFile = nullptr, G4int n_select = -1) override;
     void ProcessOneEvent(G4int i_event) override;
@@ -85,6 +87,7 @@ class G4WorkerRunManager : public G4RunManager
     void RestoreRndmEachEvent(G4bool flag) override { readStatusFromFile = flag; }
 
   protected:
+
     void ConstructScoringWorlds() override;
     void StoreRNGStatus(const G4String& filenamePrefix) override;
     void rndmSaveThisRun() override;
@@ -95,6 +98,7 @@ class G4WorkerRunManager : public G4RunManager
     virtual void MergePartialResults(G4bool mergeEvents = true);
 
   protected:
+
     G4WorkerThread* workerContext = nullptr;
 #ifdef G4MULTITHREADED
     G4bool visIsSetUp = false;
@@ -109,6 +113,7 @@ class G4WorkerRunManager : public G4RunManager
     G4bool readStatusFromFile = false;
 
   protected:
+
     virtual void SetupDefaultRNGEngine();
 };
 

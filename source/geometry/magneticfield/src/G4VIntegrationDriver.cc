@@ -25,23 +25,21 @@
 //
 // G4VIntegrationDriver implementation
 //
-// Author: Dmitry Sorokin, Google Summer of Code 2017
-// Supervision: John Apostolakis, CERN
+// Author: Dmitry Sorokin (CERN, Google Summer of Code 2017), 20.10.2017
+// Supervision: John Apostolakis (CERN)
 // --------------------------------------------------------------------
 
 #include "G4VIntegrationDriver.hh"
 
-void G4VIntegrationDriver::RenewStepperAndAdjust(G4MagIntegratorStepper *)
+void G4VIntegrationDriver::RenewStepperAndAdjust(G4MagIntegratorStepper*)
 {
-  G4Exception("G4VIntegrationDriver::RenewStepperAndAdjust",
-              "Geometry001", FatalException,
-       "This method exists only for the original G4MagIntegratorDriver class. "
-       "Not defined for other classes derived from G4VIntegrationDriver");
+  G4Exception("G4VIntegrationDriver::RenewStepperAndAdjust", "Geometry001", FatalException,
+              "This method exists only for the original G4MagIntegratorDriver class. "
+              "Not defined for other classes derived from G4VIntegrationDriver");
 }
 
-
-std::ostream& operator<<( std::ostream& os, const G4VIntegrationDriver& id)
+std::ostream& operator<<(std::ostream& os, const G4VIntegrationDriver& id)
 {
-   id.StreamInfo( os );
-   return os;
+  id.StreamInfo(os);
+  return os;
 }

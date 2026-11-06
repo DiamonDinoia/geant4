@@ -30,26 +30,26 @@
 // A Logical Surface class for surfaces defined by the boundary
 // of two physical volumes.
 
-// Author: John Apostolakis (CERN), 17 June 1997
+// Author: John Apostolakis (CERN), 17.06.1997
 // --------------------------------------------------------------------
-#ifndef G4LogicalBorderSurface_hh
-#define G4LogicalBorderSurface_hh 1
-
-#include <map>
+#ifndef G4LOGICALBORDERSURFACE_HH
+#define G4LOGICALBORDERSURFACE_HH
 
 #include "G4LogicalSurface.hh"
 #include "G4VPhysicalVolume.hh"
 
+#include <map>
+
 class G4VPhysicalVolume;
 class G4LogicalBorderSurface;
 
-using G4LogicalBorderSurfaceTable
-      = std::map<std::pair<const G4VPhysicalVolume*,
-                           const G4VPhysicalVolume*>, G4LogicalBorderSurface*>;
+using G4LogicalBorderSurfaceTable =
+  std::map<std::pair<const G4VPhysicalVolume*, const G4VPhysicalVolume*>, G4LogicalBorderSurface*>;
 
 /**
  * @brief G4LogicalBorderSurface is a Logical Surface class for surfaces
  * defined by the boundary of two physical volumes.
+ * @ingroup geometry_volumes
  */
 
 class G4LogicalBorderSurface : public G4LogicalSurface
@@ -59,11 +59,9 @@ class G4LogicalBorderSurface : public G4LogicalSurface
     /**
      * Constructor and Destructor.
      */
-    G4LogicalBorderSurface( const G4String& name,
-                                  G4VPhysicalVolume* vol1, 
-                                  G4VPhysicalVolume* vol2,
-                                  G4SurfaceProperty* surfaceProperty );
-    ~G4LogicalBorderSurface() override;
+    G4LogicalBorderSurface(const G4String& name, G4VPhysicalVolume* vol1, G4VPhysicalVolume* vol2,
+                           G4SurfaceProperty* surfaceProperty);
+    ~G4LogicalBorderSurface() override = default;
 
     /**
      * Copy constructor and assignment operator are not allowed.
@@ -74,21 +72,20 @@ class G4LogicalBorderSurface : public G4LogicalSurface
     /**
      * Equality operators.
      */
-    G4bool operator==( const G4LogicalBorderSurface& right ) const;
-    G4bool operator!=( const G4LogicalBorderSurface& right ) const;
+    G4bool operator==(const G4LogicalBorderSurface& right) const;
+    G4bool operator!=(const G4LogicalBorderSurface& right) const;
 
     /**
      * Generic accessors and setters.
      */
-    static G4LogicalBorderSurface* GetSurface( const G4VPhysicalVolume* vol1,
-                                               const G4VPhysicalVolume* vol2 );
-    inline void SetPhysicalVolumes( G4VPhysicalVolume* vol1,
-                                    G4VPhysicalVolume* vol2 );
+    static G4LogicalBorderSurface* GetSurface(const G4VPhysicalVolume* vol1,
+                                              const G4VPhysicalVolume* vol2);
+    inline void SetPhysicalVolumes(G4VPhysicalVolume* vol1, G4VPhysicalVolume* vol2);
     inline const G4VPhysicalVolume* GetVolume1() const;
     inline const G4VPhysicalVolume* GetVolume2() const;
     inline std::size_t GetIndex() const;
-    inline void SetVolume1( G4VPhysicalVolume* vol1 );
-    inline void SetVolume2( G4VPhysicalVolume* vol2 );
+    inline void SetVolume1(G4VPhysicalVolume* vol1);
+    inline void SetVolume2(G4VPhysicalVolume* vol2);
 
     /**
      * Handling of the table of surfaces.
@@ -96,14 +93,18 @@ class G4LogicalBorderSurface : public G4LogicalSurface
     static void CleanSurfaceTable();
     static const G4LogicalBorderSurfaceTable* GetSurfaceTable();
     static std::size_t GetNumberOfBorderSurfaces();
-    static void DumpInfo(); 
+    static void DumpInfo();
 
   private:
 
-    G4VPhysicalVolume* Volume1;  // Physical Volume pointer on side 1
-    G4VPhysicalVolume* Volume2;  // Physical Volume pointer on side 2
+    /** Physical Volume pointer on side 1. */
+    G4VPhysicalVolume* Volume1;
 
-    std::size_t Index;           // Creation order index
+    /** Physical Volume pointer on side 2. */
+    G4VPhysicalVolume* Volume2;
+
+    /** Creation order index. */
+    std::size_t Index;
 
     /** The static Table of BorderSurfaces. */
     static G4LogicalBorderSurfaceTable* theBorderSurfaceTable;

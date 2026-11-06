@@ -23,10 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 /// \file ExGflash3SensitiveDetector.hh
 /// \brief Definition of the ExGflash3SensitiveDetector class
-//
+
 #ifndef EX1GFLASHSENSITIVEDETECTOR_H
 #define EX1GFLASHSENSITIVEDETECTOR_H
 
@@ -37,7 +36,6 @@
 #include "globals.hh"
 
 class G4GFlashSpot;
-class ExGflash3ParallelWorld;
 
 class G4Step;
 class G4HCofThisEvent;
@@ -46,7 +44,8 @@ class G4TouchableHistory;
 class ExGflash3SensitiveDetector : public G4VSensitiveDetector, public G4VGFlashSensitiveDetector
 {
   public:
-    ExGflash3SensitiveDetector(G4String, ExGflash3ParallelWorld* det);
+
+    ExGflash3SensitiveDetector(G4String);
     ~ExGflash3SensitiveDetector() override;
 
     void Initialize(G4HCofThisEvent*) override;
@@ -55,8 +54,8 @@ class ExGflash3SensitiveDetector : public G4VSensitiveDetector, public G4VGFlash
     void EndOfEvent(G4HCofThisEvent*) override;
 
   private:
+
     ExGflashHitsCollection* fCaloHitsCollection;
-    ExGflash3ParallelWorld* fDetector;
     G4int fHCID{-1};
 };
 

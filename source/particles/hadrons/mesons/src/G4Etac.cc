@@ -29,9 +29,9 @@
 //      History: first implementation, based on object model of
 //      4th April 1996, G.Cosmo
 //
-//      Created,             Hisaya Kurashige, 11, Aug. 2011
+//      Created,                Hisaya Kurashige, 11, Aug. 2011
 // **********************************************************************
-//
+//      Updated mass and width (PDG2023), Shogo Okada, 4, Nov. 2025
 
 #include "G4Etac.hh"
 
@@ -48,7 +48,8 @@ G4Etac* G4Etac::Definition()
   // search in particle table]
   G4ParticleTable* pTable = G4ParticleTable::GetParticleTable();
   G4ParticleDefinition* anInstance = pTable->FindParticle(name);
-  if (anInstance == nullptr) {
+  if (anInstance == nullptr)
+  {
     // create particle
     //
     //    Arguments for constructor are as follows
@@ -61,7 +62,7 @@ G4Etac* G4Etac::Definition()
 
     // clang-format off
    anInstance = new G4ParticleDefinition(
-                 name,      2.9834*GeV,      31.8*MeV,         0.0,
+                 name,      2.9841*GeV,      30.5*MeV,         0.0,
                     0,              -1,            +1,
                     0,               0,            +1,
               "meson",               0,             0,         441,

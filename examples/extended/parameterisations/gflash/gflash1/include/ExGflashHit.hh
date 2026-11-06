@@ -23,10 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 /// \file ExGflashHit.hh
 /// \brief Definition of the ExGflashHit class
-//
+
 #ifndef ExGflashHit_h
 #define ExGflashHit_h 1
 
@@ -41,6 +40,7 @@ class G4LogicalVolume;
 class ExGflashHit : public G4VHit
 {
   public:
+
     ExGflashHit();
     ExGflashHit(G4LogicalVolume* logVol);
     ~ExGflashHit() override;
@@ -59,6 +59,7 @@ class ExGflashHit : public G4VHit
     void Print() override;
 
   private:
+
     G4double fEdep;
     G4ThreeVector fPos;
     G4int fCrystalNumber;
@@ -67,6 +68,7 @@ class ExGflashHit : public G4VHit
     const G4LogicalVolume* fLogV;
 
   public:
+
     inline void SetEdep(G4double de) { fEdep = de; };
     inline void AddEdep(G4double de) { fEdep += de; };
     inline G4double GetEdep() { return fEdep; };

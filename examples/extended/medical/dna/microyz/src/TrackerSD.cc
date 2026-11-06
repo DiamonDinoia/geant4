@@ -23,6 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file TrackerSD.cc
+/// \brief Implementation of the TrackerSD class
+
 // This example is provided by the Geant4-DNA collaboration
 // Any report or published results obtained using the Geant4-DNA software
 // shall cite the following Geant4-DNA collaboration publications:
@@ -32,8 +35,6 @@
 // Int. J. Model. Simul. Sci. Comput. 1 (2010) 157–178
 // The Geant4-DNA web site is available at http://geant4-dna.org
 //
-/// \file TrackerSD.cc
-/// \brief Implementation of the TrackerSD class
 
 #include "TrackerSD.hh"
 
@@ -41,6 +42,7 @@
 #include "G4SDManager.hh"
 #include "G4SystemOfUnits.hh"
 #include "Randomize.hh"
+//#include <cmath>
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -151,7 +153,7 @@ void TrackerSD::EndOfEvent(G4HCofThisEvent*)
   // Random placement of sphere: method 1
   /*
   G4ThreeVector randDir = G4RandomDirection();
-  G4double randRadius = G4UniformRand()*radius;
+  G4double randRadius = std::pow(G4UniformRand(), 1./3.) * radius;
   G4ThreeVector randCenterPos = randRadius*randDir + hitPos;
   */
 

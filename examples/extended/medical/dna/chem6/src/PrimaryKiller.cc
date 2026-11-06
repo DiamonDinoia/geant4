@@ -23,6 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file PrimaryKiller.cc
+/// \brief Implementation of the PrimaryKiller class
+
 // This example is provided by the Geant4-DNA collaboration
 // chem6 example is derived from chem4 and chem5 examples
 //
@@ -36,20 +39,14 @@
 // The Geant4-DNA web site is available at http://geant4-dna.org
 //
 // Authors: W. G. Shin and S. Incerti (CENBG, France)
-//
-// $Id$
-//
-/// \file PrimaryKiller.cc
-/// \brief Implementation of the PrimaryKiller class
 
 #include "PrimaryKiller.hh"
 
-#include <G4Event.hh>
-#include <G4RunManager.hh>
-#include <G4SystemOfUnits.hh>
-#include <G4UIcmdWith3VectorAndUnit.hh>
-#include <G4UIcmdWithADoubleAndUnit.hh>
-#include <G4UnitsTable.hh>
+#include "G4Event.hh"
+#include "G4RunManager.hh"
+#include "G4UIcmdWith3VectorAndUnit.hh"
+#include "G4UIcmdWithADoubleAndUnit.hh"
+#include "G4LowEnergyEmProcessSubType.hh"
 
 /** \file PrimaryKiller.cc
     \class PrimaryKiller
@@ -61,71 +58,66 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....
 
-PrimaryKiller::PrimaryKiller(G4String name, G4int depth)
-  : G4VPrimitiveScorer(name, depth), G4UImessenger()
-{
-  fELoss = 0.;  // cumulated energy for current event
-
-  fELossRange_Min = DBL_MAX;  // fELoss from which the primary is killed
-  fELossRange_Max = DBL_MAX;  // fELoss from which the event is aborted
-  fKineticE_Min = 0;  // kinetic energy below which the primary is killed
-  fPhantomSize = G4ThreeVector(1 * km, 1 * km, 1 * km);
-
-  fpELossUI = new G4UIcmdWithADoubleAndUnit("/primaryKiller/eLossMin", this);
-  fpAbortEventIfELossUpperThan = new G4UIcmdWithADoubleAndUnit("/primaryKiller/eLossMax", this);
-  fpMinKineticE = new G4UIcmdWithADoubleAndUnit("/primaryKiller/minKineticE", this);
-  fpSizeUI = new G4UIcmdWith3VectorAndUnit("/primaryKiller/setSize", this);
+PrimaryKiller::PrimaryKiller(const G4String &name, const G4int depth)
+  : G4VPrimitiveScorer(name, depth), G4UImessenger() {
+  fpELossUI = std::make_unique<G4UIcmdWithADoubleAndUnit>
+      ("/primaryKiller/eLossMin", this);
+  fpAbortEventIfELossUpperThan = std::make_unique<G4UIcmdWithADoubleAndUnit>
+      ("/primaryKiller/eLossMax", this);
+  fpMinKineticE = std::make_unique<G4UIcmdWithADoubleAndUnit>
+      ("/primaryKiller/minKineticE", this);
+  fpSizeUI = std::make_unique<G4UIcmdWith3VectorAndUnit>
+      ("/primaryKiller/setSize", this);
   fpSizeUI->SetDefaultUnit("um");
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....
 
-PrimaryKiller::~PrimaryKiller()
-{
-  delete fpELossUI;
-  delete fpAbortEventIfELossUpperThan;
-  delete fpSizeUI;
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....
-
-void PrimaryKiller::SetNewValue(G4UIcommand* command, G4String newValue)
-{
-  if (command == fpELossUI) {
+void PrimaryKiller::SetNewValue(G4UIcommand *command, G4String newValue) {
+  if (command == fpELossUI.get()) {
     fELossRange_Min = fpELossUI->GetNewDoubleValue(newValue);
-  }
-  else if (command == fpAbortEventIfELossUpperThan) {
+  } else if (command == fpAbortEventIfELossUpperThan.get()) {
     fELossRange_Max = fpAbortEventIfELossUpperThan->GetNewDoubleValue(newValue);
-  }
-  else if (command == fpSizeUI) {
+  } else if (command == fpSizeUI.get()) {
     fPhantomSize = fpSizeUI->GetNew3VectorValue(newValue);
   }
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....
 
-G4bool PrimaryKiller::ProcessHits(G4Step* aStep, G4TouchableHistory*)
-{
-  const G4Track* track = aStep->GetTrack();
+G4bool PrimaryKiller::ProcessHits(G4Step *aStep, G4TouchableHistory *) {
+  const G4Track *track = aStep->GetTrack();
   G4ThreeVector pos = aStep->GetPostStepPoint()->GetPosition();
 
   if (std::abs(pos.x()) > fPhantomSize.getX() / 2 || std::abs(pos.y()) > fPhantomSize.getY() / 2
-      || std::abs(pos.z()) > fPhantomSize.getZ() / 2)
-  {
-    ((G4Track*)track)->SetTrackStatus(fStopAndKill);
+      || std::abs(pos.z()) > fPhantomSize.getZ() / 2) {
+    const_cast<G4Track *>(track)->SetTrackStatus(fStopAndKill);
     return false;
   }
 
-  if (track->GetTrackID() != 1 || track->GetParticleDefinition()->GetPDGEncoding() != 11)
-    return FALSE;
+  if (!fKillPrimary) { return false; }
+
+  G4int primaryTrackID{1};
+  if (track->GetTrackID() != 1 &&
+      track->GetParticleDefinition()->GetPDGEncoding() != 11) {
+    G4int subType = track->GetCreatorProcess()->GetProcessSubType();
+    // Treat secondary tracks with increased/decreased charge as primary tracks.
+    if (subType == fLowEnergyChargeDecrease ||
+        subType == fLowEnergyChargeIncrease) {
+      primaryTrackID = track->GetTrackID();
+    }
+  }
+
+  // Ignore the step if not primary track.
+  if (track->GetTrackID() != primaryTrackID) { return false; }
 
   //-------------------
 
-  double kineticE = aStep->GetPostStepPoint()->GetKineticEnergy();
+  const G4double kineticE = aStep->GetPostStepPoint()->GetKineticEnergy();
 
-  G4double eLoss = aStep->GetPreStepPoint()->GetKineticEnergy() - kineticE;
+  const G4double eLoss = aStep->GetPreStepPoint()->GetKineticEnergy() - kineticE;
 
-  if (eLoss == 0.) return FALSE;
+  if (eLoss == 0.) { return FALSE; }
 
   //-------------------
 
@@ -147,7 +139,7 @@ G4bool PrimaryKiller::ProcessHits(G4Step* aStep, G4TouchableHistory*)
   }
 
   if (fELoss >= fELossRange_Min || kineticE <= fKineticE_Min) {
-    ((G4Track*)track)->SetTrackStatus(fStopAndKill);
+    const_cast<G4Track *>(track)->SetTrackStatus(fStopAndKill);
     //     G4cout << "kill track at : "<<'\n';
     //           << G4BestUnit(kineticE, "Energy")
     //           << ", E loss is: "
@@ -164,24 +156,9 @@ G4bool PrimaryKiller::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....
 
-void PrimaryKiller::Initialize(G4HCofThisEvent* /*HCE*/)
-{
+void PrimaryKiller::Initialize(G4HCofThisEvent *) {
+  if (fELossRange_Min < fELossRange_Max) { fKillPrimary = true; }
   fELoss = 0.;
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....
-
-void PrimaryKiller::EndOfEvent(G4HCofThisEvent*) {}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....
-
-void PrimaryKiller::DrawAll()
-{
-  ;
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....
-
-void PrimaryKiller::PrintAll() {}
+};
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....

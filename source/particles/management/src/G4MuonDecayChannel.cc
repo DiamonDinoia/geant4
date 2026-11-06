@@ -29,6 +29,10 @@
 // Contributions:
 // - 2005 - M.Melissas, J.Brunner CPPM/IN2P3
 //   Added V-A fluxes for neutrinos using a new algorithm, 2005
+// - S.Okada KEK/CRC, 14 January 2026
+//   Fixed energy conservation in G4MuonDecayChannel (Bugzilla #2678):
+//   Corrected EMax definition to parentmass/2 and applied standard relativistic
+//   formula (p=sqrt(E^2-m^2)) to compute momenta for all decay products.
 // --------------------------------------------------------------------
 
 #include "G4MuonDecayChannel.hh"
@@ -47,7 +51,8 @@ G4MuonDecayChannel::G4MuonDecayChannel(const G4String& theParentName, G4double t
   : G4VDecayChannel("Muon Decay", 1)
 {
   // set names for daughter particles
-  if (theParentName == "mu+") {
+  if (theParentName == "mu+")
+  {
     SetBR(theBR);
     SetParent("mu+");
     SetNumberOfDaughters(3);
@@ -55,7 +60,8 @@ G4MuonDecayChannel::G4MuonDecayChannel(const G4String& theParentName, G4double t
     SetDaughter(1, "nu_e");
     SetDaughter(2, "anti_nu_mu");
   }
-  else if (theParentName == "mu-") {
+  else if (theParentName == "mu-")
+  {
     SetBR(theBR);
     SetParent("mu-");
     SetNumberOfDaughters(3);
@@ -63,9 +69,11 @@ G4MuonDecayChannel::G4MuonDecayChannel(const G4String& theParentName, G4double t
     SetDaughter(1, "anti_nu_e");
     SetDaughter(2, "nu_mu");
   }
-  else {
+  else
+  {
 #ifdef G4VERBOSE
-    if (GetVerboseLevel() > 0) {
+    if (GetVerboseLevel() > 0)
+    {
       G4cout << "G4MuonDecayChannel:: constructor :";
       G4cout << " parent particle is not muon but ";
       G4cout << theParentName << G4endl;
@@ -76,7 +84,8 @@ G4MuonDecayChannel::G4MuonDecayChannel(const G4String& theParentName, G4double t
 
 G4MuonDecayChannel& G4MuonDecayChannel::operator=(const G4MuonDecayChannel& right)
 {
-  if (this != &right) {
+  if (this != &right)
+  {
     kinematics_name = right.kinematics_name;
     verboseLevel = right.verboseLevel;
     rbranch = right.rbranch;
@@ -89,11 +98,13 @@ G4MuonDecayChannel& G4MuonDecayChannel::operator=(const G4MuonDecayChannel& righ
 
     // recreate array
     numberOfDaughters = right.numberOfDaughters;
-    if (numberOfDaughters > 0) {
+    if (numberOfDaughters > 0)
+    {
       if (daughters_name != nullptr) ClearDaughtersName();
       daughters_name = new G4String*[numberOfDaughters];
       // copy daughters name
-      for (G4int index = 0; index < numberOfDaughters; ++index) {
+      for (G4int index = 0; index < numberOfDaughters; ++index)
+      {
         daughters_name[index] = new G4String(*right.daughters_name[index]);
       }
     }
@@ -121,7 +132,8 @@ G4DecayProducts* G4MuonDecayChannel::DecayIt(G4double)
   // daughters'mass
   G4double daughtermass[N_DAUGHTER];
   // G4double sumofdaughtermass = 0.0;
-  for (G4int index = 0; index < N_DAUGHTER; ++index) {
+  for (G4int index = 0; index < N_DAUGHTER; ++index)
+  {
     daughtermass[index] = G4MT_daughters[index]->GetPDGMass();
     // sumofdaughtermass += daughtermass[index];
   }
@@ -142,13 +154,15 @@ G4DecayProducts* G4MuonDecayChannel::DecayIt(G4double)
   G4double Ee, Ene;
 
   G4double gam;
-  G4double EMax = parentmass / 2 - daughtermass[0];
+  G4double EMax = parentmass / 2;
 
   const std::size_t MAX_LOOP = 1000;
   // Generating Random Energy
-  for (std::size_t loop1 = 0; loop1 < MAX_LOOP; ++loop1) {
+  for (std::size_t loop1 = 0; loop1 < MAX_LOOP; ++loop1)
+  {
     Ee = G4UniformRand();
-    for (std::size_t loop2 = 0; loop2 < MAX_LOOP; ++loop2) {
+    for (std::size_t loop2 = 0; loop2 < MAX_LOOP; ++loop2)
+    {
       x = xmax * G4UniformRand();
       gam = G4UniformRand();
       if (gam <= x * (1. - x)) break;
@@ -174,7 +188,7 @@ G4DecayProducts* G4MuonDecayChannel::DecayIt(G4double)
   rot.set(rphi, rtheta, rpsi);
 
   // electron 0
-  daughtermomentum[0] = std::sqrt(Ee * Ee * EMax * EMax + 2.0 * Ee * EMax * daughtermass[0]);
+  daughtermomentum[0] = std::sqrt(Ee * Ee * EMax * EMax - daughtermass[0] * daughtermass[0]);
   G4ThreeVector direction0(0.0, 0.0, 1.0);
 
   direction0 *= rot;
@@ -186,7 +200,7 @@ G4DecayProducts* G4MuonDecayChannel::DecayIt(G4double)
 
   // electronic neutrino  1
 
-  daughtermomentum[1] = std::sqrt(Ene * Ene * EMax * EMax + 2.0 * Ene * EMax * daughtermass[1]);
+  daughtermomentum[1] = std::sqrt(Ene * Ene * EMax * EMax - daughtermass[1] * daughtermass[1]);
   G4ThreeVector direction1(sintheta, 0.0, costheta);
 
   direction1 *= rot;
@@ -197,7 +211,7 @@ G4DecayProducts* G4MuonDecayChannel::DecayIt(G4double)
 
   // muonnic neutrino 2
 
-  daughtermomentum[2] = std::sqrt(Enm * Enm * EMax * EMax + 2.0 * Enm * EMax * daughtermass[2]);
+  daughtermomentum[2] = std::sqrt(Enm * Enm * EMax * EMax - daughtermass[2] * daughtermass[2]);
   G4ThreeVector direction2(-Ene / Enm * sintheta, 0, -Ee / Enm - Ene / Enm * costheta);
 
   direction2 *= rot;
@@ -208,7 +222,8 @@ G4DecayProducts* G4MuonDecayChannel::DecayIt(G4double)
 
   // output message
 #ifdef G4VERBOSE
-  if (GetVerboseLevel() > 1) {
+  if (GetVerboseLevel() > 1)
+  {
     G4cout << "G4MuonDecayChannel::DecayIt()";
     G4cout << " create decay products in rest frame " << G4endl;
     products->DumpInfo();

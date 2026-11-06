@@ -29,56 +29,94 @@
 //
 // Limits step when track reaches a cylindrical surface.
 
-// Created: P.Arce, September 2004
+// Author: Pedro Arce (CIEMAT), September 2004
 // --------------------------------------------------------------------
 #ifndef G4ERRORCYLSURFACETARGET_HH
-#define G4ERRORCYLSURFACETARGET_HH 1
+#define G4ERRORCYLSURFACETARGET_HH
 
-#include "globals.hh"
-#include "G4ErrorSurfaceTarget.hh"
-#include "G4ThreeVector.hh"
-#include "G4RotationMatrix.hh"
 #include "G4AffineTransform.hh"
+#include "G4ErrorSurfaceTarget.hh"
 #include "G4Plane3D.hh"
+#include "G4RotationMatrix.hh"
+#include "G4ThreeVector.hh"
+#include "globals.hh"
+
+/**
+ * @brief G4ErrorCylSurfaceTarget is a utility class for limiting
+ * the step when a track reaches a cylindrical surface.
+ * @ingroup geometry_management
+ */
 
 class G4ErrorCylSurfaceTarget : public G4ErrorSurfaceTarget
 {
   public:
 
-    G4ErrorCylSurfaceTarget( const G4double& radius,
-                             const G4ThreeVector& trans=G4ThreeVector(),
-                             const G4RotationMatrix& rotm=G4RotationMatrix() );
-      // Constructs cylindrical surface by radius, translation and rotation
+    /**
+     * Constructor for G4ErrorCylSurfaceTarget. It constructs a cylindrical
+     * surface by radius, translation and rotation.
+     *  @param[in] radius Cylinder radius.
+     *  @param[in] trans Translation vector.
+     *  @param[in] rotm Rotation matrix.
+     */
+    G4ErrorCylSurfaceTarget(const G4double& radius, const G4ThreeVector& trans = G4ThreeVector(),
+                            const G4RotationMatrix& rotm = G4RotationMatrix());
 
-    G4ErrorCylSurfaceTarget( const G4double& radius,
-                             const G4AffineTransform& trans );
-      // Constructs cylindrical surface by radius and affine transformation
+    /**
+     * Constructor for G4ErrorCylSurfaceTarget. It constructs a cylindrical
+     * surface by radius and affine transformation.
+     *  @param[in] radius Cylinder radius.
+     *  @param[in] trans The affine transformation in input.
+     */
+    G4ErrorCylSurfaceTarget(const G4double& radius, const G4AffineTransform& trans);
 
+    /**
+     * Default Destructor.
+     */
     ~G4ErrorCylSurfaceTarget() override = default;
 
-    virtual G4ThreeVector IntersectLocal( const G4ThreeVector& point,
-                                          const G4ThreeVector& direc ) const;
-      // Intersects the cylindrical surface with the line in local (cylinder)
-      // coordinates, given by point and direction
+    /**
+     * Intersects the cylindrical surface with the line in local (cylinder)
+     * coordinates, given by point and direction.
+     *  @param[in] point The point of reference.
+     *  @param[in] direc The direction vector.
+     *  @returns The intersection point.
+     */
+    G4ThreeVector IntersectLocal(const G4ThreeVector& point, const G4ThreeVector& direc) const;
 
-    G4double GetDistanceFromPoint( const G4ThreeVector& point,
-                                   const G4ThreeVector& direc ) const override;
-      // Distance from a point to the cylindrical surface in a given direction
+    /**
+     * Computes the distance from a point to the cylindrical surface in a
+     * given direction.
+     *  @param[in] point The point of reference.
+     *  @param[in] direc The direction vector.
+     *  @returns The distance value.
+     */
+    G4double GetDistanceFromPoint(const G4ThreeVector& point,
+                                  const G4ThreeVector& direc) const override;
 
-    G4double GetDistanceFromPoint( const G4ThreeVector& point ) const override;
-      // Minimal distance from a point to the cylindrical surface in any
-      // direction
+    /**
+     * Computes the minimal distance from a point to the cylindrical surface
+     * in any direction.
+     *  @param[in] point The point of reference.
+     *  @returns The distance value.
+     */
+    G4double GetDistanceFromPoint(const G4ThreeVector& point) const override;
 
-    G4Plane3D GetTangentPlane( const G4ThreeVector& point ) const override;
-      // Get plane tangent to cylindrical surface at a given point
+    /**
+     * Computes the plane tangent to cylindrical surface at a given point.
+     *  @param[in] point The point of reference.
+     *  @returns The tangent plane.
+     */
+    G4Plane3D GetTangentPlane(const G4ThreeVector& point) const override;
 
-    void Dump( const G4String& msg ) const override;
-      // Dump cylindrical surface parameter
+    /**
+     * Dumps to standard output the cylindrical surface parameters.
+     */
+    void Dump(const G4String& msg) const override;
 
   private:
 
-     G4double fradius;
-     G4AffineTransform ftransform;
+    G4double fradius;
+    G4AffineTransform ftransform;
 };
 
 #endif

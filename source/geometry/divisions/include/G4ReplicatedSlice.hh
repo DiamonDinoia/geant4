@@ -30,152 +30,243 @@
 // G4ReplicatedSlice represents many touchable detector elements differing
 // only in their positioning. The elements' positions are calculated by means
 // of a simple linear formula.
-// 
-// Division may occur along:
-//
-// o Cartesian axes (kXAxis,kYAxis,kZAxis)
-//
-//   The divisions, of specified width have coordinates of
-//   form (-width*(nReplicas-1)*0.5+n*width,0,0) where n=0.. nReplicas-1
-//   for the case of kXAxis, and are unrotated.
-//
-// o Radial axis (cylindrical polar) (kRho)
-//
-//   The divisions are cons/tubs sections, centred on the origin
-//   and are unrotated.
-//   They have radii of width*n+offset to width*(n+1)+offset
-//                      where n=0..nReplicas-1
-//
-// o Phi axis (cylindrical polar) (kPhi)
-//   The divisions are `phi sections' or wedges, and of cons/tubs form
-//   They have phi of offset+n*width to offset+(n+1)*width where
-//   n=0..nReplicas-1
 
-// Author: M.Asai (SLAC), 20/04/2010 - Extended from G4PVDivision
+// Author: Makoto Asai (SLAC), 20/04/2010 - Extended from G4PVDivision
 // ----------------------------------------------------------------------
-#ifndef G4REPLICATEDSLICE_HH 
-#define G4REPLICATEDSLICE_HH 1
+#ifndef G4REPLICATEDSLICE_HH
+#define G4REPLICATEDSLICE_HH
 
-#include "geomdefs.hh"
 #include "G4PVReplica.hh"
 #include "G4VDivisionParameterisation.hh"
+
+#include "geomdefs.hh"
 
 class G4LogicalVolume;
 class G4VSolid;
 
+/**
+ * @brief G4ReplicatedSlice represents many touchable detector elements
+ * differing only in their positioning.
+ * @ingroup geometry_divisions
+ *
+ * The elements' positions are calculated by means of a simple linear formula.
+ * Division may occur along:
+ *
+ * o Cartesian axes (kXAxis,kYAxis,kZAxis)
+ *
+ *   The divisions, of specified width have coordinates of
+ *   form (-width*(nReplicas-1)*0.5+n*width,0,0) where n=0.. nReplicas-1
+ *   for the case of kXAxis, and are unrotated.
+ *
+ * o Radial axis (cylindrical polar) (kRho)
+ *
+ *   The divisions are cons/tubs sections, centred on the origin
+ *   and are unrotated.
+ *   They have radii of width*n+offset to width*(n+1)+offset
+ *                      where n=0..nReplicas-1
+ *
+ * o Phi axis (cylindrical polar) (kPhi)
+ *   The divisions are `phi sections' or wedges, and of cons/tubs form
+ *   They have phi of offset+n*width to offset+(n+1)*width where
+ *   n=0..nReplicas-1
+ */
+
 class G4ReplicatedSlice : public G4PVReplica
 {
   public:
-    
-    G4ReplicatedSlice(const G4String& pName,
-                            G4LogicalVolume* pLogical,
-                            G4LogicalVolume* pMotherLogical,
-                      const EAxis pAxis,
-                      const G4int nReplicas,
-                      const G4double width,
-                      const G4double half_gap,
-                      const G4double offset );
-      // Constructor with number of divisions and width
 
-    G4ReplicatedSlice(const G4String& pName,
-                            G4LogicalVolume* pLogical,
-                            G4LogicalVolume* pMotherLogical,
-                      const EAxis pAxis,
-                      const G4int nReplicas,
-                      const G4double half_gap,
-                      const G4double offset );
-      // Constructor with number of divisions 
+    /**
+     * Constructor with number of divisions and width.
+     *  @param[in] pName The volume name.
+     *  @param[in] pLogical Pointer to the logical volume of the division.
+     *  @param[in] pMotherLogical Pointer to the logical volume of the mother.
+     *  @param[in] pAxis The axis along which do the division.
+     *  @param[in] nReplicas The number of copies to replicate.
+     *  @param[in] width The witdh of the divided slice along the axis.
+     *  @param[in] half_gap The half-witdh of the gap between slices.
+     *  @param[in] offset The optional offset distance from mother's border.
+     */
+    G4ReplicatedSlice(const G4String& pName, G4LogicalVolume* pLogical,
+                      G4LogicalVolume* pMotherLogical, const EAxis pAxis, const G4int nReplicas,
+                      const G4double width, const G4double half_gap, const G4double offset);
 
-    G4ReplicatedSlice(const G4String& pName,
-                            G4LogicalVolume* pLogical,
-                            G4LogicalVolume* pMotherLogical,
-                      const EAxis pAxis,
-                      const G4double width,
-                      const G4double half_gap,
-                      const G4double offset );
-      // Constructor with width
+    /**
+     * Constructor with number of divisions.
+     *  @param[in] pName The volume name.
+     *  @param[in] pLogical Pointer to the logical volume of the division.
+     *  @param[in] pMotherLogical Pointer to the logical volume of the mother.
+     *  @param[in] pAxis The axis along which do the division.
+     *  @param[in] nReplicas The number of copies to replicate.
+     *  @param[in] half_gap The half-witdh of the gap between slices.
+     *  @param[in] offset The optional offset distance from mother's border.
+     */
+    G4ReplicatedSlice(const G4String& pName, G4LogicalVolume* pLogical,
+                      G4LogicalVolume* pMotherLogical, const EAxis pAxis, const G4int nReplicas,
+                      const G4double half_gap, const G4double offset);
 
-    G4ReplicatedSlice(const G4String& pName,
-                            G4LogicalVolume* pLogical,
-                            G4VPhysicalVolume* pMotherPhysical,
-                      const EAxis pAxis,
-                      const G4int nReplicas,
-                      const G4double width,
-                      const G4double half_gap,
-                      const G4double offset);
-      // Constructor in mother physical volume
+    /**
+     * Constructor with width of the division slice.
+     *  @param[in] pName The volume name.
+     *  @param[in] pLogical Pointer to the logical volume of the division.
+     *  @param[in] pMotherLogical Pointer to the logical volume of the mother.
+     *  @param[in] pAxis The axis along which do the division.
+     *  @param[in] width The witdh of the divided slice along the axis.
+     *  @param[in] half_gap The half-witdh of the gap between slices.
+     *  @param[in] offset The optional offset distance from mother's border.
+     */
+    G4ReplicatedSlice(const G4String& pName, G4LogicalVolume* pLogical,
+                      G4LogicalVolume* pMotherLogical, const EAxis pAxis, const G4double width,
+                      const G4double half_gap, const G4double offset);
 
-    G4ReplicatedSlice(const G4String& pName,
-                            G4LogicalVolume* pLogical,
-                            G4VPhysicalVolume* pMotherPhysical,
-                      const EAxis pAxis,
-                      const G4int nReplicas,
-                      const G4double half_gap,
-                      const G4double offset );
-      // Constructor with number of divisions 
+    /**
+     * Constructor in mother physical volume with number of divisions and width.
+     *  @param[in] pName The volume name.
+     *  @param[in] pLogical Pointer to the logical volume of the division.
+     *  @param[in] pMotherPhysical Pointer to the physical volume of the mother.
+     *  @param[in] pAxis The axis along which do the division.
+     *  @param[in] nReplicas The number of copies to replicate.
+     *  @param[in] width The witdh of the divided slice along the axis.
+     *  @param[in] half_gap The half-witdh of the gap between slices.
+     *  @param[in] offset The optional offset distance from mother's border.
+     */
+    G4ReplicatedSlice(const G4String& pName, G4LogicalVolume* pLogical,
+                      G4VPhysicalVolume* pMotherPhysical, const EAxis pAxis, const G4int nReplicas,
+                      const G4double width, const G4double half_gap, const G4double offset);
 
-    G4ReplicatedSlice(const G4String& pName,
-                            G4LogicalVolume* pLogical,
-                            G4VPhysicalVolume* pMotherPhysical,
-                      const EAxis pAxis,
-                      const G4double width,
-                      const G4double half_gap,
-                      const G4double offset );
-      // Constructor with width
+    /**
+     * Constructor in mother physical volume with number of divisions.
+     *  @param[in] pName The volume name.
+     *  @param[in] pLogical Pointer to the logical volume of the division.
+     *  @param[in] pMotherPhysical Pointer to the physical volume of the mother.
+     *  @param[in] pAxis The axis along which do the division.
+     *  @param[in] nReplicas The number of copies to replicate.
+     *  @param[in] half_gap The half-witdh of the gap between slices.
+     *  @param[in] offset The optional offset distance from mother's border.
+     */
+    G4ReplicatedSlice(const G4String& pName, G4LogicalVolume* pLogical,
+                      G4VPhysicalVolume* pMotherPhysical, const EAxis pAxis, const G4int nReplicas,
+                      const G4double half_gap, const G4double offset);
 
+    /**
+     * Constructor in mother physical volume with width of division slice.
+     *  @param[in] pName The volume name.
+     *  @param[in] pLogical Pointer to the logical volume of the division.
+     *  @param[in] pMotherPhysical Pointer to the physical volume of the mother.
+     *  @param[in] pAxis The axis along which do the division.
+     *  @param[in] width The witdh of the divided slice along the axis.
+     *  @param[in] half_gap The half-witdh of the gap between slices.
+     *  @param[in] offset The optional offset distance from mother's border.
+     */
+    G4ReplicatedSlice(const G4String& pName, G4LogicalVolume* pLogical,
+                      G4VPhysicalVolume* pMotherPhysical, const EAxis pAxis, const G4double width,
+                      const G4double half_gap, const G4double offset);
+
+    /**
+     * Destructor.
+     */
     ~G4ReplicatedSlice() override;
 
+    /**
+     * Copy constructor and assignment operator not allowed.
+     */
     G4ReplicatedSlice(const G4ReplicatedSlice&) = delete;
     G4ReplicatedSlice& operator=(const G4ReplicatedSlice&) = delete;
 
+    /**
+     * Not used.
+     */
     G4bool IsMany() const override;
-    G4bool IsReplicated() const override;
-    G4int GetMultiplicity() const override;
-    G4VPVParameterisation* GetParameterisation() const override;
-    void GetReplicationData( EAxis& axis,
-                             G4int& nReplicas,
-                             G4double& width,
-                             G4double& offset,
-                             G4bool& consuming ) const override;
-    EAxis  GetDivisionAxis() const;
-    G4bool IsParameterised() const override;
-   
-    EVolume VolumeType() const final;
-      // Characterise the type of volume - normal/replicated/parameterised.
 
-    G4bool IsRegularStructure() const override; 
-    G4int  GetRegularStructureId() const override; 
-      // Methods to identify volume that can apply 'regular' navigation.
-      // Currently divisions do not qualify for this.
+    /**
+     * Returns true.
+     */
+    G4bool IsReplicated() const override;
+
+    /**
+     * Returns the number of slices.
+     */
+    G4int GetMultiplicity() const override;
+
+    /**
+     * Returns true to identify if it is a parameterised physical volume.
+     */
+    G4bool IsParameterised() const override;
+
+    /**
+     * Returns the pointer to the parameterisation algorithm.
+     */
+    G4VPVParameterisation* GetParameterisation() const override;
+
+    /**
+     * Fills arguments with the attributes from the base replica.
+     * @param[in,out] axis Axis of parameterisation returned.
+     * @param[in,out] nReplicas The number of division copies.
+     * @param[in,out] width Width of the division slice.
+     * @param[in,out] offset Potential offset in replication.
+     * @param[in,out] consuming Flag of replica characterisation (always false
+     *                for parameterisations).
+     */
+    void GetReplicationData(EAxis& axis, G4int& nReplicas, G4double& width, G4double& offset,
+                            G4bool& consuming) const override;
+
+    /**
+     * Returns the axis along which the division is made.
+     *  @returns The string Id of the axis.
+     */
+    EAxis GetDivisionAxis() const;
+
+    /**
+     * Returns the volume type characterisation.
+     *  @returns The string Id of the volume type, i.e. 'kParameterised'.
+     */
+    EVolume VolumeType() const final;
+
+    /**
+     * Methods to identify volumes that can have revised 'regular' navigation.
+     * Currently divisions do not qualify for this.
+     */
+    G4bool IsRegularStructure() const override;
+    G4int GetRegularStructureId() const override;
 
   private:
 
-    void CheckAndSetParameters( const EAxis pAxis,
-                                const G4int nDivs,
-                                const G4double width,
-                                const G4double half_gap,
-                                const G4double offset, 
-                                      DivisionType divType,
-                                      G4LogicalVolume* pMotherLogical,
-                                const G4LogicalVolume* pLogical );
+    /**
+     * Invoked in constructors to check and set the parameters for the
+     * parameterisation.
+     */
+    void CheckAndSetParameters(const EAxis pAxis, const G4int nDivs, const G4double width,
+                               const G4double half_gap, const G4double offset, DivisionType divType,
+                               G4LogicalVolume* pMotherLogical, const G4LogicalVolume* pLogical);
 
-    void SetParameterisation(       G4LogicalVolume* motherLogical,
-                              const EAxis pAxis,
-                              const G4int nReplicas,
-                              const G4double width,
-                              const G4double half_gap,
-                              const G4double offset, 
-                                    DivisionType divType );
+    /**
+     * Sets the parameterisation according to the allowed type of solid
+     * to be divided.
+     */
+    void SetParameterisation(G4LogicalVolume* motherLogical, const EAxis pAxis,
+                             const G4int nReplicas, const G4double width, const G4double half_gap,
+                             const G4double offset, DivisionType divType);
 
-    void ErrorInAxis( EAxis axis, G4VSolid* solid );
+    /**
+     * Logging the axis when an error in division occurs.
+     */
+    void ErrorInAxis(EAxis axis, G4VSolid* solid);
 
   protected:
 
-    EAxis faxis;             // axis of optimisation
-    EAxis fdivAxis;          // axis of division
+    /** Axis of optimisation. */
+    EAxis faxis;
+
+    /** Axis of division. */
+    EAxis fdivAxis;
+
+    /** Number of slices. */
     G4int fnReplicas = 0;
+
+    /** Width of the division slice and potential offset. */
     G4double fwidth = 0.0, foffset = 0.0;
-    G4VDivisionParameterisation* fparam = nullptr; 
+
+    /** Pointer to the parameterisation algorithm. */
+    G4VDivisionParameterisation* fparam = nullptr;
 };
 
 #endif

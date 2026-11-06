@@ -39,16 +39,17 @@
 ////////////////////////////////////////////////////////////////////////
 
 #include "G4OpMieHG.hh"
-#include "G4PhysicalConstants.hh"
-#include "G4OpticalParameters.hh"
+
 #include "G4OpProcessSubType.hh"
+#include "G4OpticalParameters.hh"
+#include "G4PhysicalConstants.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 G4OpMieHG::G4OpMieHG(const G4String& processName, G4ProcessType type)
   : G4VDiscreteProcess(processName, type)
 {
   Initialise();
-  if(verboseLevel > 0)
+  if (verboseLevel > 0)
   {
     G4cout << GetProcessName() << " is created " << G4endl;
   }
@@ -71,72 +72,51 @@ void G4OpMieHG::Initialise()
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-G4VParticleChange* G4OpMieHG::PostStepDoIt(const G4Track& aTrack,
-                                           const G4Step& aStep)
+G4VParticleChange* G4OpMieHG::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep)
 {
   aParticleChange.Initialize(aTrack);
 
   const G4DynamicParticle* aParticle = aTrack.GetDynamicParticle();
-  const G4MaterialPropertiesTable* MPT =
-    aTrack.GetMaterial()->GetMaterialPropertiesTable();
+  const G4MaterialPropertiesTable* MPT = aTrack.GetMaterial()->GetMaterialPropertiesTable();
 
   G4double forwardRatio = MPT->GetConstProperty(kMIEHG_FORWARD_RATIO);
 
-  if(verboseLevel > 1)
+  if (verboseLevel > 1)
   {
     G4cout << "OpMie Scattering Photon!" << G4endl
-           << " Old Momentum Direction: " << aParticle->GetMomentumDirection()
-           << G4endl
-           << " MIE Old Polarization: " << aParticle->GetPolarization()
-           << G4endl;
+           << " Old Momentum Direction: " << aParticle->GetMomentumDirection() << G4endl
+           << " MIE Old Polarization: " << aParticle->GetPolarization() << G4endl;
   }
 
-  G4double gg;
-  G4int direction;
-  if(G4UniformRand() <= forwardRatio)
-  {
-    gg        = MPT->GetConstProperty(kMIEHG_FORWARD);
-    direction = 1;
-  }
-  else
-  {
-    gg        = MPT->GetConstProperty(kMIEHG_BACKWARD);
-    direction = -1;
-  }
+  G4bool isForward = (G4UniformRand() <= forwardRatio);
+  G4double gg = MPT->GetConstProperty(isForward ? kMIEHG_FORWARD : kMIEHG_BACKWARD);
 
+  // Sample the direction
   G4double r = G4UniformRand();
+  G4double costh;
 
-  // sample the direction
-  G4double theta;
-  if(gg != 0.)
+  if (gg != 0.)
   {
-    theta = std::acos(2. * r * (1. + gg) * (1. + gg) * (1. - gg + gg * r) /
-                        ((1. - gg + 2. * gg * r) * (1. - gg + 2. * gg * r)) -
-                      1.);
+    G4double fact = (1. + gg) / (1. - gg + 2. * gg * r);
+    costh = 2. * r * fact * fact * (1. - gg + gg * r) - 1.;
   }
   else
   {
-    theta = std::acos(2. * r - 1.);
+    costh = 2. * r - 1.;
   }
+  G4double sinth = std::sqrt(std::max(0., (1. - costh) * (1. + costh)));
+
+  if (!isForward) costh *= -1.0;  // backward scattering
+
   G4double phi = G4UniformRand() * twopi;
-
-  if(direction == -1)
-    theta = pi - theta;  // backward scattering
-
-  G4ThreeVector newMomDir, oldMomDir;
-  G4ThreeVector newPol, oldPol;
-
-  G4double sinth = std::sin(theta);
-  newMomDir.set(sinth * std::cos(phi), sinth * std::sin(phi), std::cos(theta));
-  oldMomDir = aParticle->GetMomentumDirection();
-  newMomDir.rotateUz(oldMomDir);
+  G4ThreeVector newMomDir(sinth * std::cos(phi), sinth * std::sin(phi), costh);
+  newMomDir.rotateUz(aParticle->GetMomentumDirection());
   newMomDir = newMomDir.unit();
 
-  oldPol = aParticle->GetPolarization();
-  newPol = newMomDir - oldPol / newMomDir.dot(oldPol);
-  newPol = newPol.unit();
+  G4ThreeVector oldPol = aParticle->GetPolarization();
+  G4ThreeVector newPol = (newMomDir - oldPol / newMomDir.dot(oldPol)).unit();
 
-  if(newPol.mag() == 0.)
+  if (newPol.mag() == 0.)
   {
     r = G4UniformRand() * twopi;
     newPol.set(std::cos(r), std::sin(r), 0.);
@@ -145,39 +125,34 @@ G4VParticleChange* G4OpMieHG::PostStepDoIt(const G4Track& aTrack,
   else
   {
     // There are two directions perpendicular to new momentum direction
-    if(G4UniformRand() < 0.5)
-      newPol = -newPol;
+    if (G4UniformRand() < 0.5) newPol = -newPol;
   }
 
   aParticleChange.ProposePolarization(newPol);
   aParticleChange.ProposeMomentumDirection(newMomDir);
 
-  if(verboseLevel > 1)
+  if (verboseLevel > 1)
   {
     G4cout << "OpMie New Polarization: " << newPol << G4endl
-           << " Polarization Change: " << *(aParticleChange.GetPolarization())
-           << G4endl << " New Momentum Direction: " << newMomDir << G4endl
-           << " Momentum Change: " << *(aParticleChange.GetMomentumDirection())
-           << G4endl;
+           << " Polarization Change: " << *(aParticleChange.GetPolarization()) << G4endl
+           << " New Momentum Direction: " << newMomDir << G4endl
+           << " Momentum Change: " << *(aParticleChange.GetMomentumDirection()) << G4endl;
   }
 
   return G4VDiscreteProcess::PostStepDoIt(aTrack, aStep);
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-G4double G4OpMieHG::GetMeanFreePath(const G4Track& aTrack, G4double,
-                                    G4ForceCondition*)
+G4double G4OpMieHG::GetMeanFreePath(const G4Track& aTrack, G4double, G4ForceCondition*)
 {
   G4double attLength = DBL_MAX;
-  G4MaterialPropertiesTable* MPT =
-    aTrack.GetMaterial()->GetMaterialPropertiesTable();
-  if(MPT)
+  G4MaterialPropertiesTable* MPT = aTrack.GetMaterial()->GetMaterialPropertiesTable();
+  if (MPT)
   {
     G4MaterialPropertyVector* attVector = MPT->GetProperty(kMIEHG);
-    if(attVector)
+    if (attVector)
     {
-      attLength = attVector->Value(
-        aTrack.GetDynamicParticle()->GetTotalEnergy(), idx_mie);
+      attLength = attVector->Value(aTrack.GetDynamicParticle()->GetTotalEnergy(), idx_mie);
     }
   }
   return attLength;

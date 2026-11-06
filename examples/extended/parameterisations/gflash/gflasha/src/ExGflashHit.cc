@@ -22,17 +22,13 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 /// \file ExGflashHit.cc
 /// \brief Implementation of the ExGflashHit class
-//
 
 #include "ExGflashHit.hh"
 
 #include "G4Circle.hh"
 #include "G4Colour.hh"
-#include "G4LogicalVolume.hh"
-#include "G4Transform3D.hh"
 #include "G4VVisManager.hh"
 #include "G4VisAttributes.hh"
 
@@ -73,7 +69,8 @@ G4bool ExGflashHit::operator==(const ExGflashHit& right) const
 void ExGflashHit::Draw()
 {
   G4VVisManager* pVVisManager = G4VVisManager::GetConcreteInstance();
-  if (pVVisManager != nullptr) {
+  if (pVVisManager != nullptr)
+  {
     G4Circle circle(fPos);
     circle.SetScreenSize(0.04);
     circle.SetFillStyle(G4Circle::filled);

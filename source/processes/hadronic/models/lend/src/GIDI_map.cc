@@ -611,10 +611,10 @@ void Map::initialize( HAPI::Node const &a_node, std::string const &a_fileName, P
     std::string basePath = GIDI_basePath( m_realFileName );
 
     std::string format = a_node.attribute_as_string( GIDI_formatChars );
-    if( ( format == GNDS_formatVersion_2_0_LLNL_4Chars ) || ( format == GIDI_mapFormatVersion_0_2Chars ) ) format = GNDS_formatVersion_2_0Chars;
-    if( format != GNDS_formatVersion_2_0Chars ) {
-        if( format != GIDI_mapFormatVersion_0_1Chars ) throw Exception( "Unsupported map format" );
-    }
+    if( format == GIDI_mapFormatVersion_0_1Chars ) format = GNDS_formatVersion_2_0Chars;
+    if( format == GIDI_mapFormatVersion_0_2Chars ) format = GNDS_formatVersion_2_0Chars;
+    m_formatVersion.setFormat( format );
+    if( !m_formatVersion.supported( ) ) throw Exception( "unsupported GNDS format version" );
 
     m_library = a_node.attribute_as_string( GIDI_libraryChars );
     for( HAPI::Node child = a_node.first_child( ); !child.empty( ); child.to_next_sibling( ) ) {
@@ -756,13 +756,13 @@ std::vector<std::string> Map::availableEvaluations( std::string const &a_project
 
     for( std::vector<BaseEntry *>::const_iterator iter1 = m_entries.begin( ); iter1 != m_entries.end( ); ++iter1 ) {
         if( (*iter1)->name( ) == GIDI_importChars ) {
-            Import *_mapEntry = dynamic_cast<Import *> (*iter1);
+            Import *_mapEntry = static_cast<Import *> (*iter1);
 
             std::vector<std::string> sub_list = _mapEntry->availableEvaluations( a_projectileID, a_targetID );
             for( std::vector<std::string>::const_iterator iter2 = sub_list.begin( ); iter2 != sub_list.end( ); ++iter2 )
                 list.push_back( *iter2 ); }
         else {
-            ProtareBase *protareEntry = dynamic_cast<ProtareBase *> (*iter1);
+            ProtareBase *protareEntry = static_cast<ProtareBase *> (*iter1);
 
             if( protareEntry->isMatch( a_projectileID, a_targetID ) ) list.push_back( protareEntry->evaluation( ) );
         }

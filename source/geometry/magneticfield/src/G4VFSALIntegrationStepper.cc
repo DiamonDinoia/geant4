@@ -25,31 +25,28 @@
 //
 // G4VFSALIntegrationStepper implementation
 //
-// Author: Somnath Banerjee, Google Summer of Code 2015
-// Supervision: John Apostolakis, CERN
+// Author: Somnath Banerjee (CERN, Google Summer of Code 2015), 26.05.2016
+// Supervision: John Apostolakis (CERN)
 // --------------------------------------------------------------------
 
 #include "G4VFSALIntegrationStepper.hh"
 
 // Constructor for stepper abstract base class
 //
-G4VFSALIntegrationStepper::
-G4VFSALIntegrationStepper( G4EquationOfMotion* Equation,
-                           G4int num_integration_vars,
-                           G4int num_state_vars )
+G4VFSALIntegrationStepper::G4VFSALIntegrationStepper(G4EquationOfMotion* Equation,
+                                                     G4int num_integration_vars,
+                                                     G4int num_state_vars)
   : fEquation_Rhs(Equation),
     fNoIntegrationVariables(num_integration_vars),
     fNoStateVariables(num_state_vars)
-{
-}
+{}
 
 void G4VFSALIntegrationStepper::increasefNORHSCalls()
 {
   ++fNoRHSCalls;
 }
 
-void G4VFSALIntegrationStepper::RightHandSide( const G4double y[],
-                                                     G4double dydx[] )
+void G4VFSALIntegrationStepper::RightHandSide(const G4double y[], G4double dydx[])
 {
   fEquation_Rhs->RightHandSide(y, dydx);
   increasefNORHSCalls();

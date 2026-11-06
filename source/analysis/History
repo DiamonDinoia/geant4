@@ -6,6 +6,59 @@ It must **not** be used as a substitute for writing good git commit messages!
 
 -------------------------------------------------------------------------------
 
+## 2026-06-19 Ben Morgan (analysis-V11-04-06)
+- Apply clang-format to all C++ files.
+  - Add headers needed to address ordering changes created by formatting.
+
+## 2025-06-08 Ben Morgan (analysis-V11-04-05)
+- Add headers required for used declarations.
+
+## 2026-05-26 Gabriele Cosmo (analysis-V11-04-04)
+- Fixed MT data race in G4PlotManager, by making the shared FreeType object
+  immutable after one-time initialization.
+  The race was in: static toolx::sg::text_freetype ttf; this was initialized
+  safely, but every worker constructor then called ttf.add_embedded_font(...),
+  which mutates base_freetype::m_fonts. Since tools::viewplot keeps references
+  to this FreeType object, locking only the two writes would be a weak fix.
+  The patch adds a function GetTextFreetype(), passed by the constructor to
+  tools::viewplot. C++ guarantees thread-safe initialization of that
+  function-local static, and after that all threads only read it.
+
+## 2026-05-23 Ben Morgan (analysis-V11-04-03)
+- Fixed bounds-check errors in G4RootPNtupleManager.
+  - Ensure ntuple description and pointer vectors are kept in sync.
+
+## 2026-05-19 I. Hrivnacova (analysis-V11-04-02)
+- Fixed compilation warnings "missing braces around initializer",
+  observed with gcc v11.5
+  - addressing the problem report #2705.
+
+## 2026-01-09 Ben Morgan (analysis-V11-04-01)
+- Update header guards to style/format required by Geant4 coding guidelines.
+
+## 2026-01-06 I. Hrivnacova (analysis-V11-04-00)
+- Removed redundant G4TH*ToolsManager.hh, G4TP*ToolsManager.hh
+  with template specialization declarations;
+  (The P-files contained errorneous header guards which hided
+  an obsolete declaration in P2-file.)
+
+## 2025-11-17 I. Hrivnacova (analysis-V11-03-07)
+- Fixing a problem observed in the rdecay02 example reported in User Forum,
+  which happens when all created ntuples are inactivated, and a file is not open:
+  added a protection against a call to non-existing ntuple manager.
+
+## 2025-10-27 I. Hrivnacova (analysis-V11-03-06)
+- Fix in G4THnMessenger, improved top directory description:
+  Added fHnDir' data member: this fixes "...Title not available..."
+  description in the command tree
+
+## 2025-08-19 I. Hrivnacova (analysis-V11-03-05)
+- Coverity fix in G4VAnalysisManager::SetNtupleManager:
+  added protection against dereference of potentially null field
+
+## 2025-07-20 Ben Morgan (analysis-V11-03-04)
+- Use current non-deprecated g4tools ntuple columns interface in XML.
+
 ## 2025-05-05 I. Hrivnacova (analysis-V11-03-03)
 - New implementation of generic 'G4Analysis::GetHnType()'' and 'IsProfile()' functions
   which does not rely on the histogram/profile name position in the long

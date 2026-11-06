@@ -30,48 +30,36 @@
 // Most simple approach for solving linear differential equations.
 // Take the current derivative and add it to the current position.
 //
-// Created: W.Wander <wwc@mit.edu>, 12.09.1997
+// Author: W.Wander (MIT), 12.09.1997
 // -------------------------------------------------------------------
 
 #include "G4ExplicitEuler.hh"
+
 #include "G4ThreeVector.hh"
 
 //////////////////////////////////////////////////////////////////////////
 //
 // Constructor
 //
-G4ExplicitEuler::G4ExplicitEuler(G4EquationOfMotion* EqRhs, 
-                                 G4int numberOfVariables)
- : G4MagErrorStepper(EqRhs, numberOfVariables)
-{
-}
-
+G4ExplicitEuler::G4ExplicitEuler(G4EquationOfMotion* EqRhs, G4int numberOfVariables)
+  : G4MagErrorStepper(EqRhs, numberOfVariables)
+{}
 
 ///////////////////////////////////////////////////////////////////////
 //
-// Destructor
+// DumbStepper
 //
-G4ExplicitEuler::~G4ExplicitEuler() = default;
-
-
-///////////////////////////////////////////////////////////////////////
-//
-//
-//
-void
-G4ExplicitEuler::DumbStepper( const G4double yIn[],
-			      const G4double dydx[],
-			            G4double h,
-			 	    G4double yOut[] )
+void G4ExplicitEuler::DumbStepper(const G4double yIn[], const G4double dydx[], G4double h,
+                                  G4double yOut[])
 {
   const G4int numberOfVariables = GetNumberOfVariables();
 
   // Initialise time to t0, needed when it is not updated by the integration.
 
-  for(G4int i=0; i< numberOfVariables; ++i)
+  for (G4int i = 0; i < numberOfVariables; ++i)
   {
-    yOut[i] = yIn[i] + h*dydx[i] ;             // 1st and only Step 
+    yOut[i] = yIn[i] + h * dydx[i];  // 1st and only Step
   }
-  
+
   return;
-}  
+}

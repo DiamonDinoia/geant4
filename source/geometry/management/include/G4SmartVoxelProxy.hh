@@ -34,50 +34,73 @@
 // Note that the proxy does NOT gain deletion responsibility for proxied
 // objects.
 
-// 12.07.95, P.Kent - Initial version
+// Author: Paul Kent (CERN), 12.07.1995 - Initial version
 // --------------------------------------------------------------------
 #ifndef G4SMARTVOXELPROXY_HH
-#define G4SMARTVOXELPROXY_HH 1
+#define G4SMARTVOXELPROXY_HH
 
-#include <assert.h>
+#include "G4Types.hh"
 
 #include "geomwdefs.hh"
-#include "G4Types.hh"
+#include <assert.h>
 
 class G4SmartVoxelNode;
 class G4SmartVoxelHeader;
 
-class G4SmartVoxelProxy 
-{
+/**
+ * @brief G4SmartVoxelProxy is a class for proxying smart voxels.
+ * @ingroup geometry_management
+ *
+ * The class represents either a header (in turn referring to more VoxelProxies) or a
+ * node. If created as a node, calls to GetHeader() cause an exception, and
+ * likewise GetNode() when a header.
+ */
 
+class G4SmartVoxelProxy
+{
   public:
 
-    G4SmartVoxelProxy(G4SmartVoxelHeader *pHeader)
-      : fHeader(pHeader) {}
-      // Proxy for the specified header.
+    /**
+     * Constructs a Proxy for the specified header.
+     *  @param[in] pHeader Pointer to the voxel header.
+     */
+    inline G4SmartVoxelProxy(G4SmartVoxelHeader* pHeader);
 
-    G4SmartVoxelProxy(G4SmartVoxelNode *pNode)
-      : fNode(pNode) {}
-      // Proxy for the specified node.
+    /**
+     * Constructs a Proxy for the specified node.
+     *  @param[in] pNode Pointer to the voxel node.
+     */
+    inline G4SmartVoxelProxy(G4SmartVoxelNode* pNode);
 
+    /**
+     * Default destructor. Not responsible for proxied objects.
+     */
     ~G4SmartVoxelProxy() = default;
-      // Destructor - do nothing. Not responsible for proxied objects.
 
-    G4bool IsHeader() const;
-      // Return true if proxying for a header, else false.
+    /**
+     * Equality operator. True when objects share the same address.
+     */
+    inline G4bool operator==(const G4SmartVoxelProxy& v) const;
 
-    G4bool IsNode() const;
-      // Return true if proxying for a node, else false.
+    /**
+     * Returns true if proxying for a header, else false.
+     */
+    inline G4bool IsHeader() const;
 
-    G4SmartVoxelNode* GetNode() const;
-      // Return ptr to proxied node, else call G4Exception.
+    /**
+     * Returns true if proxying for a node, else false.
+     */
+    inline G4bool IsNode() const;
 
-    G4SmartVoxelHeader* GetHeader() const;
-      // Return ptr to proxied header, else call G4Exception
+    /**
+     * Returns the pointer to the proxied node, else throws a G4Exception.
+     */
+    inline G4SmartVoxelNode* GetNode() const;
 
-    G4bool operator == (const G4SmartVoxelProxy& v) const;
-      // Equality operator.
-      // True when objects share same address.
+    /**
+     * Returns the pointer to the proxied header, else throws a G4Exception.
+     */
+    inline G4SmartVoxelHeader* GetHeader() const;
 
   private:
 

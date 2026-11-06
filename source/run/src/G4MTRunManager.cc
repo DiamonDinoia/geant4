@@ -32,6 +32,7 @@
 
 #include "G4AutoLock.hh"
 #include "G4CopyRandomState.hh"
+#include "G4GeometryManager.hh"
 #include "G4MTRunManagerKernel.hh"
 #include "G4ProductionCutsTable.hh"
 #include "G4Run.hh"
@@ -119,7 +120,8 @@ void G4MTRunManager::SetSeedOncePerCommunication(G4int val)
 // --------------------------------------------------------------------
 G4MTRunManager::G4MTRunManager() : G4RunManager(masterRM)
 {
-  if (fMasterRM != nullptr) {
+  if (fMasterRM != nullptr)
+  {
     G4Exception("G4MTRunManager::G4MTRunManager", "Run0110", FatalException,
                 "Another instance of a G4MTRunManager already exists.");
   }
@@ -135,7 +137,8 @@ G4MTRunManager::G4MTRunManager() : G4RunManager(masterRM)
 #endif
 
   G4int numberOfStaticAllocators = kernel->GetNumberOfStaticAllocators();
-  if (numberOfStaticAllocators > 0) {
+  if (numberOfStaticAllocators > 0)
+  {
     G4ExceptionDescription msg1;
     msg1 << "There are " << numberOfStaticAllocators << " static G4Allocator objects detected.\n"
          << "In multi-threaded mode, all G4Allocator objects must be dynamically "
@@ -155,19 +158,24 @@ G4MTRunManager::G4MTRunManager() : G4RunManager(masterRM)
   randDbl = new G4double[nSeedsPerEvent * nSeedsMax];
 
   char* env = std::getenv("G4FORCENUMBEROFTHREADS");
-  if (env != nullptr) {
+  if (env != nullptr)
+  {
     G4String envS = env;
-    if (envS == "MAX" || envS == "max") {
+    if (envS == "MAX" || envS == "max")
+    {
       forcedNwokers = G4Threading::G4GetNumberOfCores();
     }
-    else {
+    else
+    {
       std::istringstream is(env);
       G4int val = -1;
       is >> val;
-      if (val > 0) {
+      if (val > 0)
+      {
         forcedNwokers = val;
       }
-      else {
+      else
+      {
         G4ExceptionDescription msg2;
         msg2 << "Environment variable G4FORCENUMBEROFTHREADS has an invalid "
                 "value <"
@@ -176,9 +184,11 @@ G4MTRunManager::G4MTRunManager() : G4RunManager(masterRM)
         G4Exception("G4MTRunManager::G4MTRunManager", "Run1039", JustWarning, msg2);
       }
     }
-    if (forcedNwokers > 0) {
+    if (forcedNwokers > 0)
+    {
       nworkers = forcedNwokers;
-      if (verboseLevel > 0) {
+      if (verboseLevel > 0)
+      {
         G4cout << "### Number of threads is forced to " << forcedNwokers
                << " by Environment variable G4FORCENUMBEROFTHREADS." << G4endl;
       }
@@ -211,7 +221,8 @@ void G4MTRunManager::rndmSaveThisRun()
 {
   G4int runNumber = 0;
   if (currentRun != nullptr) runNumber = currentRun->GetRunID();
-  if (!storeRandomNumberStatus) {
+  if (!storeRandomNumberStatus)
+  {
     G4cerr << "Warning from G4RunManager::rndmSaveThisRun():"
            << " Random number status was not stored prior to this run." << G4endl
            << "/random/setSavingFlag command must be issued. "
@@ -228,7 +239,7 @@ void G4MTRunManager::rndmSaveThisRun()
   if (G4CopyRandomState(fileIn, fileOut, "G4MTRunManager::rndmSaveThisRun()") && verboseLevel > 0)
   {
     G4cout << fileIn << " is copied to " << fileOut << G4endl;
-  } 
+  }
 }
 
 // --------------------------------------------------------------------
@@ -241,20 +252,23 @@ void G4MTRunManager::rndmSaveThisEvent()
 // --------------------------------------------------------------------
 void G4MTRunManager::SetNumberOfThreads(G4int n)
 {
-  if (!threads.empty()) {
+  if (!threads.empty())
+  {
     G4ExceptionDescription msg;
     msg << "Number of threads cannot be changed at this moment \n"
         << "(old threads are still alive). Method ignored.";
     G4Exception("G4MTRunManager::SetNumberOfThreads(G4int)", "Run0112", JustWarning, msg);
   }
-  else if (forcedNwokers > 0) {
+  else if (forcedNwokers > 0)
+  {
     G4ExceptionDescription msg;
     msg << "Number of threads is forced to " << forcedNwokers
         << " by G4FORCENUMBEROFTHREADS shell variable.\n"
         << "Method ignored.";
     G4Exception("G4MTRunManager::SetNumberOfThreads(G4int)", "Run0113", JustWarning, msg);
   }
-  else {
+  else
+  {
     nworkers = n;
   }
 }
@@ -307,8 +321,10 @@ void G4MTRunManager::CreateAndStartWorkers()
   // This will also start the workers
   // Currently we do not allow to change the
   // number of threads: threads area created once
-  if (threads.empty()) {
-    if (verboseLevel > 0) {
+  if (threads.empty())
+  {
+    if (verboseLevel > 0)
+    {
       // for consistency with G4TaskRunManager
       std::stringstream msg;
       msg << "--> G4MTRunManager::CreateAndStartWorkers() --> "
@@ -320,7 +336,8 @@ void G4MTRunManager::CreateAndStartWorkers()
       G4cout << "\n" << ss.str() << "\n" << msg.str() << "\n" << ss.str() << "\n" << G4endl;
     }
 
-    for (G4int nw = 0; nw < nworkers; ++nw) {
+    for (G4int nw = 0; nw < nworkers; ++nw)
+    {
       // Create a new worker and remember it
       auto context = new G4WorkerThread;
       context->SetNumberThreads(nworkers);
@@ -340,79 +357,39 @@ void G4MTRunManager::InitializeEventLoop(G4int n_event, const char* macroFile, G
   numberOfEventToBeProcessed = n_event;
   numberOfEventProcessed = 0;
 
-  if (!fakeRun) {
+  if (!fakeRun)
+  {
     nSeedsUsed = 0;
     nSeedsFilled = 0;
 
-    if (verboseLevel > 0) {
+    if (verboseLevel > 0)
+    {
       timer->Start();
     }
 
     n_select_msg = n_select;
-    if (macroFile != nullptr) {
+    if (macroFile != nullptr)
+    {
       if (n_select_msg < 0) n_select_msg = n_event;
       msgText = "/control/execute ";
       msgText += macroFile;
       selectMacro = macroFile;
     }
-    else {
+    else
+    {
       n_select_msg = -1;
       selectMacro = "";
     }
 
     // initialize seeds
-    // If user did not implement InitializeSeeds,
-    // use default: nSeedsPerEvent seeds per event
-    if (eventModuloDef > 0) {
-      eventModulo = eventModuloDef;
-      if (eventModulo > numberOfEventToBeProcessed / nworkers) {
-        eventModulo = numberOfEventToBeProcessed / nworkers;
-        if (eventModulo < 1) eventModulo = 1;
-        G4ExceptionDescription msgd;
-        msgd << "Event modulo is reduced to " << eventModulo
-             << " to distribute events to all threads.";
-        G4Exception("G4MTRunManager::InitializeEventLoop()", "Run10035", JustWarning, msgd);
-      }
-    }
-    else {
-      eventModulo = G4int(std::sqrt(G4double(numberOfEventToBeProcessed / nworkers)));
-      if (eventModulo < 1) eventModulo = 1;
-    }
-    if (!InitializeSeeds(n_event) && n_event > 0) {
-      G4RNGHelper* helper = G4RNGHelper::GetInstance();
-      switch (seedOncePerCommunication) {
-        case 0:
-          nSeedsFilled = n_event;
-          break;
-        case 1:
-          nSeedsFilled = nworkers;
-          break;
-        case 2:
-          nSeedsFilled = n_event / eventModulo + 1;
-          break;
-        default:
-          G4ExceptionDescription msgd;
-          msgd << "Parameter value <" << seedOncePerCommunication
-               << "> of seedOncePerCommunication is invalid. It is reset to 0.";
-          G4Exception("G4MTRunManager::InitializeEventLoop()", "Run10036", JustWarning, msgd);
-          seedOncePerCommunication = 0;
-          nSeedsFilled = n_event;
-      }
-
-      // Generates up to nSeedsMax seed pairs only.
-      if (nSeedsFilled > nSeedsMax) nSeedsFilled = nSeedsMax;
-      masterRNGEngine->flatArray(nSeedsPerEvent * nSeedsFilled, randDbl);
-      helper->Fill(randDbl, nSeedsFilled, n_event, nSeedsPerEvent);
-    }
+    InitializeEventSeeds(n_event);
   }
 
   // Now initialize workers. Check if user defined a WorkerThreadInitialization
-  if (userWorkerThreadInitialization == nullptr) {
+  if (userWorkerThreadInitialization == nullptr)
+  {
     userWorkerThreadInitialization = new G4UserWorkerThreadInitialization();
   }
-
-  // Prepare UI commands for threads
-  PrepareCommandsStack();
 
   // Start worker threads
   CreateAndStartWorkers();
@@ -423,11 +400,79 @@ void G4MTRunManager::InitializeEventLoop(G4int n_event, const char* macroFile, G
 }
 
 // --------------------------------------------------------------------
+void G4MTRunManager::InitializeEventSeeds(G4int n_event)
+{
+  // If user did not implement InitializeSeeds,
+  // use default: nSeedsPerEvent seeds per event
+  if (eventModuloDef > 0)
+  {
+    eventModulo = eventModuloDef;
+    if (eventModulo > numberOfEventToBeProcessed / nworkers)
+    {
+      eventModulo = numberOfEventToBeProcessed / nworkers;
+      if (eventModulo < 1) eventModulo = 1;
+      G4ExceptionDescription msgd;
+      msgd << "Event modulo is reduced to " << eventModulo
+           << " to distribute events to all threads.";
+      G4Exception("G4MTRunManager::InitializeEventLoop()", "Run10035", JustWarning, msgd);
+    }
+  }
+  else
+  {
+    eventModulo = G4int(std::sqrt(G4double(numberOfEventToBeProcessed / nworkers)));
+    if (eventModulo < 1) eventModulo = 1;
+  }
+  if (!InitializeSeeds(n_event) && n_event > 0)
+  {
+    G4RNGHelper* helper = G4RNGHelper::GetInstance();
+    switch (seedOncePerCommunication)
+    {
+      case 0:
+        nSeedsFilled = n_event;
+        break;
+      case 1:
+        nSeedsFilled = nworkers;
+        break;
+      case 2:
+        nSeedsFilled = n_event / eventModulo + 1;
+        break;
+      default:
+        G4ExceptionDescription msgd;
+        msgd << "Parameter value <" << seedOncePerCommunication
+             << "> of seedOncePerCommunication is invalid. It is reset to 0.";
+        G4Exception("G4MTRunManager::InitializeEventLoop()", "Run10036", JustWarning, msgd);
+        seedOncePerCommunication = 0;
+        nSeedsFilled = n_event;
+    }
+
+    // Generates up to nSeedsMax seed pairs only.
+    if (nSeedsFilled > nSeedsMax) nSeedsFilled = nSeedsMax;
+    masterRNGEngine->flatArray(nSeedsPerEvent * nSeedsFilled, randDbl);
+    helper->Fill(randDbl, nSeedsFilled, n_event, nSeedsPerEvent);
+  }
+}
+
+// --------------------------------------------------------------------
+void G4MTRunManager::GeometryOptimisation()
+{
+  G4GeometryManager* geomManager = G4GeometryManager::GetInstance();
+  // G4bool configred = geomManager->IsParallelOptimisationConfigured();
+  // G4bool finished = geomManager->IsParallelOptimisationFinished();
+
+  geomManager->OpenGeometry();
+  geomManager->CloseGeometry(true, verboseLevel > 1);
+
+  // Force workers to execute UI command
+  RequestWorkersProcessCommandsStack();
+}
+
+// --------------------------------------------------------------------
 void G4MTRunManager::RefillSeeds()
 {
   G4RNGHelper* helper = G4RNGHelper::GetInstance();
   G4int nFill = 0;
-  switch (seedOncePerCommunication) {
+  switch (seedOncePerCommunication)
+  {
     case 0:
       nFill = numberOfEventToBeProcessed - nSeedsFilled;
       break;
@@ -469,7 +514,8 @@ void G4MTRunManager::ConstructScoringWorlds()
   GetMasterWorlds().clear();
   auto nWorlds = (G4int)G4TransportationManager::GetTransportationManager()->GetNoWorlds();
   auto itrW = G4TransportationManager::GetTransportationManager()->GetWorldsIterator();
-  for (G4int iWorld = 0; iWorld < nWorlds; ++iWorld) {
+  for (G4int iWorld = 0; iWorld < nWorlds; ++iWorld)
+  {
     addWorld(iWorld, *itrW);
     ++itrW;
   }
@@ -573,9 +619,11 @@ G4bool G4MTRunManager::SetUpAnEvent(G4Event* evt, G4long& s1, G4long& s2, G4long
                                     G4bool reseedRequired)
 {
   G4AutoLock l(&setUpEventMutex);
-  if (numberOfEventProcessed < numberOfEventToBeProcessed) {
+  if (numberOfEventProcessed < numberOfEventToBeProcessed)
+  {
     evt->SetEventID(numberOfEventProcessed);
-    if (reseedRequired) {
+    if (reseedRequired)
+    {
       G4RNGHelper* helper = G4RNGHelper::GetInstance();
       G4int idx_rndm = nSeedsPerEvent * nSeedsUsed;
       s1 = helper->GetSeed(idx_rndm);
@@ -594,17 +642,21 @@ G4bool G4MTRunManager::SetUpAnEvent(G4Event* evt, G4long& s1, G4long& s2, G4long
 G4int G4MTRunManager::SetUpNEvents(G4Event* evt, G4SeedsQueue* seedsQueue, G4bool reseedRequired)
 {
   G4AutoLock l(&setUpEventMutex);
-  if (numberOfEventProcessed < numberOfEventToBeProcessed && !runAborted) {
+  if (numberOfEventProcessed < numberOfEventToBeProcessed && !runAborted)
+  {
     G4int nev = eventModulo;
-    if (numberOfEventProcessed + nev > numberOfEventToBeProcessed) {
+    if (numberOfEventProcessed + nev > numberOfEventToBeProcessed)
+    {
       nev = numberOfEventToBeProcessed - numberOfEventProcessed;
     }
     evt->SetEventID(numberOfEventProcessed);
-    if (reseedRequired) {
+    if (reseedRequired)
+    {
       G4RNGHelper* helper = G4RNGHelper::GetInstance();
       G4int nevRnd = nev;
       if (seedOncePerCommunication > 0) nevRnd = 1;
-      for (G4int i = 0; i < nevRnd; ++i) {
+      for (G4int i = 0; i < nevRnd; ++i)
+      {
         seedsQueue->push(helper->GetSeed(nSeedsPerEvent * nSeedsUsed));
         seedsQueue->push(helper->GetSeed(nSeedsPerEvent * nSeedsUsed + 1));
         if (nSeedsPerEvent == 3) seedsQueue->push(helper->GetSeed(nSeedsPerEvent * nSeedsUsed + 2));
@@ -627,7 +679,8 @@ void G4MTRunManager::TerminateWorkers()
   NewActionRequest(WorkerActionRequest::ENDWORKER);
   // Now join threads.
 #ifdef G4MULTITHREADED  // protect here to prevent warning in compilation
-  while (!threads.empty()) {
+  while (!threads.empty())
+  {
     G4Thread* t = *(threads.begin());
     threads.pop_front();
     userWorkerThreadInitialization->JoinWorker(t);
@@ -642,11 +695,13 @@ void G4MTRunManager::AbortRun(G4bool softAbort)
 {
   // This method is valid only for GeomClosed or EventProc state
   G4ApplicationState currentState = G4StateManager::GetStateManager()->GetCurrentState();
-  if (currentState == G4State_GeomClosed || currentState == G4State_EventProc) {
+  if (currentState == G4State_GeomClosed || currentState == G4State_EventProc)
+  {
     runAborted = true;
     MTkernel->BroadcastAbortRun(softAbort);
   }
-  else {
+  else
+  {
     G4cerr << "Run is not in progress. AbortRun() ignored." << G4endl;
   }
 }
@@ -689,6 +744,11 @@ void G4MTRunManager::ThisWorkerEndEventLoop()
 void G4MTRunManager::NewActionRequest(G4MTRunManager::WorkerActionRequest newRequest)
 {
   nextActionRequestBarrier.Wait((G4int)GetNumberActiveThreads());
+  if (newRequest == WorkerActionRequest::NEXTITERATION
+      || newRequest == WorkerActionRequest::PROCESSUI)
+  {
+    PrepareCommandsStack();
+  }
   // nextActionRequest is a shared resource, but there is no
   // data-race thanks to the barrier: all threads are waiting
   nextActionRequest = newRequest;
@@ -705,7 +765,6 @@ G4MTRunManager::WorkerActionRequest G4MTRunManager::ThisWorkerWaitForNextAction(
 // --------------------------------------------------------------------
 void G4MTRunManager::RequestWorkersProcessCommandsStack()
 {
-  PrepareCommandsStack();
   NewActionRequest(WorkerActionRequest::PROCESSUI);
   processUIBarrier.SetActiveThreads((G4int)GetNumberActiveThreads());
   processUIBarrier.WaitForReadyWorkers();
@@ -720,7 +779,8 @@ void G4MTRunManager::ThisWorkerProcessCommandsStackDone()
 // --------------------------------------------------------------------
 void G4MTRunManager::SetPinAffinity(G4int n)
 {
-  if (n == 0) {
+  if (n == 0)
+  {
     G4Exception("G4MTRunManager::SetPinAffinity", "Run0114", FatalException,
                 "Pin affinity must be >0 or <0.");
   }

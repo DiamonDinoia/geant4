@@ -23,6 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file PhysicsList.cc
+/// \brief Implementation of the PhysicsList class
+
 // This example is provided by the Geant4-DNA collaboration
 // Any report or published results obtained using the Geant4-DNA software
 // shall cite the following Geant4-DNA collaboration publications:
@@ -33,21 +36,14 @@
 //
 // The Geant4-DNA web site is available at http://geant4-dna.org
 //
-/// \file medical/dna/range/src/PhysicsList.cc
-/// \brief Implementation of the PhysicsList class
 
 #include "PhysicsList.hh"
 
 #include "PhysicsListMessenger.hh"
 
-#include "G4EmDNAPhysics.hh"
-#include "G4EmDNAPhysics_option1.hh"
 #include "G4EmDNAPhysics_option2.hh"
-#include "G4EmDNAPhysics_option3.hh"
 #include "G4EmDNAPhysics_option4.hh"
-#include "G4EmDNAPhysics_option5.hh"
 #include "G4EmDNAPhysics_option6.hh"
-#include "G4EmDNAPhysics_option7.hh"
 #include "G4EmDNAPhysics_option8.hh"
 #include "G4EmStandardPhysics_option4.hh"
 #include "G4SystemOfUnits.hh"
@@ -105,45 +101,20 @@ void PhysicsList::AddPhysicsList(const G4String& name)
 
   if (name == fEmName) return;
 
-  if (name == "dna") {
-    fEmName = name;
-    delete fEmPhysicsList;
-    fEmPhysicsList = new G4EmDNAPhysics();
-  }
-  else if (name == "dna_opt1") {
-    fEmName = name;
-    delete fEmPhysicsList;
-    fEmPhysicsList = new G4EmDNAPhysics_option1();
-  }
-  else if (name == "dna_opt2") {
+  if (name == "dna_opt2") {
     fEmName = name;
     delete fEmPhysicsList;
     fEmPhysicsList = new G4EmDNAPhysics_option2();
-  }
-  else if (name == "dna_opt3") {
-    fEmName = name;
-    delete fEmPhysicsList;
-    fEmPhysicsList = new G4EmDNAPhysics_option3();
   }
   else if (name == "dna_opt4") {
     fEmName = name;
     delete fEmPhysicsList;
     fEmPhysicsList = new G4EmDNAPhysics_option4();
   }
-  else if (name == "dna_opt5") {
-    fEmName = name;
-    delete fEmPhysicsList;
-    fEmPhysicsList = new G4EmDNAPhysics_option5();
-  }
   else if (name == "dna_opt6") {
     fEmName = name;
     delete fEmPhysicsList;
     fEmPhysicsList = new G4EmDNAPhysics_option6();
-  }
-  else if (name == "dna_opt7") {
-    fEmName = name;
-    delete fEmPhysicsList;
-    fEmPhysicsList = new G4EmDNAPhysics_option7();
   }
   else if (name == "dna_opt8") {
     fEmName = name;

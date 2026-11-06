@@ -33,11 +33,13 @@
 G4VSensitiveDetector::G4VSensitiveDetector(const G4String& name)
 {
   std::size_t sLast = name.rfind('/');
-  if (sLast == std::string::npos) {  // detector name only
+  if (sLast == std::string::npos)
+  {  // detector name only
     SensitiveDetectorName = name;
     thePathName = "/";
   }
-  else {  // name conatin the directory path
+  else
+  {  // name conatin the directory path
     SensitiveDetectorName = name;
     SensitiveDetectorName.erase(0, sLast + 1);
     thePathName = name;
@@ -93,6 +95,5 @@ G4bool G4VSensitiveDetector::operator!=(const G4VSensitiveDetector& right) const
 
 G4int G4VSensitiveDetector::GetCollectionID(G4int i)
 {
-  return G4SDManager::GetSDMpointer()->GetCollectionID(
-    SensitiveDetectorName + "/" + collectionName[i]);
+  return G4SDManager::GetSDMpointer()->GetCollectionID(SensitiveDetectorName, collectionName[i]);
 }

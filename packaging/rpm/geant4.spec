@@ -1,17 +1,17 @@
-%global geant4_version 11.4.0-beta
+%global geant4_version 11.5.0-beta
 
 %global NEUTRONHPDATA G4NDL.4.7.1
-%global LEDATA G4EMLOW.8.7
-%global LEVELGAMMADATA G4PhotonEvaporation.6.1
+%global LEDATA G4EMLOW.9.0
+%global LEVELGAMMADATA G4PhotonEvaporation.6.1.2
 %global RADIOACTIVEDATA G4RadioactiveDecay.6.1.2
-%global PARTICLEXSDATA G4PARTICLEXS.4.1
+%global PARTICLEXSDATA G4PARTICLEXS.4.2
 %global PIIDATA G4PII.1.3
 %global REALSURFACEDATA G4RealSurface.2.2
 %global SAIDXSDATA G4SAIDDATA.2.0
 %global ABLADATA G4ABLA.3.3
-%global INCLDATA G4INCL.1.2
+%global INCLDATA G4INCL.1.3
 %global ENSDFSTATEDATA G4ENSDFSTATE.3.0
-%global CHANNELINGDATA G4CHANNELING.1.0
+%global CHANNELINGDATA G4CHANNELING.2.0
 %global TENDLDATA G4TENDL.1.4
 %global NUDEXLIBDATA G4NUDEXLIB.1.0
 %global URRPTDATA G4URRPT.1.1
@@ -40,11 +40,10 @@ Source14: https://geant4-data.web.cern.ch/datasets/%{NUDEXLIBDATA}.tar.gz
 Source15: https://geant4-data.web.cern.ch/datasets/%{URRPTDATA}.tar.gz
 
 %undefine __cmake_in_source_build
-%undefine __cmake3_in_source_build
 
 %bcond_with vtk
 %bcond_without examples
-%bcond_without qt5
+%bcond_without qt6
 %bcond_without threads
 %bcond_without trajectories
 
@@ -77,9 +76,8 @@ BuildRequires: hdf5-devel
 BuildRequires: SoQt-devel
 %endif
 
-%if %{with qt5}
-BuildRequires: qt5-qt3d-devel
-BuildRequires: qt5-qtbase-devel
+%if %{with qt6}
+BuildRequires: qt6-qtbase-devel qt6-qt3d-devel
 %endif
 
 %if %{with tbb}
@@ -136,9 +134,8 @@ Requires: hdf5-devel
 Requires: SoQt-devel
 %endif
 
-%if %{with qt5}
-Requires: qt5-qt3d-devel
-Requires: qt5-qtbase-devel
+%if %{with qt6}
+Requires: qt6-qtbase-devel qt6-qt3d-devel
 %endif
 
 %if %{with tbb}
@@ -177,7 +174,7 @@ Geant4 user examples
 . /opt/rh/devtoolset-7/enable
 %endif
 
-%cmake3 \
+%cmake \
   -DCMAKE_INSTALL_PREFIX:PATH=%{_prefix} \
   -DCMAKE_INSTALL_DATADIR:PATH=%{_datadir}/%{name} \
   -DGEANT4_BUILD_BUILTIN_BACKTRACE:BOOL=OFF \
@@ -196,7 +193,7 @@ Geant4 user examples
   -DGEANT4_USE_INVENTOR:BOOL=OFF \
   -DGEANT4_USE_INVENTOR_QT:BOOL=%{with inventor} \
   -DGEANT4_USE_OPENGL_X11:BOOL=ON \
-  -DGEANT4_USE_QT:BOOL=%{with qt5} \
+  -DGEANT4_USE_QT:BOOL=%{with qt6} \
   -DGEANT4_USE_RAYTRACER_X11:BOOL=ON \
   -DGEANT4_USE_SMARTSTACK:BOOL=OFF \
   -DGEANT4_USE_SYSTEM_CLHEP:BOOL=OFF \
@@ -207,13 +204,13 @@ Geant4 user examples
   -DGEANT4_USE_VTK:BOOL=%{with vtk} \
   -DGEANT4_USE_XM:BOOL=ON
 
-%cmake3_build
+%cmake_build
 
 %install
 %if %{?rhel}%{!?rhel:0} == 7
 . /opt/rh/devtoolset-7/enable
 %endif
-%cmake3_install
+%cmake_install
 rm -f %{buildroot}/%{_bindir}/geant4.sh
 rm -f %{buildroot}/%{_bindir}/geant4.csh
 
@@ -264,6 +261,26 @@ tar xzf %{SOURCE15} -C %{buildroot}/%{_datadir}/%{name}/data
 %endif
 
 %changelog
+* Thu Jun 26 2026 Gabriele Cosmo <Gabriele.Cosmo@cern.ch> - 11.5.0-b
+- Update to version 11.5.0-beta
+
+* Mon Jun 15 2026 Ben Morgan <Ben.Morgan@warwick.ac.uk> - 11.4.2-1
+- Updated dataset: G4EMLOW-9.0
+
+* Fri Jun 12 2026 Gabriele Cosmo <Gabriele.Cosmo@cern.ch> - 11.4.2
+- Update to version 11.4.2
+
+* Fri Apr 24 2026 Nicolas Rodriguez-Alvarez <nicolas.rodalv@educa.jcyl.es> - 11.4.1-1
+- Fix spec for modern Fedora (cmake, Qt6, changelog dates)
+
+* Fri Mar 13 2026 Gabriele Cosmo <Gabriele.Cosmo@cern.ch> - 11.4.1
+- Update to version 11.4.1
+
+* Mon Nov 17 2025 Gabriele Cosmo <Gabriele.Cosmo@cern.ch> - 11.4.0
+- Update to version 11.4.0
+- Updated datasets: G4CHANNELING-2.0, G4EMLOW-8.8, G4INCL-1.3,
+  G4PARTICLEXS-4.2, G4PhotonEvaporation-6.1.2.
+
 * Thu Jun 26 2025 Gabriele Cosmo <Gabriele.Cosmo@cern.ch> - 11.4.0-b
 - Update to version 11.4.0-beta
 
@@ -293,7 +310,7 @@ tar xzf %{SOURCE15} -C %{buildroot}/%{_datadir}/%{name}/data
 * Fri Jun 21 2024 Gabriele Cosmo <Gabriele.Cosmo@cern.ch> - 11.2.2
 - Update to version 11.2.2
 
-* Fri June 7 2024 Ben Morgan <bmorgan@cern.ch> - 11.2.1-2
+* Fri Jun 07 2024 Ben Morgan <bmorgan@cern.ch> - 11.2.1-2
 - Add install of new URRPT dataset
 
 * Fri May 17 2024 Ben Morgan <bmorgan@cern.ch> - 11.2.1-1
@@ -302,7 +319,7 @@ tar xzf %{SOURCE15} -C %{buildroot}/%{_datadir}/%{name}/data
 * Fri Feb 16 2024 Gabriele Cosmo <Gabriele.Cosmo@cern.ch> - 11.2.1
 - Update to version 11.2.1
 
-* Wed Dec 12 2023 Guilherme Amadio <amadio@cern.ch> - 11.2.0
+* Tue Dec 12 2023 Guilherme Amadio <amadio@cern.ch> - 11.2.0
 - Update to version 11.2.0
 
 * Wed Jun 28 2023 Guilherme Amadio <amadio@cern.ch> - 11.1.2

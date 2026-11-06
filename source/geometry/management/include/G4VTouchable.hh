@@ -22,19 +22,28 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-// 
+//
 // G4VTouchable
 //
 // Class description:
 //
-// A G4TouchableHistory object.
+// A typedef to a G4TouchableHistory object, used internally for interface
+// backwards compatibility.
 
-// Created: Paul Kent, August 1996
+// Author: Paul Kent (CERN), August 1996
 // --------------------------------------------------------------------
 #ifndef G4VTOUCHABLE_HH
-#define G4VTOUCHABLE_HH 1
+#define G4VTOUCHABLE_HH
 
 #include "G4TouchableHistory.hh"
+
+/**
+ * @brief G4VTouchable is a G4TouchableHistory object. The G4VTouchable
+ * declaration itself is kept merely for backwards compatibility; it does
+ * NOT represent/indicate a base class. In the user code, G4TouchableHistory
+ * type should be used instead.
+ * @ingroup geometry_management
+ */
 
 using G4VTouchable = G4TouchableHistory;
 

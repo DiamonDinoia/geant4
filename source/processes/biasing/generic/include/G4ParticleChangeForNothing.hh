@@ -31,8 +31,8 @@
 //
 // Author: Marc Verderi, November 2013.
 // ---------------------------------------------------------------
-#ifndef G4ParticleChangeForNothing_hh
-#define G4ParticleChangeForNothing_hh 1
+#ifndef G4PARTICLECHANGEFORNOTHING_HH
+#define G4PARTICLECHANGEFORNOTHING_HH
 
 #include "G4VParticleChange.hh"
 
@@ -46,13 +46,14 @@ class G4ParticleChangeForNothing : public G4VParticleChange
     // -- from base class G4VParticleChange:
     virtual void Initialize(const G4Track& track)
     {
+      G4VParticleChange::Initialize(track);
       theStatusChange = track.GetTrackStatus();
       theNumberOfSecondaries = 0;
     }
 
-    virtual G4Step* UpdateStepForAtRest   (G4Step* step) { return step; }
+    virtual G4Step* UpdateStepForAtRest(G4Step* step) { return step; }
     virtual G4Step* UpdateStepForAlongStep(G4Step* step) { return step; }
-    virtual G4Step* UpdateStepForPostStep (G4Step* step) { return step; }
+    virtual G4Step* UpdateStepForPostStep(G4Step* step) { return step; }
 };
 
 #endif

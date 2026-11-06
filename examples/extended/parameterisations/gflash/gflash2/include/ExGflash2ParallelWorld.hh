@@ -23,10 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 /// \file ExGflash2ParallelWorld.hh
 /// \brief Definition of the ExGflash2ParallelWorld class
-//
+
 #ifndef ExGflash2ParallelWorld_h
 #define ExGflash2ParallelWorld_h 1
 
@@ -36,11 +35,6 @@
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4Region;
-
-class GFlashHomoShowerParameterisation;
-class GFlashShowerModel;
-class GFlashHitMaker;
-class GFlashParticleBounds;
 
 class ExGflash2ParallelWorld : public G4VUserParallelWorld
 {
@@ -53,11 +47,6 @@ class ExGflash2ParallelWorld : public G4VUserParallelWorld
 
   private:
     G4Region* fRegion{nullptr};
-
-    inline static G4ThreadLocal GFlashShowerModel* fFastShowerModel = nullptr;
-    inline static G4ThreadLocal GFlashHomoShowerParameterisation* fParameterisation = nullptr;
-    inline static G4ThreadLocal GFlashParticleBounds* fParticleBounds = nullptr;
-    inline static G4ThreadLocal GFlashHitMaker* fHitMaker = nullptr;
 };
 
 #endif

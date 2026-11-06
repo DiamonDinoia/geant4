@@ -11,7 +11,7 @@ Environment variable "G4FORCE_RUN_MANAGER_TYPE" enabled with value == Serial. Fo
 
 
 **************************************************************
- Geant4 version Name: geant4-11-03-ref-06    (30-June-2025)
+ Geant4 version Name: geant4-11-04-ref-06    (30-June-2026)
                        Copyright : Geant4 Collaboration
                       References : NIM A 506 (2003), 250-303
                                  : IEEE-TNS 53 (2006), 270-278
@@ -91,10 +91,11 @@ Lowest muon/hadron kinetic energy                  1 keV
 Use ICRU90 data                                    0
 Fluctuations of dE/dx are enabled                  1
 Type of fluctuation model for leptons and hadrons  Urban
-Use built-in Birks satuaration                     0
+Use built-in Birks saturation                      0
 Build CSDA range enabled                           1
 Use cut as a final range enabled                   0
 Enable angular generator interface                 0
+Enable parallel initialisation of physics tables   0
 Max kinetic energy for CSDA tables                 1 GeV
 Max kinetic energy for NIEL computation            0 eV 
 Linear loss limit                                  0.01
@@ -173,10 +174,11 @@ Lowest muon/hadron kinetic energy                  1 keV
 Use ICRU90 data                                    0
 Fluctuations of dE/dx are enabled                  1
 Type of fluctuation model for leptons and hadrons  Urban
-Use built-in Birks satuaration                     0
+Use built-in Birks saturation                      0
 Build CSDA range enabled                           1
 Use cut as a final range enabled                   0
 Enable angular generator interface                 0
+Enable parallel initialisation of physics tables   0
 Max kinetic energy for CSDA tables                 1 GeV
 Max kinetic energy for NIEL computation            0 eV 
 Linear loss limit                                  0.01
@@ -313,7 +315,7 @@ hBrems:  for proton  XStype:1  SubType=3
 hPairProd:  for proton  XStype:1  SubType=4
       dE/dx and range tables from 100 eV  to 100 TeV in 84 bins
       Lambda tables from threshold to 100 TeV, 7 bins/decade, spline: 1
-      Sampling table 17x1001 from 7.50618 GeV to 100 TeV 
+      Sampling table 17x1001, from 7.50618 GeV to 100 TeV 
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
            hPairProd : Emin=    0 eV  Emax=  100 TeV  ModifiedMephi
 
@@ -397,7 +399,7 @@ hBrems:  for anti_proton  XStype:1  SubType=3
 hPairProd:  for anti_proton  XStype:1  SubType=4
       dE/dx and range tables from 100 eV  to 100 TeV in 84 bins
       Lambda tables from threshold to 100 TeV, 7 bins/decade, spline: 1
-      Sampling table 17x1001 from 7.50618 GeV to 100 TeV 
+      Sampling table 17x1001, from 7.50618 GeV to 100 TeV 
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
            hPairProd : Emin=    0 eV  Emax=  100 TeV  ModifiedMephi
 
@@ -430,7 +432,7 @@ hBrems:  for kaon+  XStype:1  SubType=3
 hPairProd:  for kaon+  XStype:1  SubType=4
       dE/dx and range tables from 100 eV  to 100 TeV in 84 bins
       Lambda tables from threshold to 100 TeV, 7 bins/decade, spline: 1
-      Sampling table 18x1001 from 3.94942 GeV to 100 TeV 
+      Sampling table 18x1001, from 3.94942 GeV to 100 TeV 
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
            hPairProd : Emin=    0 eV  Emax=  100 TeV  ModifiedMephi
 
@@ -463,7 +465,7 @@ hBrems:  for kaon-  XStype:1  SubType=3
 hPairProd:  for kaon-  XStype:1  SubType=4
       dE/dx and range tables from 100 eV  to 100 TeV in 84 bins
       Lambda tables from threshold to 100 TeV, 7 bins/decade, spline: 1
-      Sampling table 18x1001 from 3.94942 GeV to 100 TeV 
+      Sampling table 18x1001, from 3.94942 GeV to 100 TeV 
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
            hPairProd : Emin=    0 eV  Emax=  100 TeV  ModifiedMephi
 
@@ -496,7 +498,7 @@ muBrems:  for mu+  XStype:1  SubType=3
 muPairProd:  for mu+  XStype:1  SubType=4
       dE/dx and range tables from 100 eV  to 100 TeV in 84 bins
       Lambda tables from threshold to 100 TeV, 7 bins/decade, spline: 1
-      Sampling table 21x1001 from 0.85 GeV to 100 TeV 
+      Sampling table 21x1001, from 0.85 GeV to 100 TeV 
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
           muPairProd : Emin=    0 eV  Emax=  100 TeV  ModifiedMephi
 
@@ -529,7 +531,7 @@ muBrems:  for mu-  XStype:1  SubType=3
 muPairProd:  for mu-  XStype:1  SubType=4
       dE/dx and range tables from 100 eV  to 100 TeV in 84 bins
       Lambda tables from threshold to 100 TeV, 7 bins/decade, spline: 1
-      Sampling table 21x1001 from 0.85 GeV to 100 TeV 
+      Sampling table 21x1001, from 0.85 GeV to 100 TeV 
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
           muPairProd : Emin=    0 eV  Emax=  100 TeV  ModifiedMephi
 
@@ -562,7 +564,7 @@ hBrems:  for pi+  XStype:1  SubType=3
 hPairProd:  for pi+  XStype:1  SubType=4
       dE/dx and range tables from 100 eV  to 100 TeV in 84 bins
       Lambda tables from threshold to 100 TeV, 7 bins/decade, spline: 1
-      Sampling table 20x1001 from 1.11656 GeV to 100 TeV 
+      Sampling table 20x1001, from 1.11656 GeV to 100 TeV 
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
            hPairProd : Emin=    0 eV  Emax=  100 TeV  ModifiedMephi
 
@@ -595,7 +597,7 @@ hBrems:  for pi-  XStype:1  SubType=3
 hPairProd:  for pi-  XStype:1  SubType=4
       dE/dx and range tables from 100 eV  to 100 TeV in 84 bins
       Lambda tables from threshold to 100 TeV, 7 bins/decade, spline: 1
-      Sampling table 20x1001 from 1.11656 GeV to 100 TeV 
+      Sampling table 20x1001, from 1.11656 GeV to 100 TeV 
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
            hPairProd : Emin=    0 eV  Emax=  100 TeV  ModifiedMephi
 
@@ -636,34 +638,34 @@ N=17 V[N]={906770732717044781, 629165745432651234, 1235682547346241386, 68420008
  Run terminated.
 Run Summary
   Number of events processed : 2000
-  User=0.750000s Real=0.750252s Sys=0.000000s
+  User=0.610000s Real=0.614073s Sys=0.000000s
 
  ======================== run summary ======================
 
  The run is: 2000 e- of 100 MeV through 10 m   of Aluminium (density: 2.7 g/cm3 )
 
- Energy deposit:   99.765 MeV
- Energy leakage:   234.79 keV
+ Energy deposit:   99.821 MeV
+ Energy leakage:   178.87 keV
  Edep + Eleak:     100 MeV
  
  NIEL energy calculated: 0 eV 
 
- Nb tracks/event   neutral:   25.53   charged:  138.57
- Nb  steps/event   neutral:  141.07   charged:  204.64
+ Nb tracks/event   neutral:  25.351   charged:  138.18
+ Nb  steps/event   neutral:  140.53   charged:  203.89
 
  Process calls frequency :
-                 Rayl=  18242        Transportation=   1827               annihil=   2794
-                compt= 212832                  conv=   2780                 eBrem=  46608
-                eIoni= 359772                   msc=    102                  phot=  46454
+                 Rayl=  18000        Transportation=   1710               annihil=   2900
+                compt= 212353                  conv=   2889                 eBrem=  46048
+                eIoni= 358734                   msc=     91                  phot=  46102
 
 
 ---------------------------------------------------------
  Primary particle : 
- true Range = 11.073 cm    rms = 3.9415 cm 
- proj Range = 9.6118 cm    rms = 3.6765 cm 
- proj/true  = 0.86804
- transverse dispersion at end = 1.616 cm 
-      mass true Range from simulation = 29.897 g/cm2 
+ true Range = 11.023 cm    rms = 3.7347 cm 
+ proj Range = 9.5867 cm    rms = 3.4649 cm 
+ proj/true  = 0.86973
+ transverse dispersion at end = 1.5862 cm 
+      mass true Range from simulation = 29.761 g/cm2 
        from PhysicsTable (csda range) = 32.101 g/cm2 
 ---------------------------------------------------------
 
@@ -671,7 +673,7 @@ Run Summary
 ------- MixMaxRng engine status -------
  Current state vector is:
 mixmax state, file version 1.0
-N=17 V[N]={1176734187215063284, 2107189873979932999, 1691597703571750464, 1628580260238185548, 1516870852614564031, 879134642103965277, 2287509171269908542, 1200545379946903170, 846951825991781591, 1207557503103738744, 1301496425248176495, 701146241449067984, 1483949326633120104, 1141441745572723665, 1936950711395470660, 1296482528234290123, 222168551129539468} counter= 7sumtot= 1873719846774936590
+N=17 V[N]={580208979041827235, 1332645398352364613, 193075699479058046, 62679130215940605, 1018085692164921878, 425893823871916493, 1387177515467449976, 1777959448926304523, 1774858285888876579, 1928614490813346936, 3639127296164345, 1334994290144392062, 1979197886332695688, 2138604841590846326, 1724411611553346293, 13578063842040690, 946049242203187062} counter= 8sumtot= 174929453475127742
 ---------------------------------------
 #
 /gun/particle proton
@@ -693,7 +695,7 @@ Index : 0     used in the geometry : Yes
 ------- MixMaxRng engine status -------
  Current state vector is:
 mixmax state, file version 1.0
-N=17 V[N]={1176734187215063284, 2107189873979932999, 1691597703571750464, 1628580260238185548, 1516870852614564031, 879134642103965277, 2287509171269908542, 1200545379946903170, 846951825991781591, 1207557503103738744, 1301496425248176495, 701146241449067984, 1483949326633120104, 1141441745572723665, 1936950711395470660, 1296482528234290123, 222168551129539468} counter= 7sumtot= 1873719846774936590
+N=17 V[N]={580208979041827235, 1332645398352364613, 193075699479058046, 62679130215940605, 1018085692164921878, 425893823871916493, 1387177515467449976, 1777959448926304523, 1774858285888876579, 1928614490813346936, 3639127296164345, 1334994290144392062, 1979197886332695688, 2138604841590846326, 1724411611553346293, 13578063842040690, 946049242203187062} counter= 8sumtot= 174929453475127742
 ---------------------------------------
 --> Event 0 starts.
 --> Event 200 starts.
@@ -708,7 +710,7 @@ N=17 V[N]={1176734187215063284, 2107189873979932999, 1691597703571750464, 162858
  Run terminated.
 Run Summary
   Number of events processed : 2000
-  User=0.030000s Real=0.035679s Sys=0.000000s
+  User=0.030000s Real=0.034233s Sys=0.000000s
 
  ======================== run summary ======================
 
@@ -718,22 +720,22 @@ Run Summary
  Energy leakage:   0 eV 
  Edep + Eleak:     100 MeV
  
- NIEL energy calculated: 168.97 eV 
+ NIEL energy calculated: 168.8 eV 
 
  Nb tracks/event   neutral:       0   charged:  1.0105
- Nb  steps/event   neutral:       0   charged:  19.076
+ Nb  steps/event   neutral:       0   charged:  19.079
 
  Process calls frequency :
-          CoulombScat=     43             NoProcess=     21                 hIoni=  38068
+          CoulombScat=     42             NoProcess=     21                 hIoni=  38075
               ionIoni=     21 
 
 ---------------------------------------------------------
  Primary particle : 
- true Range = 3.7126 cm    rms = 406.78 um 
- proj Range = 3.7043 cm    rms = 417.2 um 
- proj/true  = 0.99776
- transverse dispersion at end = 1.1108 mm 
-      mass true Range from simulation = 10.024 g/cm2 
+ true Range = 3.7129 cm    rms = 405.56 um 
+ proj Range = 3.7048 cm    rms = 412.15 um 
+ proj/true  = 0.99782
+ transverse dispersion at end = 1.0972 mm 
+      mass true Range from simulation = 10.025 g/cm2 
        from PhysicsTable (csda range) = 10.012 g/cm2 
 ---------------------------------------------------------
 
@@ -741,10 +743,10 @@ Run Summary
 ------- MixMaxRng engine status -------
  Current state vector is:
 mixmax state, file version 1.0
-N=17 V[N]={1610750495675705963, 925083778435996622, 1914352731260835654, 737396617112119490, 1158741212973190500, 1143490610672421220, 1654953357602807799, 2050915963109726904, 403813286065206382, 991132062316565095, 2082048221001379179, 22943023986533793, 785998588531053663, 1217866166083140372, 2036198478969783598, 648054502443533414, 1787353749246115810} counter= 15sumtot= 418505762562869899
+N=17 V[N]={411236661504730436, 45360860816559573, 2300474236730874732, 436967572575564846, 1421635463300838830, 1639106182234468036, 50658455263798842, 712547256364027106, 545171509978593916, 7039672123322784, 1331126804927397851, 547080094387924454, 716428459092172828, 841816799393564746, 2239567394386982088, 522593647857378881, 1710483130631128273} counter= 11sumtot= 1644236146287164516
 ---------------------------------------
 #
 ================== Deleting memory pools ===================
 Number of memory pools allocated: 9 of which, static: 0
-Dynamic pools deleted: 9 / Total memory freed: 0.036 MB
+Dynamic pools deleted: 9 / Total memory freed: 0.035 MB
 ============================================================

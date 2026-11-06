@@ -27,10 +27,10 @@
 //
 // Class description:
 //
-// Interface for repeated volumes or parameterisations that are able to 
+// Interface for repeated volumes or parameterisations that are able to
 // tabulate their materials.
 
-// 18.11.05, J.Apostolakis - Initial version
+// Author: John Apostolakis (CERN), 18.11.2005
 // --------------------------------------------------------------------
 #ifndef G4VVOLUMEMATERIALSCANNER_HH
 #define G4VVOLUMEMATERIALSCANNER_HH
@@ -39,15 +39,31 @@
 
 class G4Material;
 
+/**
+ * @brief G4VVolumeMaterialScanner is an interface class for repeated volumes
+ * or parameterisations that are able to tabulate their materials.
+ * @ingroup geometry_management
+ */
+
 class G4VVolumeMaterialScanner
 {
   public:
 
-    G4VVolumeMaterialScanner() {;}
-    virtual ~G4VVolumeMaterialScanner() {;}
+    /**
+     * Default Constructor and Destructor.
+     */
+    G4VVolumeMaterialScanner() = default;
+    virtual ~G4VVolumeMaterialScanner() = default;
 
-    virtual G4int       GetNumberOfMaterials() const = 0;
+    /**
+     * Method to return the total number of materials.
+     */
+    virtual G4int GetNumberOfMaterials() const = 0;
+
+    /**
+     * Method to return a pointer to the material, given an index.
+     */
     virtual G4Material* GetMaterial(G4int idx) const = 0;
 };
-   
+
 #endif

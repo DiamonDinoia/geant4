@@ -26,41 +26,22 @@
 // Implementation of inline methods of G4Orb
 // --------------------------------------------------------------------
 
-inline
-G4double G4Orb::GetRadius() const
+inline G4double G4Orb::GetRadius() const
 {
   return fRmax;
 }
 
-inline
-G4double G4Orb::GetRadialTolerance() const
+inline G4double G4Orb::GetRadialTolerance() const
 {
-  return 2*halfRmaxTol;
+  return 2 * halfRmaxTol;
 }
 
-inline
-void G4Orb::SetRadius(G4double newRmax)
+inline void G4Orb::SetRadius(G4double newRmax)
 {
-  fRmax=newRmax;
+  fRmax = newRmax;
   Initialize();
- 
+
   fCubicVolume = 0.;
   fSurfaceArea = 0.;
   fRebuildPolyhedron = true;
-}
-
-inline
-G4double G4Orb::GetCubicVolume()
-{
-  if(fCubicVolume != 0.) {;}
-  else   { fCubicVolume = 4*CLHEP::pi*fRmax*fRmax*fRmax/3.; }
-  return fCubicVolume;
-}
-
-inline
-G4double G4Orb::GetSurfaceArea()
-{
-  if(fSurfaceArea != 0.) {;}
-  else   { fSurfaceArea = 4*CLHEP::pi*fRmax*fRmax; }
-  return fSurfaceArea;
 }

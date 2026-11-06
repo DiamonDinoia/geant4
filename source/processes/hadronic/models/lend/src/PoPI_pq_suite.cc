@@ -16,6 +16,15 @@ namespace PoPI {
  */
 
 /* *********************************************************************************************************//**
+ * @param a_label                       [in]    The moniker for the suite.
+ ***********************************************************************************************************/
+
+PQ_suite::PQ_suite( std::string const &a_label ) :
+        m_label( a_label ) {
+
+}
+
+/* *********************************************************************************************************//**
  * @param a_node                        [in]    The **HAPI::Node** node to be parsed.
  ***********************************************************************************************************/
 
@@ -66,7 +75,7 @@ void PQ_suite::toXMLList( std::vector<std::string> &a_XMLList, std::string const
 
     if( size( ) == 0 ) return;
     std::string header = a_indent1 + "<" + m_label + ">";
-    a_XMLList.push_back( header );
+    a_XMLList.push_back( std::move( header ) );
     for( std::vector<PhysicalQuantity *>::const_iterator iter = begin( ); iter != end( ); ++iter )
         (*iter)->toXMLList( a_XMLList, indent2 );
     appendXMLEnd( a_XMLList, m_label );

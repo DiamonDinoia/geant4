@@ -29,64 +29,116 @@
 //
 // Wrapper class for G4Hype to make use of VecGeom Hyperboloid.
 
-// 16.10.17 G.Cosmo, CERN
+// Author: Gabriele Cosmo (CERN), 16.10.2017
 // --------------------------------------------------------------------
 #ifndef G4UHYPE_HH
 #define G4UHYPE_HH
 
 #include "G4UAdapter.hh"
 
-#if ( defined(G4GEOM_USE_USOLIDS) || defined(G4GEOM_USE_PARTIAL_USOLIDS) )
+#if (defined(G4GEOM_USE_USOLIDS) || defined(G4GEOM_USE_PARTIAL_USOLIDS))
 
-#include <VecGeom/volumes/UnplacedHype.h>
+#  include "G4Polyhedron.hh"
 
-#include "G4Polyhedron.hh"
+#  include <VecGeom/volumes/UnplacedHype.h>
+
+/**
+ * @brief G4UHype is a wrapper class for G4Hype to make use
+ * of VecGeom Hyperboloid.
+ * @ingroup geometry_solids_specific
+ */
 
 class G4UHype : public G4UAdapter<vecgeom::GenericUnplacedHype>
 {
-  using Shape_t = vecgeom::GenericUnplacedHype;
-  using Base_t  = G4UAdapter<vecgeom::GenericUnplacedHype>;
+    using Shape_t = vecgeom::GenericUnplacedHype;
+    using Base_t = G4UAdapter<vecgeom::GenericUnplacedHype>;
 
   public:
 
-    G4UHype(const G4String& name,
-                  G4double  newInnerRadius,
-                  G4double  newOuterRadius,
-                  G4double  newInnerStereo,
-                  G4double  newOuterStereo,
-                  G4double  newHalfLenZ);
-   ~G4UHype() override;
+    /**
+     * Constructs a hyperbolic tube, given its parameters.
+     *  @param[in] name The solid name.
+     *  @param[in] newInnerRadius Inner radius.
+     *  @param[in] newOuterRadius Outer radius.
+     *  @param[in] newInnerStereo Inner stereo angle in radians.
+     *  @param[in] newOuterStereo Outer stereo angle in radians.
+     *  @param[in] newHalfLenZ Half length in Z.
+     */
+    G4UHype(const G4String& name, G4double newInnerRadius, G4double newOuterRadius,
+            G4double newInnerStereo, G4double newOuterStereo, G4double newHalfLenZ);
 
-    void ComputeDimensions(      G4VPVParameterisation* p,
-                           const G4int n,
+    /**
+     * Default destructor.
+     */
+    ~G4UHype() override = default;
+
+    /**
+     * Dispatch method for parameterisation replication mechanism and
+     * dimension computation.
+     */
+    void ComputeDimensions(G4VPVParameterisation* p, const G4int n,
                            const G4VPhysicalVolume* pRep) override;
 
+    /**
+     * Makes a clone of the object for use in multi-treading.
+     *  @returns A pointer to the new cloned allocated solid.
+     */
     G4VSolid* Clone() const override;
 
-    G4double GetInnerRadius () const;
-    G4double GetOuterRadius () const;
-    G4double GetZHalfLength () const;
-    G4double GetInnerStereo () const;
-    G4double GetOuterStereo () const;
+    /**
+     * Accessors.
+     */
+    G4double GetInnerRadius() const;
+    G4double GetOuterRadius() const;
+    G4double GetZHalfLength() const;
+    G4double GetInnerStereo() const;
+    G4double GetOuterStereo() const;
 
-    void SetInnerRadius (G4double newIRad);
-    void SetOuterRadius (G4double newORad);
-    void SetZHalfLength (G4double newHLZ);
-    void SetInnerStereo (G4double newISte);
-    void SetOuterStereo (G4double newOSte);
+    /**
+     * Modifiers.
+     */
+    void SetInnerRadius(G4double newIRad);
+    void SetOuterRadius(G4double newORad);
+    void SetZHalfLength(G4double newHLZ);
+    void SetInnerStereo(G4double newISte);
+    void SetOuterStereo(G4double newOSte);
 
+    /**
+     * Returns the type ID, "G4Hype" of the solid.
+     */
     inline G4GeometryType GetEntityType() const override;
 
-    G4UHype( const G4UHype& source );
-    G4UHype& operator=( const G4UHype& source );
-      // Copy constructor and assignment operator.
-
+    /**
+     * Computes the bounding limits of the solid.
+     *  @param[out] pMin The minimum bounding limit point.
+     *  @param[out] pMax The maximum bounding limit point.
+     */
     void BoundingLimits(G4ThreeVector& pMin, G4ThreeVector& pMax) const override;
-    G4bool CalculateExtent(const EAxis pAxis,
-                           const G4VoxelLimits& pVoxelLimit,
-                           const G4AffineTransform& pTransform,
-                           G4double& pmin, G4double& pmax) const override;
+
+    /**
+     * Calculates the minimum and maximum extent of the solid, when under the
+     * specified transform, and within the specified limits.
+     *  @param[in] pAxis The axis along which compute the extent.
+     *  @param[in] pVoxelLimit The limiting space dictated by voxels.
+     *  @param[in] pTransform The internal transformation applied to the solid.
+     *  @param[out] pMin The minimum extent value.
+     *  @param[out] pMax The maximum extent value.
+     *  @returns True if the solid is intersected by the extent region.
+     */
+    G4bool CalculateExtent(const EAxis pAxis, const G4VoxelLimits& pVoxelLimit,
+                           const G4AffineTransform& pTransform, G4double& pmin,
+                           G4double& pmax) const override;
+
+    /**
+     * Returns a generated polyhedron as graphical representations.
+     */
     G4Polyhedron* CreatePolyhedron() const override;
+
+    /**
+     * Copy constructor and assignment operator.
+     */
+    G4UHype(const G4UHype& source);
+    G4UHype& operator=(const G4UHype& source);
 };
 
 // --------------------------------------------------------------------

@@ -23,6 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file PhysicsList.cc
+/// \brief Implementation of the PhysicsList class
+
 // This example is provided by the Geant4-DNA collaboration
 // Any report or published results obtained using the Geant4-DNA software
 // shall cite the following Geant4-DNA collaboration publication:
@@ -32,8 +35,6 @@
 // The Geant4-DNA web site is available at http://geant4-dna.org
 //
 //
-/// \file PhysicsList.cc
-/// \brief Implementation of the PhysicsList class
 
 #include "PhysicsList.hh"
 
@@ -41,14 +42,9 @@
 
 #include "G4EmDNAChemistry.hh"
 #include "G4EmDNAChemistry_option1.hh"
-#include "G4EmDNAPhysics.hh"
-#include "G4EmDNAPhysics_option1.hh"
 #include "G4EmDNAPhysics_option2.hh"
-#include "G4EmDNAPhysics_option3.hh"
 #include "G4EmDNAPhysics_option4.hh"
-#include "G4EmDNAPhysics_option5.hh"
 #include "G4EmDNAPhysics_option6.hh"
-#include "G4EmDNAPhysics_option7.hh"
 #include "G4EmDNAPhysics_option8.hh"
 #include "G4EmParameters.hh"
 #include "G4SystemOfUnits.hh"
@@ -123,24 +119,9 @@ void PhysicsList::RegisterConstructor(const G4String& name)
   if (verboseLevel > 0) {
     G4cout << "===== Register constructor ==== " << name << G4endl;
   }
-  if (name == "G4EmDNAPhysics") {
-    delete fEmDNAPhysicsList;
-    fEmDNAPhysicsList = new G4EmDNAPhysics(verboseLevel);
-    fPhysDNAName = name;
-  }
-  else if (name == "G4EmDNAPhysics_option1") {
-    delete fEmDNAPhysicsList;
-    fEmDNAPhysicsList = new G4EmDNAPhysics_option1(verboseLevel);
-    fPhysDNAName = name;
-  }
-  else if (name == "G4EmDNAPhysics_option2") {
+  if (name == "G4EmDNAPhysics_option2") {
     delete fEmDNAPhysicsList;
     fEmDNAPhysicsList = new G4EmDNAPhysics_option2(verboseLevel);
-    fPhysDNAName = name;
-  }
-  else if (name == "G4EmDNAPhysics_option3") {
-    delete fEmDNAPhysicsList;
-    fEmDNAPhysicsList = new G4EmDNAPhysics_option3(verboseLevel);
     fPhysDNAName = name;
   }
   else if (name == "G4EmDNAPhysics_option4") {
@@ -148,19 +129,9 @@ void PhysicsList::RegisterConstructor(const G4String& name)
     fEmDNAPhysicsList = new G4EmDNAPhysics_option4(verboseLevel);
     fPhysDNAName = name;
   }
-  else if (name == "G4EmDNAPhysics_option5") {
-    delete fEmDNAPhysicsList;
-    fEmDNAPhysicsList = new G4EmDNAPhysics_option5(verboseLevel);
-    fPhysDNAName = name;
-  }
   else if (name == "G4EmDNAPhysics_option6") {
     delete fEmDNAPhysicsList;
     fEmDNAPhysicsList = new G4EmDNAPhysics_option6(verboseLevel);
-    fPhysDNAName = name;
-  }
-  else if (name == "G4EmDNAPhysics_option7") {
-    delete fEmDNAPhysicsList;
-    fEmDNAPhysicsList = new G4EmDNAPhysics_option7(verboseLevel);
     fPhysDNAName = name;
   }
   else if (name == "G4EmDNAPhysics_option8") {

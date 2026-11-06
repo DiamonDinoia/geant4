@@ -23,6 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file RunAction.cc
+/// \brief Implementation of the RunAction class
+
 // The `molcounters` example(s) are provided as part of Geant4-DNA
 // and any report or published result obtained using it shall cite
 // the respective Geant4-DNA collaboration publications.
@@ -38,14 +41,16 @@
 
 #include "RunAction.hh"
 
-#include "Run.hh"
-#include "ScoreBasicMoleculeCounts.hh"
-#include "ScoreBasicReactionCounts.hh"
-
 #include "G4AnalysisManager.hh"
 #include "G4DNAChemistryManager.hh"
+#include "G4MoleculeCounterScorer.hh"
+#include "G4MoleculeReactionCounterScorer.hh"
 #include "G4RunManager.hh"
+
+#include "Run.hh"
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
 G4Run* RunAction::GenerateRun()
 {
   auto run = new Run();
@@ -75,7 +80,8 @@ void RunAction::EndOfRunAction(const G4Run* run)
   auto nofEvents = run->GetNumberOfEvent();
   if (nofEvents == 0) return;
 
-  if (IsMaster()) {
+  if (IsMaster())
+  {
     G4cout << "End of Global Run totaling nEvents = " << nofEvents << G4endl;
     auto myRun = dynamic_cast<const Run*>(run);
 
@@ -84,15 +90,22 @@ void RunAction::EndOfRunAction(const G4Run* run)
     G4String fileN = "MoleculeCounters";
     analysisManager->OpenFile(fileN);
 
-    dynamic_cast<ScoreBasicMoleculeCounts*>(myRun->GetBasicMoleculeScorer())->OutputAndClear();
-    dynamic_cast<ScoreBasicMoleculeCounts*>(myRun->GetBasicMoleculeScorerWithVariablePrecision())
-      ->OutputAndClear();
-    dynamic_cast<ScoreBasicReactionCounts*>(myRun->GetBasicReactionScorer())->OutputAndClear();
+    myRun->GetBasicMoleculeScorer()->WriteWithAnalysisManager();
+
+    // G4::MoleculeCounter::DumpCounterMapIndices(myRun->GetBasicMoleculeScorer()->GetCountMap());
+    // G4::MoleculeCounter::DumpCounterMapContents(myRun->GetBasicMoleculeScorer()->GetCountMap());
+
+    myRun->GetBasicMoleculeScorerWithVariablePrecision()->WriteWithAnalysisManager();
+    myRun->GetBasicMoleculeScorerWithVariablePrecision()->clear();
+
+    myRun->GetBasicReactionScorer()->WriteWithAnalysisManager();
+    myRun->GetBasicReactionScorer()->clear();
 
     analysisManager->Write();
     analysisManager->CloseFile();
   }
-  else {
+  else
+  {
     G4cout << "End of Local Run with nEvents = " << nofEvents << G4endl;
   }
 }

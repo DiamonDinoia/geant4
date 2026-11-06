@@ -36,13 +36,13 @@
 //----------------------------------------------------------------------------
 //
 // This class provides construction of EM physics using the best models
-// of standard and low-energy packages and set of 
+// of standard and low-energy packages and set of
 // the most adavced options allowing precise simulation at low
 // and intermediate energies
 //
 
-#ifndef G4EmStandardPhysics_option4_h
-#define G4EmStandardPhysics_option4_h 1
+#ifndef G4EMSTANDARDPHYSICS_OPTION4_HH
+#define G4EMSTANDARDPHYSICS_OPTION4_HH
 
 #include "G4VPhysicsConstructor.hh"
 #include "globals.hh"
@@ -51,22 +51,20 @@
 
 class G4EmStandardPhysics_option4 : public G4VPhysicsConstructor
 {
-public:
+  public:
 
-  explicit G4EmStandardPhysics_option4(G4int ver=1, const G4String& name="");
+    explicit G4EmStandardPhysics_option4(G4int ver = 1, const G4String& name = "");
 
-  ~G4EmStandardPhysics_option4() override;
+    ~G4EmStandardPhysics_option4() override = default;
 
-  void ConstructParticle() override;
-  void ConstructProcess() override;
+    void ConstructParticle() override;
+    void ConstructProcess() override;
+
+  private:
+
+    G4bool fUseExternalDEDX{false};
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif
-
-
-
-
-
-

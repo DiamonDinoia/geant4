@@ -31,66 +31,94 @@
 // allocated by G4NavigationHistory. Allows for reuse of the vectors
 // allocated according to lifetime of G4NavigationHistory objects.
 
-// 07.05.14 G.Cosmo Initial version
+// Author: Gabriele Cosmo (CERN), 07.05.2014 - Initial version
 // --------------------------------------------------------------------
 #ifndef G4NAVIGATIONHISTORYPOOL_HH
 #define G4NAVIGATIONHISTORYPOOL_HH
 
+#include "G4NavigationLevel.hh"
+
 #include <vector>
 
-#include "G4NavigationLevel.hh"
+/**
+ * @brief G4NavigationHistoryPool is a thread-local pool for navigation history
+ * levels collections being allocated by G4NavigationHistory.
+ * @ingroup geometry_management
+ *
+ * It allows for reuse of the vectors allocated according to lifetime of
+ * G4NavigationHistory objects.
+ */
 
 class G4NavigationHistoryPool
 {
   public:
 
+    /**
+     * Destructor: takes care to delete the allocated levels.
+     */
+    ~G4NavigationHistoryPool();
+
+    /**
+     * Returns the unique instance of G4NavigationHistoryPool.
+     */
     static G4NavigationHistoryPool* GetInstance();
-      // Return unique instance of G4NavigationHistoryPool.
 
-    inline std::vector<G4NavigationLevel> * GetNewLevels();
-      // Return the pointer to a new collection of levels being allocated.
+    /**
+     * Returns the pointer to a new collection of levels being allocated.
+     */
+    inline std::vector<G4NavigationLevel>* GetNewLevels();
 
-    inline std::vector<G4NavigationLevel> * GetLevels();
-      // Return the pointer of the first available collection of levels
-      // If none are available (i.e. empty Free vector) allocate collection.
+    /**
+     * Returns the pointer of the first available collection of levels
+     * If none are available (i.e. empty free vector) allocates the collection.
+     */
+    inline std::vector<G4NavigationLevel>* GetLevels();
 
-    inline void DeRegister(std::vector<G4NavigationLevel> * pLevels);
-      // Deactivate levels collection in pool.
+    /**
+     * Deactivates the levels collection in pool.
+     */
+    inline void DeRegister(std::vector<G4NavigationLevel>* pLevels);
 
+    /**
+     * Deletes all levels stored in the pool.
+     */
     void Clean();
-      // Delete all levels stored in the pool.
 
+    /**
+     * Prints the number of entries.
+     */
     void Print() const;
-      // Print number of entries.
-
-   ~G4NavigationHistoryPool();
-      // Destructor: takes care to delete allocated levels.
 
   private:
 
+    /**
+     * Private default Constructor.
+     */
     G4NavigationHistoryPool();
-      // Default constructor.
 
-    inline void Register(std::vector<G4NavigationLevel> * pLevels);
-      // Register levels collection to pool and activate it.
+    /**
+     * Registers the levels collection to the pool and activates it.
+     */
+    inline void Register(std::vector<G4NavigationLevel>* pLevels);
 
+    /**
+     * Sets internal vectors content to zero.
+     */
     void Reset();
-      // Set internal vectors content to zero.
 
   private:
 
     static G4ThreadLocal G4NavigationHistoryPool* fgInstance;
 
-    std::vector<std::vector<G4NavigationLevel> *> fPool;
-    std::vector<std::vector<G4NavigationLevel> *> fFree;
+    std::vector<std::vector<G4NavigationLevel>*> fPool;
+    std::vector<std::vector<G4NavigationLevel>*> fFree;
 };
 
 // ***************************************************************************
 // Register levels collection to pool (add and/or activate)
 // ***************************************************************************
 //
-inline void G4NavigationHistoryPool::
-Register(std::vector<G4NavigationLevel> * pLevels)
+inline void G4NavigationHistoryPool::Register(std::vector<G4NavigationLevel>* pLevels)
 {
   fPool.push_back(pLevels);
 }
@@ -99,8 +127,7 @@ Register(std::vector<G4NavigationLevel> * pLevels)
 // Deactivate levels collection in pool
 // ***************************************************************************
 //
-inline void G4NavigationHistoryPool::
-DeRegister(std::vector<G4NavigationLevel> * pLevels)
+inline void G4NavigationHistoryPool::DeRegister(std::vector<G4NavigationLevel>* pLevels)
 {
   fFree.push_back(pLevels);
 }
@@ -109,7 +136,7 @@ DeRegister(std::vector<G4NavigationLevel> * pLevels)
 // Return the pointer of a new collection of levels allocated
 // ***************************************************************************
 //
-inline std::vector<G4NavigationLevel> * G4NavigationHistoryPool::GetNewLevels()
+inline std::vector<G4NavigationLevel>* G4NavigationHistoryPool::GetNewLevels()
 {
   auto aLevelVec = new std::vector<G4NavigationLevel>(kHistoryMax);
   Register(aLevelVec);
@@ -122,9 +149,9 @@ inline std::vector<G4NavigationLevel> * G4NavigationHistoryPool::GetNewLevels()
 // If none are available (i.e. non active) allocate collection
 // ***************************************************************************
 //
-inline std::vector<G4NavigationLevel> * G4NavigationHistoryPool::GetLevels()
+inline std::vector<G4NavigationLevel>* G4NavigationHistoryPool::GetLevels()
 {
-  std::vector<G4NavigationLevel> * levels = nullptr;
+  std::vector<G4NavigationLevel>* levels = nullptr;
 
   if (!fFree.empty())
   {

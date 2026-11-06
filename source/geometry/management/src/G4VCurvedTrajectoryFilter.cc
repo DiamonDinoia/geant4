@@ -23,15 +23,14 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-// G4VCurvedTrajectoryFilter class implementation
+// G4VCurvedTrajectoryFilter implementation
 //
-// First version: Oct 30, 2002 - Jacek Generowicz
+// Author: Jacek Generowicz (CERN), 30.10.2002
 // --------------------------------------------------------------------
 
 #include "G4VCurvedTrajectoryFilter.hh"
 
-std::vector<G4ThreeVector>* 
-G4VCurvedTrajectoryFilter::GimmeThePointsAndForgetThem()
+std::vector<G4ThreeVector>* G4VCurvedTrajectoryFilter::GimmeThePointsAndForgetThem()
 {
   std::vector<G4ThreeVector>* tmp = fpFilteredPoints;
   // ParticleChangeForTransport invokes this method (via
@@ -46,16 +45,14 @@ G4VCurvedTrajectoryFilter::GimmeThePointsAndForgetThem()
   return tmp;
 }
 
-void
-G4VCurvedTrajectoryFilter::CreateNewTrajectorySegment()
+void G4VCurvedTrajectoryFilter::CreateNewTrajectorySegment()
 {
   if (fpFilteredPoints != nullptr)
   {
     // GimmePoints has not been called (it would have set the
     // pointer to nullptr), therefore nobody has taken charge of the
     // points and they will never be deleted!
-    G4cout << "!!!!!!!! Filter: auxiliary points are being memory leaked !!!!!"
-           << G4endl;
+    G4cout << "!!!!!!!! Filter: auxiliary points are being memory leaked !!!!!" << G4endl;
   }
   fpFilteredPoints = new std::vector<G4ThreeVector>;
-}    
+}

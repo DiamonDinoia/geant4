@@ -23,10 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 /// \file ExGflash2DetectorConstruction.hh
 /// \brief Definition of the ExGflash2DetectorConstruction class
-//
+
 #ifndef ExGflash2DetectorConstruction_h
 #define ExGflash2DetectorConstruction_h 1
 
@@ -35,11 +34,6 @@
 
 class G4LogicalVolume;
 class G4VPhysicalVolume;
-
-class GFlashHomoShowerParameterisation;
-class GFlashShowerModel;
-class GFlashHitMaker;
-class GFlashParticleBounds;
 
 class ExGflash2DetectorConstruction : public G4VUserDetectorConstruction
 {

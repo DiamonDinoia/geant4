@@ -67,6 +67,11 @@
 //            robust and accurate compared to the earlier version.
 //            Spin effects as well as a more accurate energy loss correction and
 //            computations of Lewis moments will be implemented later on.
+//            [1] A.F.Bielajew, NIMB 111 (1996) 195-208
+//            [2] I.Kawrakow, A.F.Bielajew, NIMB 134(1998) 325-336
+//            [3] I.Kawrakow, E.Mainegra-Hing, D.W.O.Rogers, F.Tessier,B.R.B.Walters,
+//                NRCC Report PIRS-701 (2013)
+//            [4] F.Salvat, A.Jablonski, C.J. Powell, CPC 165(2005) 157-190
 // 02.09.2015 M. Novak: first version of new step limit is provided.
 //            fUseSafetyPlus corresponds to Urban fUseSafety (default)
 //            fUseDistanceToBoundary corresponds to Urban fUseDistanceToBoundary
@@ -98,36 +103,37 @@
 //            (different for e- and e+ <= the DCS_{Mott} and the screening correction) and target
 //            (Z and material) dependent.
 // 02.02.2018 M. Novak: implemented CrossSectionPerVolume interface method (used only for testing)
+// 26.10.2025 M. Novak: the model has only its accurate stepping and boundary crossing algorithms
+//            left as the only option that ensures the expected precision, especially when
+//            activating its Mott correction option (that also activates the screeing and scattering
+//            power corrections). The model has been used for describing e-/e+ MSC (below 100 MeV
+//            kinetic) energy in the option4, Penelope and Livermore EM physics constructors since
+//            Geant4 10.6.
+//
 //
 // Class description:
 //   Kawrakow-Bielajew Goudsmit-Saunderson MSC model based on the screened Rutherford DCS
-//   for elastic scattering of e-/e+. Option, to include (Mott) correction (see above), is
-//   also available now (SetOptionMottCorrection(true)). An EGSnrc like error-free stepping
-//   algorithm (UseSafety) is available beyond the usual Geant4 step limitation algorithms
-//   and true to geomerty and geometry to true step length computations that were adopted
-//   from the Urban model[5]. The most accurate setting: error-free stepping (UseSafety)
-//   with Mott-correction (SetOptionMottCorrection(true)).
+//   for elastic scattering of e-/e+. Option, to include Mott correction, is also available
+//   that also activates the screening and scattering power corrections leading to the most
+//   precise settings of the model. With the accurate electron stepping and boundary crossing
+//   algorithm the model provides very precise e-/e+ simulation and tracking independently
+//   from the target material and geometrical configurations similarly to EGSnrc. All details
+//   are available in the corresponding technical note (M. Novak: https://arxiv.org/abs/2410.13361).
 //
 // References:
-//   [1] A.F.Bielajew, NIMB 111 (1996) 195-208
-//   [2] I.Kawrakow, A.F.Bielajew, NIMB 134(1998) 325-336
-//   [3] I.Kawrakow, E.Mainegra-Hing, D.W.O.Rogers, F.Tessier,B.R.B.Walters, NRCC
-//       Report PIRS-701 (2013)
-//   [4] F.Salvat, A.Jablonski, C.J. Powell, CPC 165(2005) 157-190
-//   [5] L.Urban, Preprint CERN-OPEN-2006-077 (2006)
+//   M. Novak: https://arxiv.org/abs/2410.13361
 //
 // -----------------------------------------------------------------------------
 
-#ifndef G4GoudsmitSaundersonMscModel_h
-#define G4GoudsmitSaundersonMscModel_h 1
+#ifndef G4GOUDSMITSAUNDERSONMSCMODEL_HH
+#define G4GOUDSMITSAUNDERSONMSCMODEL_HH
 
-#include <CLHEP/Units/SystemOfUnits.h>
-
-#include "G4VMscModel.hh"
-#include "G4PhysicsTable.hh"
 #include "G4MaterialCutsCouple.hh"
+#include "G4PhysicsTable.hh"
+#include "G4VMscModel.hh"
 #include "globals.hh"
 
+#include <CLHEP/Units/SystemOfUnits.h>
 
 class G4DataVector;
 class G4ParticleChangeForMSC;
@@ -137,154 +143,112 @@ class G4GSPWACorrections;
 
 class G4GoudsmitSaundersonMscModel : public G4VMscModel
 {
-public:
+  public:
 
-  G4GoudsmitSaundersonMscModel(const G4String& nam = "GoudsmitSaunderson");
+    G4GoudsmitSaundersonMscModel(const G4String& nam = "GoudsmitSaunderson");
 
-  ~G4GoudsmitSaundersonMscModel() override;
+    ~G4GoudsmitSaundersonMscModel() override;
 
-  void Initialise(const G4ParticleDefinition*, const G4DataVector&) override;
+    void Initialise(const G4ParticleDefinition*, const G4DataVector&) override;
 
-  void InitialiseLocal(const G4ParticleDefinition* p, G4VEmModel* masterModel) override;
+    void InitialiseLocal(const G4ParticleDefinition* p, G4VEmModel* masterModel) override;
 
-  G4ThreeVector& SampleScattering(const G4ThreeVector&, G4double safety) override;
+    G4ThreeVector& SampleScattering(const G4ThreeVector&, G4double safety) override;
 
-  G4double ComputeTruePathLengthLimit(const G4Track& track, G4double& currentMinimalStep) override;
+    G4double ComputeTruePathLengthLimit(const G4Track& track,
+                                        G4double& currentMinimalStep) override;
 
-  G4double ComputeGeomPathLength(G4double truePathLength) override;
+    G4double ComputeGeomPathLength(G4double truePathLength) override;
 
-  G4double ComputeTrueStepLength(G4double geomStepLength) override;
+    G4double ComputeTrueStepLength(G4double geomStepLength) override;
 
-  // method to compute first transport cross section per Volume (i.e. macroscropic first transport cross section; this 
-  // method is used only for testing and not during a normal simulation) 
-  G4double CrossSectionPerVolume(const G4Material*, const G4ParticleDefinition*, G4double kineticEnergy, G4double cutEnergy = 0.0, G4double maxEnergy = DBL_MAX) override;
+    // method to compute first transport cross section per Volume (i.e. macroscropic first transport
+    // cross section; this method is used only for testing and not during a normal simulation)
+    G4double CrossSectionPerVolume(const G4Material*, const G4ParticleDefinition*,
+                                   G4double kineticEnergy, G4double cutEnergy = 0.0,
+                                   G4double maxEnergy = DBL_MAX) override;
 
-  void     StartTracking(G4Track*) override;
+    void StartTracking(G4Track*) override;
 
-  void     SampleMSC();
+    void SampleMSC();
 
-  G4double GetTransportMeanFreePath(const G4ParticleDefinition*, G4double);
+    G4double GetTransportMeanFreePath(const G4ParticleDefinition*, G4double);
 
-  void SetOptionPWACorrection(G4bool opt)    { fIsUsePWACorrection = opt; }
+    void SetOptionPWACorrection(G4bool opt) { fIsUsePWACorrection = opt; }
 
-  G4bool GetOptionPWACorrection() const      { return fIsUsePWACorrection; }
+    G4bool GetOptionPWACorrection() const { return fIsUsePWACorrection; }
 
-  void   SetOptionMottCorrection(G4bool opt) { fIsUseMottCorrection = opt; }
+    void SetOptionMottCorrection(G4bool opt) { fIsUseMottCorrection = opt; }
 
-  G4bool GetOptionMottCorrection() const     { return fIsUseMottCorrection; }
+    G4bool GetOptionMottCorrection() const { return fIsUseMottCorrection; }
 
-  G4GoudsmitSaundersonTable* GetGSTable()          { return fGSTable; }
+    void SetOptionOptimisation(G4bool opt) { fIsUseOptimisation = opt; }
 
-  G4GSPWACorrections*        GetPWACorrection()    { return fPWACorrection; }
+    G4bool GetOptionOptimisation() const { return fIsUseOptimisation; }
 
-  //  hide assignment operator
-  G4GoudsmitSaundersonMscModel & operator=(const  G4GoudsmitSaundersonMscModel &right) = delete;
-  G4GoudsmitSaundersonMscModel(const  G4GoudsmitSaundersonMscModel&) = delete;
+    G4GoudsmitSaundersonTable* GetGSTable() { return fGSTable; }
 
-private:
-  inline void     SetParticle(const G4ParticleDefinition* p);
+    G4GSPWACorrections* GetPWACorrection() { return fPWACorrection; }
 
-  inline G4double GetLambda(G4double);
+    //  hide assignment operator
+    G4GoudsmitSaundersonMscModel& operator=(const G4GoudsmitSaundersonMscModel& right) = delete;
+    G4GoudsmitSaundersonMscModel(const G4GoudsmitSaundersonMscModel&) = delete;
 
-  G4double GetTransportMeanFreePathOnly(const G4ParticleDefinition*,G4double);
+  private:
 
-  inline G4double Randomizetlimit();
+    inline void SetParticle(const G4ParticleDefinition* p);
 
-private:
-  CLHEP::HepRandomEngine* rndmEngineMod;
-  //
-  G4double currentKinEnergy;
-  G4double currentRange;
-  //
-  G4double fr;
-  G4double rangeinit;
-  G4double geombig;
-  G4double geomlimit;
-  G4double tlimit;
-  G4double tgeom;
-  //
-  G4double par1;
-  G4double par2;
-  G4double par3;
-  G4double tlimitminfix2;
-  G4double tausmall;
-  G4double mass;
-  G4double taulim;
-  //
-  //
-  G4double presafety;
-  G4double fZeff;
-  //
-  G4int    charge;
-  G4int    currentMaterialIndex;
-  //
-  G4bool   firstStep;
-  //
-  G4LossTableManager*         theManager;
-  const G4ParticleDefinition* particle;
-  G4ParticleChangeForMSC*     fParticleChange;
-  const G4MaterialCutsCouple* currentCouple;
+    inline G4double GetLambda(G4double);
 
-  G4GoudsmitSaundersonTable*  fGSTable;
-  G4GSPWACorrections*         fPWACorrection;
+    G4double GetTransportMeanFreePathOnly(const G4ParticleDefinition*, G4double);
 
-  G4bool   fIsUsePWACorrection;
-  G4bool   fIsUseMottCorrection;
-  //
-  G4double fLambda0; // elastic mean free path
-  G4double fLambda1; // first transport mean free path
-  G4double fScrA;    // screening parameter
-  G4double fG1;      // first transport coef.
-  // in case of Mott-correction
-  G4double fMCtoScrA;
-  G4double fMCtoQ1;
-  G4double fMCtoG2PerG1;
-  //
-  G4double fTheTrueStepLenght;
-  G4double fTheTransportDistance;
-  G4double fTheZPathLenght;
-  //
-  G4ThreeVector fTheDisplacementVector;
-  G4ThreeVector fTheNewDirection;
-  //
-  G4bool fIsEndedUpOnBoundary;  // step ended up on boundary i.e. transportation is the winer
-  G4bool fIsMultipleSacettring;
-  G4bool fIsSingleScattering;
-  G4bool fIsEverythingWasDone;
-  G4bool fIsNoScatteringInMSC;
-  G4bool fIsNoDisplace;
-  G4bool fIsInsideSkin;
-  G4bool fIsWasOnBoundary;
-  G4bool fIsFirstRealStep;
-  //
-  static G4bool gIsUseAccurate;
-  static G4bool gIsOptimizationOn;
+  private:
+
+    G4double currentKinEnergy;
+    G4double currentRange;
+    G4double presafety;
+    G4int currentMaterialIndex;
+    //
+    const G4ParticleDefinition* particle;
+    G4ParticleChangeForMSC* fParticleChange;
+    const G4MaterialCutsCouple* currentCouple;
+
+    G4GoudsmitSaundersonTable* fGSTable;
+    G4GSPWACorrections* fPWACorrection;
+
+    G4bool fIsUsePWACorrection;
+    G4bool fIsUseMottCorrection;
+    G4bool fIsUseOptimisation;
+    //
+    G4double fLambda0;  // elastic mean free path
+    G4double fLambda1;  // first transport mean free path
+    G4double fScrA;  // screening parameter
+    G4double fG1;  // first transport coef.
+    // in case of Mott-correction
+    G4double fMCtoScrA;
+    G4double fMCtoQ1;
+    G4double fMCtoG2PerG1;
+    //
+    G4double fTheTrueStepLenght;
+    G4double fTheZPathLenght;
+    //
+    G4ThreeVector fTheDisplacementVector;
+    G4ThreeVector fTheNewDirection;
+    //
+    G4bool fIsEndedUpOnBoundary;
+    G4bool fIsMultipleScattering;
+    G4bool fIsSingleScattering;
+    G4bool fIsNoScatteringInMSC;
+    G4bool fIsSimplified;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-inline
-void G4GoudsmitSaundersonMscModel::SetParticle(const G4ParticleDefinition* p)
+inline void G4GoudsmitSaundersonMscModel::SetParticle(const G4ParticleDefinition* p)
 {
-  if (p != particle) {
+  if (p != particle)
+  {
     particle = p;
-    charge = (G4int)(p->GetPDGCharge()/CLHEP::eplus);
-    mass = p->GetPDGMass();
   }
 }
-
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-inline
-G4double G4GoudsmitSaundersonMscModel::Randomizetlimit()
-{
-  G4double temptlimit;
-    do {
-         temptlimit = G4RandGauss::shoot(rndmEngineMod,tlimit,0.1*tlimit);
-       } while ( (temptlimit<0.) || (temptlimit>2.*tlimit));
-
-  return temptlimit;
-}
-
-
 
 #endif

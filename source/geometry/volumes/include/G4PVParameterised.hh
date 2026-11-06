@@ -22,7 +22,7 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-// 
+//
 // G4PVParameterised
 //
 // Class description:
@@ -32,18 +32,20 @@
 // of a G4VParameterisation object. The positioning is assumed to
 // be dominant along a specified Cartesian axis.
 
-// Author: Paul Kent (CERN), 29 July 1995 - first non-stub version
+// Author: Paul Kent (CERN), 29.07.1995 - First non-stub version
 // ----------------------------------------------------------------------
 #ifndef G4PVPARAMETERISED_HH
-#define G4PVPARAMETERISED_HH 1
+#define G4PVPARAMETERISED_HH
 
 #include "G4PVReplica.hh"
 
 /**
  * @brief G4PVParameterised represents many touchable detector elements
- * differing in their positioning and dimensions. Both are calculated by means
- * of a G4VParameterisation object. The positioning is assumed to be dominant
- * along a specified Cartesian axis.
+ * differing in their positioning and dimensions.
+ * @ingroup geometry_volumes
+ *
+ * Both are calculated by means of a G4VParameterisation object. The
+ * positioning is assumed to be dominant along a specified Cartesian axis.
  */
 
 class G4PVParameterised : public G4PVReplica
@@ -63,14 +65,10 @@ class G4PVParameterised : public G4PVReplica
      *  @param[in] pSurfChk Boolean flag, if true activates check for overlaps
      *             with existing volumes (false by default).
      */
-    G4PVParameterised(const G4String& pName,
-                            G4LogicalVolume* pLogical,
-                            G4LogicalVolume* pMotherLogical,
-                      const EAxis pAxis,
-                      const G4int nReplicas,
-                            G4VPVParameterisation* pParam,
-                            G4bool pSurfChk = false);
- 
+    G4PVParameterised(const G4String& pName, G4LogicalVolume* pLogical,
+                      G4LogicalVolume* pMotherLogical, const EAxis pAxis, const G4int nReplicas,
+                      G4VPVParameterisation* pParam, G4bool pSurfChk = false);
+
     /**
      * Similar to the constructor above, except for the mother pointer's type
      * being here a G4VPhysicalVolume.
@@ -83,13 +81,9 @@ class G4PVParameterised : public G4PVReplica
      *  @param[in] pSurfChk Boolean flag, if true activates check for overlaps
      *             with existing volumes (false by default).
      */
-    G4PVParameterised(const G4String& pName,
-                            G4LogicalVolume* pLogical,
-                            G4VPhysicalVolume* pMother,
-                      const EAxis pAxis,
-                      const G4int nReplicas,
-                            G4VPVParameterisation* pParam,
-                            G4bool pSurfChk = false);
+    G4PVParameterised(const G4String& pName, G4LogicalVolume* pLogical, G4VPhysicalVolume* pMother,
+                      const EAxis pAxis, const G4int nReplicas, G4VPVParameterisation* pParam,
+                      G4bool pSurfChk = false);
 
     /**
      * Fake default constructor for usage restricted to direct object
@@ -99,9 +93,9 @@ class G4PVParameterised : public G4PVReplica
     G4PVParameterised(__void__&);
 
     /**
-     * Virtual empty Destructor.
+     * Default Destructor.
      */
-    ~G4PVParameterised() override;
+    ~G4PVParameterised() override = default;
 
     /**
      * Returns true to identify if it is a parameterised physical volume.
@@ -112,7 +106,7 @@ class G4PVParameterised : public G4PVReplica
      * Returns the volume type characterisation.
      */
     EVolume VolumeType() const final;
-   
+
     /**
      * Returns the current pointer to the parameterisation algorithm.
      */
@@ -127,16 +121,13 @@ class G4PVParameterised : public G4PVReplica
      * @param[in,out] consuming Flag of replica characterisation (always false
      *                for parameterisations).
      */
-    void GetReplicationData(EAxis& axis,
-                            G4int& nReplicas,
-                            G4double& width,
-                            G4double& offset,
+    void GetReplicationData(EAxis& axis, G4int& nReplicas, G4double& width, G4double& offset,
                             G4bool& consuming) const override;
 
     /**
      * Sets code and can prepare for special type of regular volumes.
      */
-    void SetRegularStructureId( G4int code ) override; 
+    void SetRegularStructureId(G4int code) override;
 
     /**
      * Verifies if each instance of the parameterised volume is overlapping
@@ -152,13 +143,13 @@ class G4PVParameterised : public G4PVReplica
      *  @param[in] maxErr Maximum of overlaps errors to report (default is 1).
      *  @returns True if an overlap occurs.
      */
-    G4bool CheckOverlaps(G4int res = 1000, G4double tol = 0.,
-                         G4bool verbose = true, G4int maxErr = 1) override;
+    G4bool CheckOverlaps(G4int res = 1000, G4double tol = 0., G4bool verbose = true,
+                         G4int maxErr = 1) override;
 
   private:
 
     /** The pointer to the parameterisation algorithm. */
-    G4VPVParameterisation* fparam = nullptr; 
+    G4VPVParameterisation* fparam = nullptr;
 };
 
 #endif

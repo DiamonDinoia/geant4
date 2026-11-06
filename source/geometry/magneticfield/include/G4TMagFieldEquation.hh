@@ -34,67 +34,69 @@
 //
 // Adapted from G4Mag_UsualEqRhs.
 //
-// Created: Josh Xie, Google Summer of Code 2014
+// Author: Josh Xie (CERN, Google Summer of Code 2014), June 2014
+// Supervisors:  Sandro Wenzel, John Apostolakis (CERN)
 // --------------------------------------------------------------------
 #ifndef G4TMAGFIELD_EQUATION_HH
 #define G4TMAGFIELD_EQUATION_HH
 
 #include "G4Mag_UsualEqRhs.hh"
 
-template <class T_Field>
+/**
+ * @brief G4TMagFieldEquation is a templated version of G4MagFieldEquation.
+ * @ingroup geometry_magneticfield
+ */
+
+template<class T_Field>
 class G4TMagFieldEquation : public G4Mag_UsualEqRhs
 {
   public:
 
-    G4TMagFieldEquation(T_Field* f) : G4Mag_UsualEqRhs(f)
-    {
-      itsField = f;
-    }
+    G4TMagFieldEquation(T_Field* f) : G4Mag_UsualEqRhs(f) { itsField = f; }
 
     virtual ~G4TMagFieldEquation() = default;
 
-    inline void GetFieldValue(const G4double Point[4],
-                              G4double Field[]) const
+    inline void GetFieldValue(const G4double Point[4], G4double Field[]) const
     {
       itsField->T_Field::GetFieldValue(Point, Field);
     }
 
-    inline void TEvaluateRhsGivenB( const G4double y[],
-                                    const G4double B[3],
-                                    G4double dydx[] ) const
+    inline void TEvaluateRhsGivenB(const G4double y[], const G4double B[3], G4double dydx[]) const
     {
-      G4double momentum_mag_square = y[3]*y[3] + y[4]*y[4] + y[5]*y[5];
-      G4double inv_momentum_magnitude = 1.0 / std::sqrt( momentum_mag_square );
-      G4double cof = FCof()*inv_momentum_magnitude;
-      
-      dydx[0] = y[3]*inv_momentum_magnitude;       //  (d/ds)x = Vx/V
-      dydx[1] = y[4]*inv_momentum_magnitude;       //  (d/ds)y = Vy/V
-      dydx[2] = y[5]*inv_momentum_magnitude;       //  (d/ds)z = Vz/V
-      
-      dydx[3] = cof*(y[4]*B[2] - y[5]*B[1]) ;  // Ax = a*(Vy*Bz - Vz*By)
-      dydx[4] = cof*(y[5]*B[0] - y[3]*B[2]) ;  // Ay = a*(Vz*Bx - Vx*Bz)
-      dydx[5] = cof*(y[3]*B[1] - y[4]*B[0]) ;  // Az = a*(Vx*By - Vy*Bx)
-      
-      return ;
+      G4double momentum_mag_square = y[3] * y[3] + y[4] * y[4] + y[5] * y[5];
+      G4double inv_momentum_magnitude = 1.0 / std::sqrt(momentum_mag_square);
+      G4double cof = FCof() * inv_momentum_magnitude;
+
+      dydx[0] = y[3] * inv_momentum_magnitude;  //  (d/ds)x = Vx/V
+      dydx[1] = y[4] * inv_momentum_magnitude;  //  (d/ds)y = Vy/V
+      dydx[2] = y[5] * inv_momentum_magnitude;  //  (d/ds)z = Vz/V
+
+      dydx[3] = cof * (y[4] * B[2] - y[5] * B[1]);  // Ax = a*(Vy*Bz - Vz*By)
+      dydx[4] = cof * (y[5] * B[0] - y[3] * B[2]);  // Ay = a*(Vz*Bx - Vx*Bz)
+      dydx[5] = cof * (y[3] * B[1] - y[4] * B[0]);  // Az = a*(Vx*By - Vy*Bx)
+
+      return;
     }
 
-    __attribute__((always_inline)) 
-    void RightHandSide( const G4double y[], G4double dydx[] )
+    __attribute__((always_inline)) void RightHandSide(const G4double y[], G4double dydx[])
     //	const
     {
-      G4double Field[G4maximum_number_of_field_components]; 
-      G4double  PositionAndTime[4];
+      G4double Field[G4maximum_number_of_field_components];
+      G4double PositionAndTime[4];
       PositionAndTime[0] = y[0];
       PositionAndTime[1] = y[1];
       PositionAndTime[2] = y[2];
-      PositionAndTime[3] = y[7];   
-      GetFieldValue(PositionAndTime, Field) ;
+      PositionAndTime[3] = y[7];
+      GetFieldValue(PositionAndTime, Field);
       TEvaluateRhsGivenB(y, Field, dydx);
     }
-   
+
   private:
 
-    enum { G4maximum_number_of_field_components = 24 };
+    enum
+    {
+      G4maximum_number_of_field_components = 24
+    };
 
     // Dependent objects
     T_Field* itsField;

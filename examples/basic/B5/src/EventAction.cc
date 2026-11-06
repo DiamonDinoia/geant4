@@ -23,8 +23,7 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
-/// \file B5/src/EventAction.cc
+/// \file EventAction.cc
 /// \brief Implementation of the B5::EventAction class
 
 #include "EventAction.hh"
@@ -138,7 +137,7 @@ void EventAction::EndOfEventAction(const G4Event* event)
     auto nhit = hc->GetSize();
     analysisManager->FillH1(fDriftHistoID[kH1][iDet], nhit);
     // columns 0, 1
-    analysisManager->FillNtupleIColumn(iDet, nhit);
+    analysisManager->FillNtupleIColumn(iDet, static_cast<G4int>(nhit));
 
     for (unsigned long i = 0; i < nhit; ++i) {
       auto hit = static_cast<DriftChamberHit*>(hc->GetHit(i));

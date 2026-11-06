@@ -25,23 +25,24 @@
 //
 // Defines for Windows DLLs import/export
 //
+// Author: Gabriele Cosmo (CERN), 07.03.2013
 // --------------------------------------------------------------------
-#ifndef GEOMWDEFS_HH
-#define GEOMWDEFS_HH
+#ifndef G4GEOMWDEFS_HH
+#define G4GEOMWDEFS_HH
 
 #include "G4Types.hh"
 
 #ifdef WIN32
-  //
-  // Unique identifier for global module
-  //
-  #if defined G4GEOM_ALLOC_EXPORT
-    #define G4GEOM_DLL G4DLLEXPORT
-  #else
-    #define G4GEOM_DLL G4DLLIMPORT
-  #endif
+//
+// Unique identifier for global module
+//
+#  if defined G4GEOM_ALLOC_EXPORT
+#    define G4GEOM_DLL G4DLLEXPORT
+#  else
+#    define G4GEOM_DLL G4DLLIMPORT
+#  endif
 #else
-  #define G4GEOM_DLL
-#endif
+#  define G4GEOM_DLL
+#endif /* WIN32 */
 
 #endif /* G4GEOMWDEFS_HH */

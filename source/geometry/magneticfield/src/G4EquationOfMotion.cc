@@ -25,14 +25,9 @@
 //
 // G4EquationOfMotion implementation
 //
-// Created: J.Apostolakis, 1998
+// Author: John Apostolakis (CERN), 1998
 // -------------------------------------------------------------------
 
 #include "G4EquationOfMotion.hh"
 
-G4EquationOfMotion::G4EquationOfMotion(G4Field* pField) 
-  : itsField(pField)
-{
-}
-
-G4EquationOfMotion::~G4EquationOfMotion() = default;
+G4EquationOfMotion::G4EquationOfMotion(G4Field* pField) : itsField(pField) {}

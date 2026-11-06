@@ -29,137 +29,231 @@
 //
 // Wrapper class for G4Trap to make use of VecGeom Trapezoid.
 
-// 13.09.13 G.Cosmo, CERN
+// Author: G.Cosmo (CERN), 13.09.2013
 // --------------------------------------------------------------------
 #ifndef G4UTRAP_HH
 #define G4UTRAP_HH
 
 #include "G4UAdapter.hh"
 
-#if ( defined(G4GEOM_USE_USOLIDS) || defined(G4GEOM_USE_PARTIAL_USOLIDS) )
+#if (defined(G4GEOM_USE_USOLIDS) || defined(G4GEOM_USE_PARTIAL_USOLIDS))
 
-#include <VecGeom/volumes/UnplacedTrapezoid.h>
+#  include "G4Polyhedron.hh"
 
-#include "G4Polyhedron.hh"
+#  include <VecGeom/volumes/UnplacedTrapezoid.h>
+
+/**
+ * @brief G4UTrap is a wrapper class for G4Trap to make use of VecGeom Trapezoid.
+ * @ingroup geometry_solids_csg
+ */
 
 class G4UTrap : public G4UAdapter<vecgeom::UnplacedTrapezoid>
 {
-  using Shape_t = vecgeom::UnplacedTrapezoid;
-  using Base_t = G4UAdapter<vecgeom::UnplacedTrapezoid>;
+    using Shape_t = vecgeom::UnplacedTrapezoid;
+    using Base_t = G4UAdapter<vecgeom::UnplacedTrapezoid>;
 
   public:
 
-    G4UTrap( const G4String& pName,
-                   G4double pDz,
-                   G4double pTheta, G4double pPhi,
-                   G4double pDy1, G4double pDx1, G4double pDx2,
-                   G4double pAlp1,
-                   G4double pDy2, G4double pDx3, G4double pDx4,
-                   G4double pAlp2 );
-      //
-      // The most general constructor for G4Trap which prepares plane
-      // equations and corner coordinates from parameters
+    /**
+     * The most general constructor for G4Trap which prepares plane
+     * equations and corner coordinates from parameters.
+     *  @param[in] pName The name of the solid.
+     *  @param[in] pDz Half-length along the Z-axis.
+     *  @param[in] pTheta Polar angle of the line joining the centres
+     *             of the faces at -/+pDz.
+     *  @param[in] pPhi Azimuthal angle of the line joining the centre
+     *             of the face at -pDz to the centre of the face at +pDz.
+     *  @param[in] pDy1 Half-length along Y of the face at -pDz.
+     *  @param[in] pDx1 Half-length along X of the side at y=-pDy1
+     *             of the face at -pDz.
+     *  @param[in] pDx2 Half-length along X of the side at y=+pDy1
+     *             of the face at -pDz.
+     *  @param[in] pAlp1 Angle with respect to the Y axis from the centre of the
+     *             side at y=-pDy1 to the centre at y=+pDy1 of the face at -pDz.
+     *  @param[in] pDy2 Half-length along Y of the face at +pDz.
+     *  @param[in] pDx3 Half-length along X of the side at y=-pDy2
+     *             of the face at +pDz.
+     *  @param[in] pDx4 Half-length along X of the side at y=+pDy2
+     *             of the face at +pDz.
+     *  @param[in] pAlp2 Angle with respect to the Y axis from the centre of the
+     *             side at y=-pDy2 to the centre at y=+pDy2 of the face at +pDz.
+     */
+    G4UTrap(const G4String& pName, G4double pDz, G4double pTheta, G4double pPhi, G4double pDy1,
+            G4double pDx1, G4double pDx2, G4double pAlp1, G4double pDy2, G4double pDx3,
+            G4double pDx4, G4double pAlp2);
 
-    G4UTrap( const G4String& pName,
-             const G4ThreeVector pt[8] ) ;
-      //
-      // Prepares plane equations and parameters from corner coordinates
+    /**
+     * Prepares plane equations and parameters from corner coordinates.
+     *  @param[in] pName The name of the solid.
+     *  @param[in] pt Points of the 8 vertices.
+     */
+    G4UTrap(const G4String& pName, const G4ThreeVector pt[8]);
 
-    G4UTrap( const G4String& pName,
-                   G4double pZ,
-                   G4double pY,
-                   G4double pX, G4double pLTX );
-      //
-      // Constructor for Right Angular Wedge from STEP (assumes pLTX<=pX)
+    /**
+     * Constructor for Right Angular Wedge from STEP (assumes pLTX<=pX).
+     *  @param[in] pName The name of the solid.
+     *  @param[in] pZ Length along Z.
+     *  @param[in] pY Length along Y.
+     *  @param[in] pX Length along X at the wider side.
+     *  @param[in] pLTX Length along X at the narrower side (plTX<=pX).
+     */
+    G4UTrap(const G4String& pName, G4double pZ, G4double pY, G4double pX, G4double pLTX);
 
-    G4UTrap( const G4String& pName,
-                   G4double pDx1,  G4double pDx2,
-                   G4double pDy1,  G4double pDy2,
-                   G4double pDz );
-      //
-      // Constructor for G4Trd
+    /**
+     * Constructor for G4Trd.
+     *  @param[in] pName The name of the solid.
+     *  @param[in] pDx1 Half-length along X at the surface positioned at -dz.
+     *  @param[in] pDx2 Half-length along X at the surface positioned at +dz.
+     *  @param[in] pDy1 Half-length along Y at the surface positioned at -dz.
+     *  @param[in] pDy2 Half-length along Y at the surface positioned at +dz.
+     *  @param[in] pDz Half-length along Z axis.
+     */
+    G4UTrap(const G4String& pName, G4double pDx1, G4double pDx2, G4double pDy1, G4double pDy2,
+            G4double pDz);
 
-    G4UTrap(const G4String& pName,
-                  G4double pDx, G4double pDy, G4double pDz,
-                  G4double pAlpha, G4double pTheta, G4double pPhi );
-      //
-      // Constructor for G4Para
+    /**
+     * Constructor for G4Para.
+     *  @param[in] pName The name of the solid.
+     *  @param[in] pDx Half-length in X.
+     *  @param[in] pDy Half-length in Y.
+     *  @param[in] pDz Half-length in Z.
+     *  @param[in] pAlpha Angle formed by the Y axis and the plane joining the
+     *             centre of the faces parallel to the Z-X plane at -dy and +dy.
+     *  @param[in] pTheta Polar angle of the line joining the centres of the
+     *             faces at -dz and +dz in Z.
+     *  @param[in] pPhi Azimuthal angle of the line joining the centres of
+     *             the faces at -dz and +dz in Z.
+     */
+    G4UTrap(const G4String& pName, G4double pDx, G4double pDy, G4double pDz, G4double pAlpha,
+            G4double pTheta, G4double pPhi);
 
-    G4UTrap( const G4String& pName );
-      //
-      // Constructor for "nominal" G4Trap whose parameters are to be set
-      // by a G4VPVParamaterisation later
+    /**
+     * Constructor for "nominal" G4Trap whose parameters are to be set
+     * by a G4VPVParamaterisation later on.
+     *  @param[in] pName The name of the solid.
+     */
+    G4UTrap(const G4String& pName);
 
-   ~G4UTrap() override;
+    /**
+     * Default destructor.
+     */
+    ~G4UTrap() override = default;
 
-    void ComputeDimensions(      G4VPVParameterisation* p,
-                           const G4int n,
+    /**
+     * Dispatch method for parameterisation replication mechanism and
+     * dimension computation.
+     */
+    void ComputeDimensions(G4VPVParameterisation* p, const G4int n,
                            const G4VPhysicalVolume* pRep) override;
 
+    /**
+     * Makes a clone of the object for use in multi-treading.
+     *  @returns A pointer to the new cloned allocated solid.
+     */
     G4VSolid* Clone() const override;
 
     using Base_t::GetTanAlpha1;
     using Base_t::GetTanAlpha2;
 
-  // Accessors
-
-    G4double GetZHalfLength()  const;
+    /**
+     * Accessors. Returning the coordinates of a unit vector along a straight
+     * line joining centers of -/+fDz planes.
+     */
+    G4double GetZHalfLength() const;
     G4double GetYHalfLength1() const;
     G4double GetXHalfLength1() const;
     G4double GetXHalfLength2() const;
-    G4double GetTanAlpha1()    const;
+    G4double GetTanAlpha1() const;
     G4double GetYHalfLength2() const;
     G4double GetXHalfLength3() const;
     G4double GetXHalfLength4() const;
-    G4double GetTanAlpha2()    const;
+    G4double GetTanAlpha2() const;
 
+    /**
+     * More accessors.
+     */
     TrapSidePlane GetSidePlane(G4int n) const;
     G4ThreeVector GetSymAxis() const;
 
-    G4double GetPhi()    const;
-    G4double GetTheta()  const;
+    /**
+     * Accessors obtaining (re)computed values of the original parameters.
+     */
+    G4double GetPhi() const;
+    G4double GetTheta() const;
     G4double GetAlpha1() const;
     G4double GetAlpha2() const;
-      // Obtain (re)computed values of original parameters
 
-  // Modifiers
+    /**
+     * Sets all parameters, as for constructor. Checks and sets half-widths
+     * as well as angles. Makes a final check of co-planarity.
+     */
+    void SetAllParameters(G4double pDz, G4double pTheta, G4double pPhi, G4double pDy1,
+                          G4double pDx1, G4double pDx2, G4double pAlp1, G4double pDy2,
+                          G4double pDx3, G4double pDx4, G4double pAlp2);
 
-    void SetAllParameters(G4double pDz, G4double pTheta, G4double pPhi,
-                          G4double pDy1, G4double pDx1, G4double pDx2,
-                          G4double pAlp1,
-                          G4double pDy2, G4double pDx3, G4double pDx4,
-                          G4double pAlp2);
-
+    /**
+     * Returns the type ID, "G4Trap" of the solid.
+     */
     inline G4GeometryType GetEntityType() const override;
 
+    /**
+     * Returns true as the solid has only planar faces.
+     */
     inline G4bool IsFaceted() const override;
 
+    /**
+     * Computes the bounding limits of the solid.
+     *  @param[out] pMin The minimum bounding limit point.
+     *  @param[out] pMax The maximum bounding limit point.
+     */
     void BoundingLimits(G4ThreeVector& pMin, G4ThreeVector& pMax) const override;
 
-    G4bool CalculateExtent(const EAxis pAxis,
-                           const G4VoxelLimits& pVoxelLimit,
-                           const G4AffineTransform& pTransform,
-                           G4double& pMin, G4double& pMax) const override;
+    /**
+     * Calculates the minimum and maximum extent of the solid, when under the
+     * specified transform, and within the specified limits.
+     *  @param[in] pAxis The axis along which compute the extent.
+     *  @param[in] pVoxelLimit The limiting space dictated by voxels.
+     *  @param[in] pTransform The internal transformation applied to the solid.
+     *  @param[out] pMin The minimum extent value.
+     *  @param[out] pMax The maximum extent value.
+     *  @returns True if the solid is intersected by the extent region.
+     */
+    G4bool CalculateExtent(const EAxis pAxis, const G4VoxelLimits& pVoxelLimit,
+                           const G4AffineTransform& pTransform, G4double& pMin,
+                           G4double& pMax) const override;
 
+    /**
+     * Returns a generated polyhedron as graphical representations.
+     */
     G4Polyhedron* CreatePolyhedron() const override;
 
+    /**
+     * Copy constructor and assignment operator.
+     */
     G4UTrap(const G4UTrap& rhs);
     G4UTrap& operator=(const G4UTrap& rhs);
-      // Copy constructor and assignment operator.
 
   private:
 
+    /**
+     * Sets parameters using eight vertices.
+     */
     void SetPlanes(const G4ThreeVector pt[8]);
-      // Set parameters using eight vertices
 
+    /**
+     * Checks dimensions.
+     */
     void CheckParameters() const;
-      // Check dimensions
 
+    /**
+     * Computes coordinates of vertices.
+     */
     void GetVertices(G4ThreeVector pt[8]) const;
-      // Compute coordinates of vertices
 
+    /**
+     * Checks planarity of lateral planes.
+     */
     void CheckPlanarity(const G4ThreeVector pt[8]) const;
-      // Check planarity of lateral planes
 };
 
 // --------------------------------------------------------------------

@@ -23,17 +23,13 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-// ********************************************************************
+// CaTS (Calorimetry and Tracking Simulation)
 //
-//  CaTS (Calorimetry and Tracking Simulation)
+// Authors: Hans Wenzel and Soon Yung Jun
+//           (Fermi National Accelerator Laboratory)
 //
-//  Authors : Hans Wenzel
-//            Soon Yung Jun
-//            (Fermi National Accelerator Laboratory)
-//
-// History
-//   October 18th, 2021 : first implementation
-//
+// History: October 18th, 2021 : first implementation
+//          March 28th, 2026: Modified by Ilker Parmaksiz for latest Opticks
 // ********************************************************************
 //
 /// \file lArTPCSD.cc
@@ -47,30 +43,31 @@
 #include "G4ios.hh"
 #include "G4Track.hh"
 #ifdef WITH_G4OPTICKS
-#  include "G4Opticks.hh"
-#  include "TrackInfo.hh"
-#  include "OpticksGenstep.h"
-#  include "OpticksFlags.hh"
-#  include "G4OpticksHit.hh"
-#  include "G4Cerenkov.hh"
-#  include "G4Event.hh"
-#  include "G4MaterialPropertiesTable.hh"
-#  include "G4PhysicalConstants.hh"
-#  include "G4RunManager.hh"
-#  include "G4SteppingManager.hh"
-#  include "G4SystemOfUnits.hh"
-#  include "G4UnitsTable.hh"
-#  include "G4VProcess.hh"
-#  include "G4VRestDiscreteProcess.hh"
-#  include "PhotonSD.hh"
-#  include "G4Cerenkov.hh"
-#  include "G4Scintillation.hh"
-#  include "G4Version.hh"
+#include "G4CXOpticks.hh"
+#include "U4.hh"
+#include "SEvt.hh"
+#include "TrackInfo.hh"
+#include "OpticksGenstep.h"
+#include "G4Cerenkov.hh"
+#include "G4Event.hh"
+#include "G4MaterialPropertiesTable.hh"
+#include "G4PhysicalConstants.hh"
+#include "G4RunManager.hh"
+#include "G4SteppingManager.hh"
+#include "G4SystemOfUnits.hh"
+#include "G4UnitsTable.hh"
+#include "G4VProcess.hh"
+#include "G4VRestDiscreteProcess.hh"
+#include "PhotonSD.hh"
+#include "G4Cerenkov.hh"
+#include "G4Scintillation.hh"
+#include "G4Version.hh"
 #endif
 // project headers
 #include "lArTPCSD.hh"
 #include "ConfigurationManager.hh"
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 lArTPCSD::lArTPCSD(G4String name)
   : G4VSensitiveDetector(name)
 {
@@ -86,6 +83,7 @@ lArTPCSD::lArTPCSD(G4String name)
   first = true;
 }
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 void lArTPCSD::Initialize(G4HCofThisEvent* hce)
 {
   flArTPCHitsCollection =
@@ -102,6 +100,7 @@ void lArTPCSD::Initialize(G4HCofThisEvent* hce)
   hce->AddHitsCollection(fHCID, flArTPCHitsCollection);
 }
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 G4bool lArTPCSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 {
   G4double edep = aStep->GetTotalEnergyDeposit();
@@ -245,34 +244,32 @@ G4bool lArTPCSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
     //
     if(Sphotons > 0)
     {
-      G4double ScintillationRiseTime = 0.0;
-      G4Opticks::Get()->collectGenstep_G4Scintillation_1042(
-        aTrack, aStep, Sphotons, scntId, ScintillationTime,
-        ScintillationRiseTime);
+
+      U4::CollectGenstep_DsG4Scintillation_r4695(
+        aTrack, aStep, Sphotons, scntId, ScintillationTime);
     }
     //
     // harvest the Cerenkov photon gensteps:
     //
     if(Cphotons > 0)
     {
-      G4Opticks::Get()->collectGenstep_G4Cerenkov_1042(
+      U4::CollectGenstep_G4Cerenkov_modified(
         aTrack, aStep, Cphotons, BetaInverse, Pmin, Pmax, maxCos, maxSin2,
         MeanNumberOfPhotons1, MeanNumberOfPhotons2);
     }
-    G4Opticks* g4ok      = G4Opticks::Get();
+    G4CXOpticks* g4cx      = G4CXOpticks::Get();
     G4RunManager* rm     = G4RunManager::GetRunManager();
     const G4Event* event = rm->GetCurrentEvent();
     G4int eventid        = event->GetEventID();
-    G4OpticksHit hit;
-    unsigned num_photons = g4ok->getNumPhotons();
+    unsigned num_photons = SEvt::GetNumPhotonCollected(0);
     if(num_photons > ConfigurationManager::getInstance()->getMaxPhotons())
     {
-      g4ok->propagateOpticalPhotons(eventid);
+      g4cx->simulate(eventid,false);
       G4HCtable* hctable = G4SDManager::GetSDMpointer()->GetHCtable();
       for(G4int i = 0; i < hctable->entries(); ++i)
       {
         std::string sdn   = hctable->GetSDname(i);
-        std::size_t found = sdn.find("Photondetector");
+        std::size_t found = sdn.find("PhotonDetector");
         if(found != std::string::npos)
         {
           PhotonSD* aSD =
@@ -281,13 +278,14 @@ G4bool lArTPCSD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
           aSD->AddOpticksHits();
         }
       }
-      g4ok->reset();
+      g4cx->reset(eventid);
     }
   }
 #endif
   return true;
 }
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 void lArTPCSD::EndOfEvent(G4HCofThisEvent*)
 {
   tSphotons    = 0;
@@ -299,26 +297,22 @@ void lArTPCSD::EndOfEvent(G4HCofThisEvent*)
   }
 }
 
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 G4double lArTPCSD::NumElectrons(G4double edep, G4double ds)
 {
+  G4double dEdx = std::max((ds <= 0.0) ? 0.0 : edep / ds, 1.0);
+
   // Nucl.Instrum.Meth.A523:275-286,2004
-  G4double fGeVToElectrons = 4.237e+07;
-  G4double fModBoxA        = 0.930;
-  G4double fModBoxB        = 0.212;
-  G4double EFieldStep      = 0.5;
-  G4double recomb          = 0.0;
-  G4double dEdx            = (ds <= 0.0) ? 0.0 : edep / ds;
-  if(dEdx < 1.)
-    dEdx = 1.;
+  const G4double fGeVToElectrons = 4.237e+04;
+  G4double recomb = 0.0;
   if(ds > 0)
   {
-    G4double Xi = fModBoxB * dEdx / EFieldStep;
+    G4double fModBoxA = 0.930;
+    G4double fModBoxB = 0.212;
+
+    G4double Xi = 2.0 * fModBoxB * dEdx;
     recomb      = std::log(fModBoxA + Xi) / Xi;
   }
-  else
-  {
-    recomb = 0.0;
-  }
-  G4double fNumIonElectrons = fGeVToElectrons * 1.e-3 * edep * recomb;
-  return fNumIonElectrons;
+
+  return fGeVToElectrons * edep * recomb;
 }

@@ -61,8 +61,16 @@ FlashApplicator::~FlashApplicator() {}
 void FlashApplicator::ConstructCollimator(G4VPhysicalVolume *) {
   // Sets default geometry and materials
   SetDefaultDimensions();
-   SetOuterRadius(55*mm);
-   SetApplicatorLength(365*mm);
+
+  // DEFAULT APPLICATOR LENGTH AND RADIUS - UNIFORM FLASH CONFIGURATION
+  SetOuterRadius(55*mm);
+  SetApplicatorLength(365*mm);
+   
+  //SET THE FOLLOWING APPLICATOR RADIUS AND LENGTH FOR MINIBEAM CONFIGURATION
+
+  // SetOuterRadius(25*mm);
+  // SetApplicatorLength(173.5*mm);
+   
   // Construct the whole Applicator Beam Line
   ConstructApplicator();
 }
@@ -101,8 +109,9 @@ void FlashApplicator::SetDefaultDimensions() {
   magenta->SetVisibility(true);
 
   
-  fInitial_pos = -113*cm; //set the same position in FlashPrimaryGeneratorAction.cc
-  // Geometry  APPLICATOR DEFAULTS
+  fInitial_pos = -113*cm; //set the same position in FlashPrimaryGeneratorAction.cc for DEFAULT CONFIGURATION - 100 MM DIAMETER APPLICATOR
+  // fInitial_pos=-74.70005*cm; ////// Set this for MINIBEAM configuration
+  // Geometry  APPLICATOR DEFAULTS 
 
  
 
@@ -124,14 +133,10 @@ void FlashApplicator::SetDefaultDimensions() {
     
   PVDF = new G4Material("PVDF",  density=1780 *kg/m3,  ncomponents=3);
   
-  
-  
-  PVDF->AddElement(G4NistManager::Instance()->FindOrBuildElement("C"), 34 * perCent);
-  PVDF->AddElement(G4NistManager::Instance()->FindOrBuildElement("H"), 33 * perCent);
-  PVDF->AddElement(G4NistManager::Instance()->FindOrBuildElement("F"), 33 * perCent);
+  PVDF->AddElement(G4NistManager::Instance()->FindOrBuildElement("C"), 2);
+  PVDF->AddElement(G4NistManager::Instance()->FindOrBuildElement("H"), 2);
+  PVDF->AddElement(G4NistManager::Instance()->FindOrBuildElement("F"), 2);
 
-  
-  
   FILM= new G4Material("FILM", density=1430 *kg/m3, ncomponents = 4);
 	
   FILM->AddElement(G4NistManager::Instance()->FindOrBuildElement("C"), 69 * perCent);
@@ -520,7 +525,7 @@ G4LogicalVolume *log = new G4LogicalVolume(
       G4Transform3D(rm2, G4ThreeVector((XPosition), 0., 0.)), "al_phys",
       log_al, fMotherPhys, false, j);
       
-  XPosition=XPosition+(i+1)*1/2*mm;
+  XPosition=XPosition+(i+1)*1./2*mm;
   new G4PVPlacement(
       G4Transform3D(rm2, G4ThreeVector((XPosition), 0., 0.)), "pvdf_phys",
       log_pvdf, fMotherPhys, false, j);
@@ -528,7 +533,7 @@ G4LogicalVolume *log = new G4LogicalVolume(
   
   
   }
-  fChamberpos = XPosition +1/2*mm;
+  fChamberpos = XPosition +1./2*mm;
   log_film->SetVisAttributes(green);
     log_al->SetVisAttributes(blue);
       log_pvdf->SetVisAttributes(yellow);

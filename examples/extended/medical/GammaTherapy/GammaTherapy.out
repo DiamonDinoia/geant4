@@ -11,7 +11,7 @@ Environment variable "G4FORCE_RUN_MANAGER_TYPE" enabled with value == Serial. Fo
 
 
 **************************************************************
- Geant4 version Name: geant4-11-03-ref-06    (30-June-2025)
+ Geant4 version Name: geant4-11-04-ref-06    (30-June-2026)
                        Copyright : Geant4 Collaboration
                       References : NIM A 506 (2003), 250-303
                                  : IEEE-TNS 53 (2006), 270-278
@@ -207,10 +207,11 @@ Lowest muon/hadron kinetic energy                  1 keV
 Use ICRU90 data                                    0
 Fluctuations of dE/dx are enabled                  1
 Type of fluctuation model for leptons and hadrons  Urban
-Use built-in Birks satuaration                     0
+Use built-in Birks saturation                      0
 Build CSDA range enabled                           0
 Use cut as a final range enabled                   0
 Enable angular generator interface                 0
+Enable parallel initialisation of physics tables   0
 Max kinetic energy for CSDA tables                 1 GeV
 Max kinetic energy for NIEL computation            0 eV 
 Linear loss limit                                  0.01
@@ -344,7 +345,7 @@ hBrems:  for proton  XStype:1  SubType=3
 hPairProd:  for proton  XStype:1  SubType=4
       dE/dx and range tables from 10 eV  to 10 GeV in 90 bins
       Lambda tables from threshold to 10 GeV, 10 bins/decade, spline: 1
-      Sampling table 4x1001 from 7.50618 GeV to 0.0150124 TeV 
+      Sampling table 4x1001, from 7.50618 GeV to 0.0150124 TeV 
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
            hPairProd : Emin=    0 eV  Emax=   10 GeV  ModifiedMephi
 
@@ -402,7 +403,7 @@ hBrems:  for anti_proton  XStype:1  SubType=3
 hPairProd:  for anti_proton  XStype:1  SubType=4
       dE/dx and range tables from 10 eV  to 10 GeV in 90 bins
       Lambda tables from threshold to 10 GeV, 10 bins/decade, spline: 1
-      Sampling table 4x1001 from 7.50618 GeV to 0.0150124 TeV 
+      Sampling table 4x1001, from 7.50618 GeV to 0.0150124 TeV 
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
            hPairProd : Emin=    0 eV  Emax=   10 GeV  ModifiedMephi
 
@@ -434,7 +435,7 @@ hBrems:  for kaon+  XStype:1  SubType=3
 hPairProd:  for kaon+  XStype:1  SubType=4
       dE/dx and range tables from 10 eV  to 10 GeV in 90 bins
       Lambda tables from threshold to 10 GeV, 10 bins/decade, spline: 1
-      Sampling table 4x1001 from 3.94942 GeV to 0.01 TeV 
+      Sampling table 4x1001, from 3.94942 GeV to 0.01 TeV 
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
            hPairProd : Emin=    0 eV  Emax=   10 GeV  ModifiedMephi
 
@@ -466,7 +467,7 @@ hBrems:  for kaon-  XStype:1  SubType=3
 hPairProd:  for kaon-  XStype:1  SubType=4
       dE/dx and range tables from 10 eV  to 10 GeV in 90 bins
       Lambda tables from threshold to 10 GeV, 10 bins/decade, spline: 1
-      Sampling table 4x1001 from 3.94942 GeV to 0.01 TeV 
+      Sampling table 4x1001, from 3.94942 GeV to 0.01 TeV 
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
            hPairProd : Emin=    0 eV  Emax=   10 GeV  ModifiedMephi
 
@@ -498,7 +499,7 @@ muBrems:  for mu+  XStype:1  SubType=3
 muPairProd:  for mu+  XStype:1  SubType=4
       dE/dx and range tables from 10 eV  to 10 GeV in 90 bins
       Lambda tables from threshold to 10 GeV, 10 bins/decade, spline: 1
-      Sampling table 5x1001 from 0.85 GeV to 0.01 TeV 
+      Sampling table 5x1001, from 0.85 GeV to 0.01 TeV 
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
           muPairProd : Emin=    0 eV  Emax=   10 GeV  ModifiedMephi
 
@@ -530,7 +531,7 @@ muBrems:  for mu-  XStype:1  SubType=3
 muPairProd:  for mu-  XStype:1  SubType=4
       dE/dx and range tables from 10 eV  to 10 GeV in 90 bins
       Lambda tables from threshold to 10 GeV, 10 bins/decade, spline: 1
-      Sampling table 5x1001 from 0.85 GeV to 0.01 TeV 
+      Sampling table 5x1001, from 0.85 GeV to 0.01 TeV 
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
           muPairProd : Emin=    0 eV  Emax=   10 GeV  ModifiedMephi
 
@@ -562,7 +563,7 @@ hBrems:  for pi+  XStype:1  SubType=3
 hPairProd:  for pi+  XStype:1  SubType=4
       dE/dx and range tables from 10 eV  to 10 GeV in 90 bins
       Lambda tables from threshold to 10 GeV, 10 bins/decade, spline: 1
-      Sampling table 4x1001 from 1.11656 GeV to 0.01 TeV 
+      Sampling table 4x1001, from 1.11656 GeV to 0.01 TeV 
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
            hPairProd : Emin=    0 eV  Emax=   10 GeV  ModifiedMephi
 
@@ -594,7 +595,7 @@ hBrems:  for pi-  XStype:1  SubType=3
 hPairProd:  for pi-  XStype:1  SubType=4
       dE/dx and range tables from 10 eV  to 10 GeV in 90 bins
       Lambda tables from threshold to 10 GeV, 10 bins/decade, spline: 1
-      Sampling table 4x1001 from 1.11656 GeV to 0.01 TeV 
+      Sampling table 4x1001, from 1.11656 GeV to 0.01 TeV 
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
            hPairProd : Emin=    0 eV  Emax=   10 GeV  ModifiedMephi
 
@@ -664,20 +665,20 @@ N=17 V[N]={906770732717044781, 629165745432651234, 1235682547346241386, 68420008
  Run terminated.
 Run Summary
   Number of events processed : 10000
-  User=1.600000s Real=1.628730s Sys=0.000000s
+  User=1.540000s Real=1.583918s Sys=0.000000s
 Histo: End of run actions are started
 ========================================================
 Number of events                             10000
-Average number of e-                         33.13
-Average number of gamma                      19.58
-Average number of e+                         0.7605
-Average number of steps in the phantom       11.51
-Average number of e- steps in the target     17.98
-Average number of g  produced in the target  18.72
-Average number of e- produced in the target  20.83
-Average number of g produced in the phantom  0.4933
-Average number of e- produced in the phantom 5.953
-Total fGamma fluence in front of the phantom 7.954 MeV 
+Average number of e-                         33.42
+Average number of gamma                      19.62
+Average number of e+                         0.7658
+Average number of steps in the phantom       11.84
+Average number of e- steps in the target     18.12
+Average number of g  produced in the target  18.76
+Average number of e- produced in the target  20.98
+Average number of g produced in the phantom  0.5126
+Average number of e- produced in the phantom 6.103
+Total fGamma fluence in front of the phantom 7.99 MeV 
 ========================================================
 
 
@@ -685,7 +686,7 @@ Total fGamma fluence in front of the phantom 7.954 MeV
 ------- MixMaxRng engine status -------
  Current state vector is:
 mixmax state, file version 1.0
-N=17 V[N]={961145400483405076, 699745897242935866, 1057413413739364408, 662555405695072145, 1718128862343597050, 1055151940051380955, 2185583859974491267, 673048765014179189, 467115907169885361, 358922768063147600, 1116951267450062581, 2116545342320611943, 2097059162164451181, 93621624613885263, 529728786058221144, 735650886969976136, 590625775673630549} counter= 4sumtot= 978094000532440057
+N=17 V[N]={550551344088505224, 200142912893400285, 1166005340567315354, 471116466882160282, 315043057302565075, 1476311332155318974, 963269587634690718, 196909445902566894, 398268047662546726, 1783601621001773608, 147645075698606544, 260616758979812056, 2245463632560318542, 1280676577915279793, 1083487528351041847, 1880202562974336815, 1687254675851457325} counter= 4sumtot= 2271507913139532356
 ---------------------------------------
 #
 ================== Deleting memory pools ===================

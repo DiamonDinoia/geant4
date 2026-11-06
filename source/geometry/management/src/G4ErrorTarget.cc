@@ -25,18 +25,17 @@
 //
 // G4ErrorTarget class implementation
 //
-// Created: P.Arce, September 2004
+// Author: Pedro Arce (CIEMAT), September 2004
 // --------------------------------------------------------------------
 
 #include "G4ErrorTarget.hh"
 
-G4double G4ErrorTarget::GetDistanceFromPoint( const G4ThreeVector&,
-                                              const G4ThreeVector& ) const
+G4double G4ErrorTarget::GetDistanceFromPoint(const G4ThreeVector&, const G4ThreeVector&) const
 {
   return DBL_MAX;
 }
 
-G4double G4ErrorTarget::GetDistanceFromPoint( const G4ThreeVector& ) const
+G4double G4ErrorTarget::GetDistanceFromPoint(const G4ThreeVector&) const
 {
   return DBL_MAX;
 }

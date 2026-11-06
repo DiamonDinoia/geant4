@@ -32,8 +32,8 @@
 
 // Author: M.Asai, May 2006
 // --------------------------------------------------------------------
-#ifndef G4MaterialScanner_hh
-#define G4MaterialScanner_hh 1
+#ifndef G4MATERIALSCANNER_HH
+#define G4MATERIALSCANNER_HH
 
 #include "G4ThreeVector.hh"
 #include "globals.hh"
@@ -48,10 +48,12 @@ class G4MSSteppingAction;
 class G4MatScanMessenger;
 class G4RayShooter;
 class G4Region;
+class G4ParticleDefinition;
 
 class G4MaterialScanner
 {
   public:
+
     G4MaterialScanner();
     ~G4MaterialScanner();
 
@@ -78,8 +80,12 @@ class G4MaterialScanner
     G4bool SetRegionName(const G4String& val);
     inline const G4String& GetRegionName() const { return regionName; }
     inline void SetVerbosity(G4int v) { verbosity = v; };
+    G4bool SetThinMaterial(G4bool flg, G4String& mat);
+    void SetDetDefaultParticle(const G4ParticleDefinition* ptcl, G4double eKin);
+    void SetOutFile(G4String& fNm);
 
   private:
+
     void DoScan();
     // Event loop
 
@@ -88,6 +94,7 @@ class G4MaterialScanner
     // Store and restore user action classes if defined.
 
   private:
+
     G4RayShooter* theRayShooter = nullptr;
     G4MatScanMessenger* theMessenger = nullptr;
 
@@ -104,10 +111,10 @@ class G4MaterialScanner
     G4MSSteppingAction* theMatScannerSteppingAction = nullptr;
 
     G4ThreeVector eyePosition;
-    G4int nTheta = 91;
+    G4int nTheta = 1;
     G4double thetaMin = 0.0;
     G4double thetaSpan = 0.0;
-    G4int nPhi = 37;
+    G4int nPhi = 1;
     G4double phiMin = 0.0;
     G4double phiSpan = 0.0;
 
@@ -117,11 +124,17 @@ class G4MaterialScanner
     G4String regionName = "notDefined";
     G4Region* theRegion = nullptr;
 
+    G4bool ignoreThinMaterial = false;
+    G4double thinDencity = 0.;
+
     /// Configure degree of verbosity of Material Scan
     /// verbosity 0: default
     /// verbosity 1: call PrintIntegratedMaterialVerbose
     /// verbosity 2: call PrintEachMaterialVerbose
     G4int verbosity = 0;
+
+    std::ostream* ost = nullptr;
+    G4String fTarget = "**Screen**";
 };
 
 #endif

@@ -11,7 +11,7 @@ Environment variable "G4FORCE_RUN_MANAGER_TYPE" enabled with value == Serial. Fo
 
 
 **************************************************************
- Geant4 version Name: geant4-11-03-ref-06    (30-June-2025)
+ Geant4 version Name: geant4-11-04-ref-06    (30-June-2026)
                        Copyright : Geant4 Collaboration
                       References : NIM A 506 (2003), 250-303
                                  : IEEE-TNS 53 (2006), 270-278
@@ -20,7 +20,7 @@ Environment variable "G4FORCE_RUN_MANAGER_TYPE" enabled with value == Serial. Fo
 **************************************************************
 
 ===== Example is started with 1 threads =====
-G4PhysListFactory::GetReferencePhysList <FTFP_BERT>  EMoption= 0
+G4PhysListFactory::GetReferencePhysList <FTFP_BERT>
 <<< Geant4 Physics List simulation engine: FTFP_BERT
 
 
@@ -122,10 +122,11 @@ Lowest muon/hadron kinetic energy                  1 keV
 Use ICRU90 data                                    0
 Fluctuations of dE/dx are enabled                  1
 Type of fluctuation model for leptons and hadrons  Urban
-Use built-in Birks satuaration                     0
+Use built-in Birks saturation                      0
 Build CSDA range enabled                           0
 Use cut as a final range enabled                   0
 Enable angular generator interface                 0
+Enable parallel initialisation of physics tables   0
 Max kinetic energy for CSDA tables                 1 GeV
 Max kinetic energy for NIEL computation            0 eV 
 Linear loss limit                                  0.01
@@ -260,7 +261,7 @@ hBrems:  for proton  XStype:1  SubType=3
 hPairProd:  for proton  XStype:1  SubType=4
       dE/dx and range tables from 100 eV  to 100 TeV in 84 bins
       Lambda tables from threshold to 100 TeV, 7 bins/decade, spline: 1
-      Sampling table 17x1001 from 7.50618 GeV to 100 TeV 
+      Sampling table 17x1001, from 7.50618 GeV to 100 TeV 
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
            hPairProd : Emin=    0 eV  Emax=  100 TeV  ModifiedMephi
 
@@ -318,7 +319,7 @@ hBrems:  for anti_proton  XStype:1  SubType=3
 hPairProd:  for anti_proton  XStype:1  SubType=4
       dE/dx and range tables from 100 eV  to 100 TeV in 84 bins
       Lambda tables from threshold to 100 TeV, 7 bins/decade, spline: 1
-      Sampling table 17x1001 from 7.50618 GeV to 100 TeV 
+      Sampling table 17x1001, from 7.50618 GeV to 100 TeV 
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
            hPairProd : Emin=    0 eV  Emax=  100 TeV  ModifiedMephi
 
@@ -350,7 +351,7 @@ hBrems:  for kaon+  XStype:1  SubType=3
 hPairProd:  for kaon+  XStype:1  SubType=4
       dE/dx and range tables from 100 eV  to 100 TeV in 84 bins
       Lambda tables from threshold to 100 TeV, 7 bins/decade, spline: 1
-      Sampling table 18x1001 from 3.94942 GeV to 100 TeV 
+      Sampling table 18x1001, from 3.94942 GeV to 100 TeV 
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
            hPairProd : Emin=    0 eV  Emax=  100 TeV  ModifiedMephi
 
@@ -382,7 +383,7 @@ hBrems:  for kaon-  XStype:1  SubType=3
 hPairProd:  for kaon-  XStype:1  SubType=4
       dE/dx and range tables from 100 eV  to 100 TeV in 84 bins
       Lambda tables from threshold to 100 TeV, 7 bins/decade, spline: 1
-      Sampling table 18x1001 from 3.94942 GeV to 100 TeV 
+      Sampling table 18x1001, from 3.94942 GeV to 100 TeV 
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
            hPairProd : Emin=    0 eV  Emax=  100 TeV  ModifiedMephi
 
@@ -414,7 +415,7 @@ muBrems:  for mu+  XStype:1  SubType=3
 muPairProd:  for mu+  XStype:1  SubType=4
       dE/dx and range tables from 100 eV  to 100 TeV in 84 bins
       Lambda tables from threshold to 100 TeV, 7 bins/decade, spline: 1
-      Sampling table 21x1001 from 0.85 GeV to 100 TeV 
+      Sampling table 21x1001, from 0.85 GeV to 100 TeV 
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
           muPairProd : Emin=    0 eV  Emax=  100 TeV  ModifiedMephi
 
@@ -446,7 +447,7 @@ muBrems:  for mu-  XStype:1  SubType=3
 muPairProd:  for mu-  XStype:1  SubType=4
       dE/dx and range tables from 100 eV  to 100 TeV in 84 bins
       Lambda tables from threshold to 100 TeV, 7 bins/decade, spline: 1
-      Sampling table 21x1001 from 0.85 GeV to 100 TeV 
+      Sampling table 21x1001, from 0.85 GeV to 100 TeV 
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
           muPairProd : Emin=    0 eV  Emax=  100 TeV  ModifiedMephi
 
@@ -478,7 +479,7 @@ hBrems:  for pi+  XStype:1  SubType=3
 hPairProd:  for pi+  XStype:1  SubType=4
       dE/dx and range tables from 100 eV  to 100 TeV in 84 bins
       Lambda tables from threshold to 100 TeV, 7 bins/decade, spline: 1
-      Sampling table 20x1001 from 1.11656 GeV to 100 TeV 
+      Sampling table 20x1001, from 1.11656 GeV to 100 TeV 
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
            hPairProd : Emin=    0 eV  Emax=  100 TeV  ModifiedMephi
 
@@ -510,7 +511,7 @@ hBrems:  for pi-  XStype:1  SubType=3
 hPairProd:  for pi-  XStype:1  SubType=4
       dE/dx and range tables from 100 eV  to 100 TeV in 84 bins
       Lambda tables from threshold to 100 TeV, 7 bins/decade, spline: 1
-      Sampling table 20x1001 from 1.11656 GeV to 100 TeV 
+      Sampling table 20x1001, from 1.11656 GeV to 100 TeV 
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
            hPairProd : Emin=    0 eV  Emax=  100 TeV  ModifiedMephi
 
@@ -765,8 +766,8 @@ CoulombScat:  for pi- XStype:1 SubType=1 BuildTable=1
 Type of pre-compound model                          0
 Type of pre-compound inverse x-section              1
 Pre-compound model active                           1
-Pre-compound excitation low energy                  100 keV
-Pre-compound excitation high energy                 30 MeV
+Pre-compound excitation low energy                  0.1 MeV 
+Pre-compound excitation high energy                 15 MeV 
 Angular generator for pre-compound model            1
 Use NeverGoBack option for pre-compound model       0
 Use SoftCutOff option for pre-compound model        0
@@ -780,9 +781,8 @@ Type of de-excitation inverse x-section             3
 Type of de-excitation factory                       Evaporation+GEM
 Number of de-excitation channels                    68
 Type of Fermi BreakUp model                         ModelVI
-Min excitation energy                               10 eV 
-Min energy per nucleon for multifragmentation       200 GeV
-Limit excitation energy for Fermi BreakUp           20 MeV
+Min excitation energy                               0.01 keV 
+Min energy per nucleon for multifragmentation       2e+05 MeV
 Level density (1/MeV)                               0.075
 Use simple level density model                      1
 Use discrete excitation energy of the residual      0
@@ -912,33 +912,33 @@ Index : 1     used in the geometry : Yes
 70.    1e+04    0.34   0.426  1.1e+03  1.1e+03    0.0415         0
 71. 1.26e+04   0.342   0.435 1.14e+03 1.14e+03    0.0417         0
 72. 1.58e+04   0.344   0.445 1.18e+03 1.18e+03    0.0418         0
-73.    2e+04   0.346   0.454 1.22e+03 1.22e+03    0.0419      8.76
-74. 2.51e+04   0.348   0.464 1.24e+03 1.26e+03     0.042      50.9
-75. 3.16e+04   0.349   0.473 1.25e+03  1.3e+03     0.042      84.2
-76. 3.98e+04   0.351   0.483 1.28e+03 1.35e+03    0.0421       112
-77. 5.01e+04   0.352   0.492  1.3e+03 1.39e+03    0.0421       132
-78. 6.31e+04   0.353   0.501 1.32e+03 1.43e+03    0.0421       148
-79. 7.94e+04   0.353    0.51 1.34e+03 1.48e+03    0.0421       161
-80.    1e+05   0.354    0.52 1.36e+03 1.52e+03    0.0421       170
-81. 1.26e+05   0.355   0.529 1.38e+03 1.57e+03    0.0421       178
-82. 1.58e+05   0.355   0.538  1.4e+03 1.62e+03    0.0421       183
-83.    2e+05   0.355   0.548 1.41e+03 1.66e+03    0.0421       187
-84. 2.51e+05   0.355   0.558 1.43e+03 1.71e+03    0.0421       191
-85. 3.16e+05   0.356   0.569 1.44e+03 1.75e+03    0.0421       193
-86. 3.98e+05   0.356   0.581 1.45e+03 1.79e+03    0.0421       194
-87. 5.01e+05   0.356   0.594 1.45e+03 1.83e+03    0.0421       195
-88. 6.31e+05   0.356   0.609 1.46e+03 1.86e+03    0.0421       196
-89. 7.94e+05   0.356   0.626 1.46e+03  1.9e+03    0.0421       197
-90.    1e+06   0.356   0.646 1.45e+03 1.93e+03    0.0421       197
-91. 1.26e+06   0.356   0.669 1.44e+03 1.95e+03    0.0421       197
-92. 1.58e+06   0.356   0.698 1.43e+03 1.98e+03    0.0421       197
-93.    2e+06   0.356   0.733 1.42e+03    2e+03    0.0421       198
-94. 2.51e+06   0.356   0.774  1.4e+03 2.02e+03    0.0421       198
-95. 3.16e+06   0.356   0.825 1.38e+03 2.04e+03    0.0421       198
-96. 3.98e+06   0.356    0.89 1.36e+03 2.05e+03    0.0421       198
-97. 5.01e+06   0.356   0.971 1.33e+03 2.06e+03    0.0421       198
-98. 6.31e+06   0.356    1.07  1.3e+03 2.07e+03    0.0421       198
-99. 7.94e+06   0.356    1.21 1.27e+03 2.08e+03    0.0421       198
+73.    2e+04   0.346   0.454 1.22e+03 1.22e+03    0.0419         0
+74. 2.51e+04   0.348   0.464 1.24e+03 1.26e+03     0.042         0
+75. 3.16e+04   0.349   0.473 1.25e+03  1.3e+03     0.042         0
+76. 3.98e+04   0.351   0.483 1.28e+03 1.35e+03    0.0421         0
+77. 5.01e+04   0.352   0.492  1.3e+03 1.39e+03    0.0421         0
+78. 6.31e+04   0.353   0.501 1.32e+03 1.43e+03    0.0421         0
+79. 7.94e+04   0.353    0.51 1.34e+03 1.48e+03    0.0421         0
+80.    1e+05   0.354    0.52 1.36e+03 1.52e+03    0.0421         0
+81. 1.26e+05   0.355   0.529 1.38e+03 1.57e+03    0.0421         0
+82. 1.58e+05   0.355   0.538  1.4e+03 1.62e+03    0.0421         0
+83.    2e+05   0.355   0.548 1.41e+03 1.66e+03    0.0421         0
+84. 2.51e+05   0.355   0.558 1.43e+03 1.71e+03    0.0421         0
+85. 3.16e+05   0.356   0.569 1.44e+03 1.75e+03    0.0421         0
+86. 3.98e+05   0.356   0.581 1.45e+03 1.79e+03    0.0421         0
+87. 5.01e+05   0.356   0.594 1.45e+03 1.83e+03    0.0421         0
+88. 6.31e+05   0.356   0.609 1.46e+03 1.86e+03    0.0421         0
+89. 7.94e+05   0.356   0.626 1.46e+03  1.9e+03    0.0421         0
+90.    1e+06   0.356   0.646 1.45e+03 1.93e+03    0.0421         0
+91. 1.26e+06   0.356   0.669 1.44e+03 1.95e+03    0.0421         0
+92. 1.58e+06   0.356   0.698 1.43e+03 1.98e+03    0.0421         0
+93.    2e+06   0.356   0.733 1.42e+03    2e+03    0.0421         0
+94. 2.51e+06   0.356   0.774  1.4e+03 2.02e+03    0.0421         0
+95. 3.16e+06   0.356   0.825 1.38e+03 2.04e+03    0.0421         0
+96. 3.98e+06   0.356    0.89 1.36e+03 2.05e+03    0.0421         0
+97. 5.01e+06   0.356   0.971 1.33e+03 2.06e+03    0.0421         0
+98. 6.31e+06   0.356    1.07  1.3e+03 2.07e+03    0.0421         0
+99. 7.94e+06   0.356    1.21 1.27e+03 2.08e+03    0.0421         0
 ##################################################################
 
 -------- WWWW ------- G4Exception-START -------- WWWW -------

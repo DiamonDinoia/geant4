@@ -23,7 +23,7 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-// GEANT4 geomtetry/solid types
+// GEANT4 geometry/solid types
 //
 // --------------------------------------------------------------------
 #ifndef G4GEOMTYPES_HH
@@ -31,7 +31,7 @@
 
 // Fundamental definitions
 #ifndef G4GMAKE
-#include "G4GeomConfig.hh"
+#  include "G4GeomConfig.hh"
 #endif
 
-#endif /* G4GEOMTYPES_HH */
+#endif

@@ -30,87 +30,103 @@
 // This class serves to address the "cell" a track previously touched
 // and a "cell" a track is currently in. It is used for scoring and
 // importance sampling in the "mass" geometry as well as in a "parallel"
-// geometry. 
-// The "cell" information is available with the GetPreGeometryCell() and 
+// geometry.
+// The "cell" information is available with the GetPreGeometryCell() and
 // the GetPostGeometryCell() functions.
 // The GetCrossBoundary() function returns true in case the step
-// crosses a boundary in the geometry this G4GeometryCellStep 
+// crosses a boundary in the geometry this G4GeometryCellStep
 // refers to.
 
 // Author: Michael Dressel (CERN), 2002
 // ----------------------------------------------------------------------
 #ifndef G4GEOMETRYCELLSTEP_HH
-#define G4GEOMETRYCELLSTEP_HH 1
+#define G4GEOMETRYCELLSTEP_HH
 
 #include "G4GeometryCell.hh"
 
+/**
+ * @brief G4GeometryCellStep serves to address the "cell" a track previously
+ * touched and a "cell" a track is currently in.
+ * @ingroup geometry_biasing
+ *
+ * It is used for scoring and importance sampling in the "mass" geometry as well
+ * as in a "parallel" geometry.
+ */
+
 class G4GeometryCellStep
 {
-  public: // with description
+  public:
 
-    G4GeometryCellStep(const G4GeometryCell& preCell, 
-                       const G4GeometryCell& postCell);
-      // initialise pre and post G4GeometryCell 
+    /**
+     * Constructor. Initialises pre and post G4GeometryCell.
+     *  @param[in] preCell The previous cell.
+     *  @param[in] postCell The next cell.
+     */
+    G4GeometryCellStep(const G4GeometryCell& preCell, const G4GeometryCell& postCell);
 
-   ~G4GeometryCellStep();
+    /**
+     * Default Destructor.
+     */
+    ~G4GeometryCellStep() = default;
 
-    inline const G4GeometryCell& GetPreGeometryCell() const; 
-      // addressing the  "cell" the track previously touched 
+    /**
+     * Returns the "cell" the track previously touched.
+     */
+    inline const G4GeometryCell& GetPreGeometryCell() const;
 
-    inline const G4GeometryCell& GetPostGeometryCell() const; 
-      // addressing the current "cell"  
+    /**
+     * Returns the current "cell".
+     */
+    inline const G4GeometryCell& GetPostGeometryCell() const;
 
-    inline G4bool GetCrossBoundary() const; 
-      // returns true if step crosses boundary of the geometry it refers to
+    /**
+     * Returns true if the step crosses boundary of the geometry it refers to.
+     */
+    inline G4bool GetCrossBoundary() const;
 
-    // the following functions are used by the scoring and importance
-    // system to set the cell information.
-    //
-    inline void SetPreGeometryCell(const G4GeometryCell& preCell); 
+    /**
+     * Functions used by the scoring and importance system to set the cell
+     * information.
+     */
+    inline void SetPreGeometryCell(const G4GeometryCell& preCell);
     inline void SetPostGeometryCell(const G4GeometryCell& postCell);
     inline void SetCrossBoundary(G4bool b);
 
   private:
 
     G4GeometryCell fPreGeometryCell;
-    G4GeometryCell fPostGeometryCell;  
+    G4GeometryCell fPostGeometryCell;
     G4bool fCrossBoundary = false;
 };
 
 // Inline methods
 
-inline void
-G4GeometryCellStep::SetPreGeometryCell(const G4GeometryCell& preCell) 
+inline void G4GeometryCellStep::SetPreGeometryCell(const G4GeometryCell& preCell)
 {
   fPreGeometryCell = preCell;
 }
 
-inline void
-G4GeometryCellStep::SetPostGeometryCell(const G4GeometryCell& postCell)  
+inline void G4GeometryCellStep::SetPostGeometryCell(const G4GeometryCell& postCell)
 {
   fPostGeometryCell = postCell;
 }
-  
-inline void
-G4GeometryCellStep::SetCrossBoundary(G4bool b) 
+
+inline void G4GeometryCellStep::SetCrossBoundary(G4bool b)
 {
   fCrossBoundary = b;
 }
 
-inline const G4GeometryCell&
-G4GeometryCellStep::GetPreGeometryCell() const 
+inline const G4GeometryCell& G4GeometryCellStep::GetPreGeometryCell() const
 {
   return fPreGeometryCell;
 }
 
-inline const G4GeometryCell&
-G4GeometryCellStep::GetPostGeometryCell() const 
+inline const G4GeometryCell& G4GeometryCellStep::GetPostGeometryCell() const
 {
   return fPostGeometryCell;
 }
-  
-inline G4bool
-G4GeometryCellStep::GetCrossBoundary() const 
+
+inline G4bool G4GeometryCellStep::GetCrossBoundary() const
 {
   return fCrossBoundary;
 }

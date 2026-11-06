@@ -23,85 +23,68 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-// Structs used by G4QSStepper
-//
-// Author: Mattias Portnoy (Univ. Buenos Aires) - 2024
+// Structs used by G4QSStepper.
+
+// Author: Mattias Portnoy (Univ. Buenos Aires), 2024
 // --------------------------------------------------------------------
 #ifndef G4QSS_SUBSTEPSTRUCT_HH
-#define G4QSS_SUBSTEPSTRUCT_HH 1
+#define G4QSS_SUBSTEPSTRUCT_HH
 
 #include "G4FieldTrack.hh"
 #include "G4MagIntegratorStepper.hh"
 #include "G4qss_misc.hh"
 
-#include <map>
 #include <cmath>
+#include <map>
 
-constexpr G4int MAX_QSS_ORDER=3;
+constexpr G4int MAX_QSS_ORDER = 3;
+constexpr G4int NUMBER_OF_VARIABLES_QSS = 6;
+
 typedef G4double QSStateVector[6];
+
+/**
+ * @brief Structs used by G4QSStepper.
+ * @ingroup geometry_magneticfield
+ */
 
 struct Substep
 {
-  QSStateVector state_x[MAX_QSS_ORDER+1];
-  QSStateVector state_q[MAX_QSS_ORDER];
-  QSStateVector state_tx;
-  QSStateVector state_tq;
-  QSStateVector sync_t;
-  G4double t;
-  // simple id method so that substeps can have different orders in same step
-  G4int extrapolation_method;
-  G4double b_field[3];
+    QSStateVector state_x[MAX_QSS_ORDER + 1];
+    QSStateVector state_q[MAX_QSS_ORDER];
+    QSStateVector state_tx;
+    QSStateVector state_tq;
+    QSStateVector sync_t;
+    G4double t{0.0};
+    // simple id method so that substeps can have different orders in same step
+    G4int extrapolation_method = 0;  // To be overwritten in run (expect: 1,2 or 3)
+    G4double b_field[3] = {0.0, 0.0, 0.0};
+
+    inline Substep();
 };
+
+// --------------------------------------------------------------------------------
 
 struct Substeps
 {
-  G4int _arrlength = 30;
-  Substep* _substeps = static_cast<Substep *>(malloc((_arrlength) * sizeof(Substep)));
-  G4int current_substep_index = -1;
+    G4int _arrlength = 30;
+    Substep* _substeps = nullptr;
+    G4int current_substep_index = -1;
 
-  // Mimics the functionality of GNU method reallocarray 
-  void* safe_reallocarray(void* ptr, size_t numMembers, size_t size)
-  {
-    if (size != 0 && numMembers > std::numeric_limits<size_t>::max() / size)
-    {
-      return nullptr;
-    }
-    return realloc(ptr, numMembers * size);
-  }
-   
-  inline void resize()
-  {
-    _arrlength = fmax(_arrlength*2, 1500);
-    _substeps = static_cast<Substep *>(safe_reallocarray(_substeps, _arrlength, sizeof(Substep)));
-    if( _substeps == nullptr )
-    { 
-       G4ExceptionDescription ermsg;
-       ermsg << "QSS2: Size of state exceed available memory : number of elemets = " << _arrlength
-             << " size of each element= " << sizeof(Substep) << G4endl;
-       G4Exception( "G4QSSubstepStruct::resize", "GeomField0008", FatalException, ermsg ); 
-    }
-  }
+    Substeps();
+    ~Substeps();
 
-  inline Substep* create_susbtep()
-  {
-    current_substep_index++;
+    /** Mimics the functionality of GNU method reallocarray. */
+    void* safe_reallocarray(void* ptr, size_t numMembers, size_t size);
 
-    if (unlikely( current_substep_index >= _arrlength ))
-    {
-      resize();
-    }
-    return &(_substeps[current_substep_index]);
-  }
-  inline void save_substep(Substep* substep)
-  {
-    memcpy(create_susbtep(), substep, sizeof(Substep));
-  }
+    inline void resize();
 
-  inline void reset()
-  {
-    current_substep_index = -1;
-  }
+    inline Substep* create_substep();
 
+    inline void save_substep(Substep* substep);
+
+    inline void reset();
 };
+
+#include "G4QSSubstepStruct.icc"
 
 #endif

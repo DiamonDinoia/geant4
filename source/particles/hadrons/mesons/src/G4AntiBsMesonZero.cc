@@ -31,6 +31,8 @@
 //  - New impelemenataion as an utility class   M.Asai, 26 July 2004
 //  - Updated mass, width, and lifetime
 //    following PDG 2023                        S.Okada, 5 November 2023
+//  - Updated mass, width, and lifetime
+//    following PDG 2025                        S.Okada, 4 November 2025
 // ----------------------------------------------------------------------
 
 #include "G4AntiBsMesonZero.hh"
@@ -48,7 +50,8 @@ G4AntiBsMesonZero* G4AntiBsMesonZero::Definition()
   // search in particle table]
   G4ParticleTable* pTable = G4ParticleTable::GetParticleTable();
   G4ParticleDefinition* anInstance = pTable->FindParticle(name);
-  if (anInstance == nullptr) {
+  if (anInstance == nullptr)
+  {
     // create particle
     //
     //    Arguments for constructor are as follows
@@ -61,11 +64,11 @@ G4AntiBsMesonZero* G4AntiBsMesonZero::Definition()
 
     // clang-format off
    anInstance = new G4ParticleDefinition(
-                 name,     5.36692*GeV, 4.327e-10*MeV,          0.,
+                 name,     5.36693*GeV, 4.342e-10*MeV,          0.,
                     0,              -1,             0,
                     0,               0,             0,
               "meson",               0,             0,        -531,
-                false,     1.521e-3*ns,       nullptr,
+                false,     1.516e-3*ns,       nullptr,
                 false,       "Bs");
     // clang-format on
   }

@@ -25,79 +25,87 @@
 //
 // G4SolidExtentList implementation; a list of (voxel) extents along one axis.
 //
-// Author: David C. Williams (davidw@scipp.ucsc.edu)
+// Author: David C. Williams (UCSC), 1998
 // --------------------------------------------------------------------
 
 #include "G4SolidExtentList.hh"
-#include "G4VoxelLimits.hh"
+
 #include "G4GeometryTolerance.hh"
+#include "G4VoxelLimits.hh"
 
 // Constructor (default)
 //
-G4SolidExtentList::G4SolidExtentList() 
+G4SolidExtentList::G4SolidExtentList()
 {
   axis = kZAxis;
-  minLimit = -INT_MAX/2;
-  maxLimit =  INT_MAX/2;
+  minLimit = -INT_MAX / 2;
+  maxLimit = INT_MAX / 2;
 }
 
 // Constructor (limited case)
 //
-G4SolidExtentList::G4SolidExtentList( const EAxis targetAxis,
-                                      const G4VoxelLimits &voxelLimits )
+G4SolidExtentList::G4SolidExtentList(const EAxis targetAxis, const G4VoxelLimits& voxelLimits)
 {
   axis = targetAxis;
-  
-  limited = voxelLimits.IsLimited( axis );
+
+  limited = voxelLimits.IsLimited(axis);
   if (limited)
   {
-    minLimit = voxelLimits.GetMinExtent( axis );
-    maxLimit = voxelLimits.GetMaxExtent( axis );
+    minLimit = voxelLimits.GetMinExtent(axis);
+    maxLimit = voxelLimits.GetMaxExtent(axis);
   }
   else
   {
-    minLimit = -INT_MAX/2;
-    maxLimit =  INT_MAX/2;
+    minLimit = -INT_MAX / 2;
+    maxLimit = INT_MAX / 2;
   }
 }
-
-// Destructor
-//
-G4SolidExtentList::~G4SolidExtentList() = default;
 
 // AddSurface
 //
 //
-void G4SolidExtentList::AddSurface( const G4ClippablePolygon& surface )
+void G4SolidExtentList::AddSurface(const G4ClippablePolygon& surface)
 {
   //
   // Keep track of four surfaces
   //
-  G4double smin=.0, smax=0.;
-  
-  surface.GetExtent( axis, smin, smax );
-  
+  G4double smin = .0, smax = 0.;
+
+  surface.GetExtent(axis, smin, smax);
+
   if (smin > maxLimit)
   {
     //
     // Nearest surface beyond maximum limit
     //
-    if (surface.InFrontOf(minAbove,axis)) minAbove = surface;
+    if (surface.InFrontOf(minAbove, axis))
+    {
+      minAbove = surface;
+    }
   }
   else if (smax < minLimit)
   {
     //
     // Nearest surface below minimum limit
     //
-    if (surface.BehindOf(maxBelow,axis)) maxBelow = surface;
+    if (surface.BehindOf(maxBelow, axis))
+    {
+      maxBelow = surface;
+    }
   }
   else
   {
     //
     // Max and min surfaces inside
     //
-    if (surface.BehindOf(maxSurface,axis)) maxSurface = surface;
-    if (surface.InFrontOf(minSurface,axis)) minSurface = surface;
+    if (surface.BehindOf(maxSurface, axis))
+    {
+      maxSurface = surface;
+    }
+    if (surface.InFrontOf(minSurface, axis))
+    {
+      minSurface = surface;
+    }
   }
 }
 
@@ -105,10 +113,9 @@ void G4SolidExtentList::AddSurface( const G4ClippablePolygon& surface )
 //
 // Return extent after processing all surfaces
 //
-G4bool G4SolidExtentList::GetExtent( G4double& emin, G4double& emax ) const
+G4bool G4SolidExtentList::GetExtent(G4double& emin, G4double& emax) const
 {
-  G4double kCarTolerance = G4GeometryTolerance::GetInstance()
-                           ->GetSurfaceTolerance();
+  G4double kCarTolerance = G4GeometryTolerance::GetInstance()->GetSurfaceTolerance();
   //
   // Did we have any surfaces within the limits?
   //
@@ -117,13 +124,19 @@ G4bool G4SolidExtentList::GetExtent( G4double& emin, G4double& emax ) const
     //
     // Nothing! Do we have anything above?
     //
-    if (minAbove.Empty()) return false;
-    
+    if (minAbove.Empty())
+    {
+      return false;
+    }
+
     //
     // Yup. Is it facing inwards?
     //
-    if (minAbove.GetNormal().operator()(axis) < 0) return false;
-    
+    if (minAbove.GetNormal().operator()(axis) < 0)
+    {
+      return false;
+    }
+
     //
     // No. We must be entirely within the solid
     //
@@ -131,7 +144,7 @@ G4bool G4SolidExtentList::GetExtent( G4double& emin, G4double& emax ) const
     emin = minLimit - kCarTolerance;
     return true;
   }
-  
+
   //
   // Check max surface
   //
@@ -144,11 +157,11 @@ G4bool G4SolidExtentList::GetExtent( G4double& emin, G4double& emax ) const
   }
   else
   {
-    G4double sMin=0., sMax=0.;
-    maxSurface.GetExtent( axis, sMin, sMax );
-    emax = ( (sMax > maxLimit) ? maxLimit : sMax ) + kCarTolerance;
+    G4double sMin = 0., sMax = 0.;
+    maxSurface.GetExtent(axis, sMin, sMax);
+    emax = ((sMax > maxLimit) ? maxLimit : sMax) + kCarTolerance;
   }
-  
+
   //
   // Check min surface
   //
@@ -161,11 +174,10 @@ G4bool G4SolidExtentList::GetExtent( G4double& emin, G4double& emax ) const
   }
   else
   {
-    G4double sMin=0., sMax=0.;
-    minSurface.GetExtent( axis, sMin, sMax );
-    emin = ( (sMin < minLimit) ? minLimit : sMin ) - kCarTolerance;
+    G4double sMin = 0., sMax = 0.;
+    minSurface.GetExtent(axis, sMin, sMax);
+    emin = ((sMin < minLimit) ? minLimit : sMin) - kCarTolerance;
   }
-  
+
   return true;
 }
-

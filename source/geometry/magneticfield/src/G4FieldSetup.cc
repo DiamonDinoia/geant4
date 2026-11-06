@@ -22,22 +22,13 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-
-/// \file G4FieldSetup.cxx
-/// \brief Implementation of the G4FieldSetup class
-///
-/// This code was initially developed in Geant4 VMC package
-/// (https://github.com/vmc-project)
-/// and adapted to Geant4.
-///
-/// \author I. Hrivnacova; IJCLab, Orsay
+//
+// Implementation of the G4FieldSetup class
+//
+// Author: Ivana Hrivnacova (IJClab, Orsay), 2024.
+// --------------------------------------------------------------------
 
 #include "G4FieldSetup.hh"
-#include "G4FieldSetupMessenger.hh"
-
-#include "G4Exception.hh"
-#include "G4LogicalVolume.hh"
-#include "G4SystemOfUnits.hh"
 
 #include "G4BogackiShampine23.hh"
 #include "G4BogackiShampine45.hh"
@@ -46,6 +37,7 @@
 #include "G4ChordFinder.hh"
 #include "G4ClassicalRK4.hh"
 #include "G4ConstRK4.hh"
+#include "G4DoLoMcPriRK34.hh"
 #include "G4DormandPrince745.hh"
 #include "G4DormandPrinceRK56.hh"
 #include "G4DormandPrinceRK78.hh"
@@ -54,22 +46,25 @@
 #include "G4EqEMFieldWithSpin.hh"
 #include "G4EqMagElectricField.hh"
 #include "G4ExactHelixStepper.hh"
+#include "G4Exception.hh"
 #include "G4ExplicitEuler.hh"
 #include "G4FSALIntegrationDriver.hh"
 #include "G4FieldManager.hh"
+#include "G4FieldSetupMessenger.hh"
 #include "G4HelixExplicitEuler.hh"
 #include "G4HelixHeum.hh"
 #include "G4HelixImplicitEuler.hh"
 #include "G4HelixMixedStepper.hh"
 #include "G4HelixSimpleRunge.hh"
 #include "G4ImplicitEuler.hh"
-#include "G4MagneticField.hh"
+#include "G4LogicalVolume.hh"
 #include "G4MagErrorStepper.hh"
 #include "G4MagHelicalStepper.hh"
 #include "G4MagIntegratorDriver.hh"
 #include "G4Mag_EqRhs.hh"
 #include "G4Mag_SpinEqRhs.hh"
 #include "G4Mag_UsualEqRhs.hh"
+#include "G4MagneticField.hh"
 #include "G4NystromRK4.hh"
 #include "G4RK547FEq1.hh"
 #include "G4RK547FEq2.hh"
@@ -77,13 +72,12 @@
 #include "G4RKG3_Stepper.hh"
 #include "G4SimpleHeum.hh"
 #include "G4SimpleRunge.hh"
+#include "G4SystemOfUnits.hh"
 #include "G4TsitourasRK45.hh"
 #include "G4VIntegrationDriver.hh"
 
-
 //_____________________________________________________________________________
-G4FieldSetup::G4FieldSetup(const G4FieldParameters& parameters,
-  G4Field* field, G4LogicalVolume* lv)
+G4FieldSetup::G4FieldSetup(const G4FieldParameters& parameters, G4Field* field, G4LogicalVolume* lv)
   : fParameters(parameters), fG4Field(field), fLogicalVolume(lv)
 {
   // Standard constructor
@@ -91,15 +85,17 @@ G4FieldSetup::G4FieldSetup(const G4FieldParameters& parameters,
   fMessenger = new G4FieldSetupMessenger(this);
 
   // Get or create field manager
-  if (fLogicalVolume == nullptr) {
+  if (fLogicalVolume == nullptr)
+  {
     // global field
     fFieldManager = G4FieldManager::GetGlobalFieldManager();
   }
-  else {
+  else
+  {
     // local field
     fFieldManager = new G4FieldManager();
     G4bool overwriteDaughtersField = true;
-      // TO DO: this parameter should be made optional for users
+    // TO DO: this parameter should be made optional for users
     fLogicalVolume->SetFieldManager(fFieldManager, overwriteDaughtersField);
   }
 }
@@ -118,19 +114,19 @@ G4FieldSetup::~G4FieldSetup()
 //
 
 //_____________________________________________________________________________
-G4Field* G4FieldSetup::CreateCachedField(
-    const G4FieldParameters& parameters, G4Field* field)
+G4Field* G4FieldSetup::CreateCachedField(const G4FieldParameters& parameters, G4Field* field)
 {
-// Create cached magnetic field if const distance is set > 0.
-// and field is of G4MagneticField.
-// Return the input field otherwise.
+  // Create cached magnetic field if const distance is set > 0.
+  // and field is of G4MagneticField.
+  // Return the input field otherwise.
 
-  if (parameters.GetConstDistance() > 0.) {
+  if (parameters.GetConstDistance() > 0.)
+  {
     auto magField = dynamic_cast<G4MagneticField*>(field);
-    if (magField == nullptr) {
-      G4Exception(
-        "G4FieldSetup::CreateCachedField:", "GeomFieldParameters0001",
-        JustWarning, "Incompatible field type.");
+    if (magField == nullptr)
+    {
+      G4Exception("G4FieldSetup::CreateCachedField:", "GeomFieldParameters0001", JustWarning,
+                  "Incompatible field type.");
       return field;
     }
     return new G4CachedMagneticField(magField, parameters.GetConstDistance());
@@ -146,32 +142,35 @@ G4EquationOfMotion* G4FieldSetup::CreateEquation(G4EquationType equation)
 
   // magnetic fields
   G4MagneticField* magField = nullptr;
-  if (equation == kEqMagnetic || equation == kEqMagneticWithSpin) {
+  if (equation == kEqMagnetic || equation == kEqMagneticWithSpin)
+  {
     magField = dynamic_cast<G4MagneticField*>(fG4Field);
-    if (magField == nullptr) {
-      G4Exception(
-        "G4FieldSetup::CreateEquation:", "GeomFieldParameters0001",
-        FatalErrorInArgument, "Incompatible field and equation.\n"
-        "The field type must be set explicitly for other than magnetic field.");
+    if (magField == nullptr)
+    {
+      G4Exception("G4FieldSetup::CreateEquation:", "GeomFieldParameters0001", FatalErrorInArgument,
+                  "Incompatible field and equation.\n"
+                  "The field type must be set explicitly for other than magnetic field.");
       return nullptr;
     }
   }
 
   // electromagnetic fields
   G4ElectroMagneticField* elMagField = nullptr;
-  if (equation >= kEqElectroMagnetic && equation <= kEqEMfieldWithEDM) {
+  if (equation >= kEqElectroMagnetic && equation <= kEqEMfieldWithEDM)
+  {
     elMagField = dynamic_cast<G4ElectroMagneticField*>(fG4Field);
-    if (elMagField == nullptr) {
-      G4Exception(
-        "G4FieldSetup::CreateEquation:", "GeomFieldParameters0001",
-        FatalErrorInArgument, "Incompatible field and equation.\n"
-        "The field type must be set explicitly for other than magnetic field.");
+    if (elMagField == nullptr)
+    {
+      G4Exception("G4FieldSetup::CreateEquation:", "GeomFieldParameters0001", FatalErrorInArgument,
+                  "Incompatible field and equation.\n"
+                  "The field type must be set explicitly for other than magnetic field.");
       return nullptr;
     }
   }
 
   // electromagnetic fields
-  switch (equation) {
+  switch (equation)
+  {
     case kEqMagnetic:
       return new G4Mag_UsualEqRhs(magField);
       break;
@@ -191,35 +190,45 @@ G4EquationOfMotion* G4FieldSetup::CreateEquation(G4EquationType equation)
     case kEqEMfieldWithEDM:
       return new G4EqEMFieldWithEDM(elMagField);
       break;
+
+    // other fields
+    case kEqGravity:
+    case kEqMonopole:
+    case kEqReplate:
+      G4Exception(
+        "G4FieldSetup::CreateEquation:", "GeomFieldParameters0001", FatalErrorInArgument,
+        "Limitation: Equation not supported in G4FieldBuilder.\n"
+        "Only magnetic and electromagnetic field can be constructed with G4FieldBuilder.");
+      return nullptr;
+      break;
     case kUserEquation:
       // nothing to be done
       return nullptr;
       break;
   }
 
-  G4Exception(
-    "G4FieldSetup::CreateEquation:", "GeomFieldParameters0001",
-    FatalErrorInArgument, "Unknown equation type.");
+  G4Exception("G4FieldSetup::CreateEquation:", "GeomFieldParameters0001", FatalErrorInArgument,
+              "Unknown equation type.");
   return nullptr;
 }
 
 //_____________________________________________________________________________
-G4MagIntegratorStepper* G4FieldSetup::CreateStepper(
-  G4EquationOfMotion* equation, G4StepperType stepper)
+G4MagIntegratorStepper* G4FieldSetup::CreateStepper(G4EquationOfMotion* equation,
+                                                    G4StepperType stepper)
 {
   // Set the integrator of particle's equation of motion
 
   // Check steppers which require equation of motion of G4Mag_EqRhs type
   auto eqRhs = dynamic_cast<G4Mag_EqRhs*>(equation);
-  if ((eqRhs == nullptr) && (stepper > kTsitourasRK45)) {
-    G4Exception(
-      "G4FieldSetup::CreateStepper:", "GeomFieldParameters0001",
-      FatalErrorInArgument, 
-      "The stepper type requires equation of motion of G4Mag_EqRhs type.");
+  if ((eqRhs == nullptr) && (stepper > kTsitourasRK45))
+  {
+    G4Exception("G4FieldSetup::CreateStepper:", "GeomFieldParameters0001", FatalErrorInArgument,
+                "The stepper type requires equation of motion of G4Mag_EqRhs type.");
     return nullptr;
   }
 
-  switch (stepper) {
+  switch (stepper)
+  {
     case kBogackiShampine23:
       return new G4BogackiShampine23(equation);
       break;
@@ -234,6 +243,10 @@ G4MagIntegratorStepper* G4FieldSetup::CreateStepper(
 
     case kClassicalRK4:
       return new G4ClassicalRK4(equation);
+      break;
+
+    case kDoLoMcPriRK34:
+      return new G4DoLoMcPriRK34(equation);
       break;
 
     case kDormandPrince745:
@@ -307,37 +320,45 @@ G4MagIntegratorStepper* G4FieldSetup::CreateStepper(
       // nothing to be done
       return nullptr;
       break;
+
+    // templated steppers
+    case kTCashKarpRKF45:
+    case kTDormandPrince45:
+    case kTMagErrorStepper:
+    case kQSStepper:
+      G4Exception("G4FieldSetup::CreateStepper:", "GeomFieldParameters0001", FatalErrorInArgument,
+                  "Limitation: Templated steppers not supported in G4FieldBuilder");
+      return nullptr;
+      break;
+
     default:
-      G4Exception(
-        "G4FieldSetup::CreateStepper:", "GeomFieldParameters0001",
-        FatalErrorInArgument, "Incorrect stepper type.");
+      G4Exception("G4FieldSetup::CreateStepper:", "GeomFieldParameters0001", FatalErrorInArgument,
+                  "Incorrect stepper type.");
       return nullptr;
   }
 }
 
 //_____________________________________________________________________________
-G4VIntegrationDriver* G4FieldSetup::CreateFSALStepperAndDriver(
-  G4EquationOfMotion* equation, G4StepperType stepperType, G4double minStep)
+G4VIntegrationDriver* G4FieldSetup::CreateFSALStepperAndDriver(G4EquationOfMotion* equation,
+                                                               G4StepperType stepperType,
+                                                               G4double minStep)
 {
   // Set the FSAL integrator of particle's equation of motion
 
-  switch (stepperType) {
+  switch (stepperType)
+  {
     case kRK547FEq1:
-      return new G4FSALIntegrationDriver<G4RK547FEq1>(
-        minStep, new G4RK547FEq1(equation));
+      return new G4FSALIntegrationDriver<G4RK547FEq1>(minStep, new G4RK547FEq1(equation));
 
     case kRK547FEq2:
-      return new G4FSALIntegrationDriver<G4RK547FEq2>(
-        minStep, new G4RK547FEq2(equation));
+      return new G4FSALIntegrationDriver<G4RK547FEq2>(minStep, new G4RK547FEq2(equation));
 
     case kRK547FEq3:
-      return new G4FSALIntegrationDriver<G4RK547FEq3>(
-        minStep, new G4RK547FEq3(equation));
+      return new G4FSALIntegrationDriver<G4RK547FEq3>(minStep, new G4RK547FEq3(equation));
 
     default:
-      G4Exception(
-        "G4FieldSetup::CreateFSALStepperAndDriver", "GeomFieldParameters0001",
-        FatalErrorInArgument, "Incorrect stepper type.");
+      G4Exception("G4FieldSetup::CreateFSALStepperAndDriver", "GeomFieldParameters0001",
+                  FatalErrorInArgument, "Incorrect stepper type.");
       return nullptr;
   }
 }
@@ -353,44 +374,44 @@ void G4FieldSetup::CreateCachedField()
 void G4FieldSetup::CreateStepper()
 {
   // Create equation of motion (or get the user one if defined)
-  if (fParameters.GetEquationType() == kUserEquation) {
+  if (fParameters.GetEquationType() == kUserEquation)
+  {
     fEquation = fParameters.GetUserEquationOfMotion();
-    // G4cout << "user equation: " << fEquation << G4endl;
   }
-  else {
+  else
+  {
     delete fEquation;
     fEquation = nullptr;
     fEquation = CreateEquation(fParameters.GetEquationType());
-    // G4cout << "created equation: " << fEquation << G4endl;
   }
   fEquation->SetFieldObj(fG4Field);
 
   // Create stepper  (or get the user one if defined)
-  if (fParameters.GetStepperType() == kUserStepper) {
+  if (fParameters.GetStepperType() == kUserStepper)
+  {
     // User stepper
     fStepper = fParameters.GetUserStepper();
-    // G4cout << "user stepper: " << fStepper << G4endl;
   }
-  else if (fParameters.GetStepperType() >= kRK547FEq1) {
+  else if (fParameters.GetStepperType() >= kRK547FEq1)
+  {
     // FSAL stepper
     delete fDriver;
     delete fStepper;
     fDriver = nullptr;
     fStepper = nullptr;
-    fDriver = CreateFSALStepperAndDriver(
-      fEquation, fParameters.GetStepperType(), fParameters.GetMinimumStep());
-    // G4cout << "FSAL driver: " << fDriver << G4endl;
-    if (fDriver) {
+    fDriver = CreateFSALStepperAndDriver(fEquation, fParameters.GetStepperType(),
+                                         fParameters.GetMinimumStep());
+    if (fDriver != nullptr)
+    {
       fStepper = fDriver->GetStepper();
-    // G4cout << "FSAL stepper: " << fStepper << G4endl;
     }
   }
-  else {
+  else
+  {
     // Normal stepper
     delete fStepper;
     fStepper = nullptr;
     fStepper = CreateStepper(fEquation, fParameters.GetStepperType());
-    // G4cout << "stepper: " << fStepper << G4endl;
   }
 }
 
@@ -398,29 +419,28 @@ void G4FieldSetup::CreateStepper()
 void G4FieldSetup::CreateChordFinder()
 {
   // Chord finder
-  if (fParameters.GetFieldType() == kMagnetic) {
-    if (fDriver) {
+  if (fParameters.GetFieldType() == kMagnetic)
+  {
+    if (fDriver != nullptr)
+    {
       fChordFinder = new G4ChordFinder(fDriver);
-      // G4cout << "chord finder from existing driver: " << fDriver << G4endl;
     }
-    else {
+    else
+    {
       // Chord finder
       fChordFinder = new G4ChordFinder(static_cast<G4MagneticField*>(fG4Field),
-        fParameters.GetMinimumStep(), fStepper);
-      // G4cout << "chord finder from parameters: " << fChordFinder
-      //   << " minStep: " << fParameters.GetMinimumStep() << G4endl;
+                                       fParameters.GetMinimumStep(), fStepper);
     }
     fChordFinder->SetDeltaChord(fParameters.GetDeltaChord());
-    // G4cout << "set delta chord: " << fParameters.GetDeltaChord() << G4endl;
   }
-  else if (fParameters.GetFieldType() == kElectroMagnetic) {
-    G4MagInt_Driver* intDriver = new G4MagInt_Driver(
-      fParameters.GetMinimumStep(), fStepper, fStepper->GetNumberOfVariables());
-    // G4cout << "kElectroMagnetic: intDriver " << intDriver << G4endl;
-    if (intDriver) {
+  else if (fParameters.GetFieldType() == kElectroMagnetic)
+  {
+    auto intDriver =
+      new G4MagInt_Driver(fParameters.GetMinimumStep(), fStepper, fStepper->GetNumberOfVariables());
+    if (intDriver != nullptr)
+    {
       // Chord finder
       fChordFinder = new G4ChordFinder(intDriver);
-      // G4cout << "chord finder from intDriver " << fChordFinder << G4endl;
     }
   }
 }
@@ -431,11 +451,6 @@ void G4FieldSetup::UpdateFieldManager()
   fFieldManager->SetChordFinder(fChordFinder);
   fFieldManager->SetDetectorField(fG4Field);
 
-  // G4cout << "Go to set other parameters: "
-  //   <<  "minEpsilon: " << fParameters.GetMinimumEpsilonStep() << ", "
-  //   <<  "maxEpsilon: " << fParameters.GetMaximumEpsilonStep() << ", "
-  //   <<  "deltaOneStep: " << fParameters.GetDeltaOneStep() << ", "
-  //   <<  "deltaIntersection: " << fParameters.GetDeltaIntersection() << G4endl;
   fFieldManager->SetMinimumEpsilonStep(fParameters.GetMinimumEpsilonStep());
   fFieldManager->SetMaximumEpsilonStep(fParameters.GetMaximumEpsilonStep());
   fFieldManager->SetDeltaOneStep(fParameters.GetDeltaOneStep());
@@ -453,8 +468,8 @@ void G4FieldSetup::Clear()
   delete fChordFinder;
   fChordFinder = nullptr;
 
-  if (fG4Field == nullptr) {
-    // G4cout << "fG4Field == nullptr: go to clean-up " << G4endl;
+  if (fG4Field == nullptr)
+  {
     delete fEquation;
     delete fDriver;
     delete fStepper;
@@ -474,7 +489,8 @@ void G4FieldSetup::Update()
   // Update field with new field parameters
 
   Clear();
-  if (fG4Field == nullptr) {
+  if (fG4Field == nullptr)
+  {
     // No further update needed
     return;
   }
@@ -486,30 +502,35 @@ void G4FieldSetup::Update()
 }
 
 //_____________________________________________________________________________
-void G4FieldSetup::PrintInfo(G4int verboseLevel, const G4String about)
+void G4FieldSetup::PrintInfo(G4int verboseLevel, const G4String& about)
 {
-  if (verboseLevel == 0) return; 
+  if (verboseLevel == 0)
+  {
+    return;
+  }
 
   auto fieldType = G4FieldParameters::FieldTypeName(fParameters.GetFieldType());
   auto isCachedMagneticField = (fParameters.GetConstDistance() > 0.);
-  if (fLogicalVolume == nullptr) {
+  if (fLogicalVolume == nullptr)
+  {
     fieldType = "Global";
   }
-  else {
+  else
+  {
     fieldType = "Local (in ";
     fieldType.append(fLogicalVolume->GetName());
     fieldType.append(")");
   }
-  if (isCachedMagneticField) {
+  if (isCachedMagneticField)
+  {
     fieldType.append(" cached");
   }
 
   G4cout << fieldType << " field " << about << " with stepper ";
-  G4cout << G4FieldParameters::StepperTypeName(
-              fParameters.GetStepperType())
-         << G4endl;
+  G4cout << G4FieldParameters::StepperTypeName(fParameters.GetStepperType()) << G4endl;
 
-  if (verboseLevel > 1) {
+  if (verboseLevel > 1)
+  {
     fParameters.PrintParameters();
   }
 }

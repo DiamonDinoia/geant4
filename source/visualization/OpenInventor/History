@@ -6,6 +6,22 @@ It must **not** be used as a substitute for writing good git commit messages!
 
 -------------------------------------------------------------------------------
 
+## 2026-06-08 Ben Morgan (openinventor-V11-04-02)
+- Use standard Geant4 header guard without value for definition.
+
+## 2026-05-12 Gabriele Cosmo (openinventor-V11-04-01)
+- In G4OpenInventorQtExaminerViewer, fixed compilation warning on gcc-16.1
+  for variable set but not used in sortElements().
+
+## 2026-03-30 Gabriele Cosmo (openinventor-V11-04-00)
+- Fixed compilation warning on Windows/VC for SbBool/bool type comparison in
+  G4OpenInventorQtExaminerViewer.
+
+## 2025-10-01 John Allison (openinventor-V11-03-03)
+- G4OpenInventorViewer.cc:
+  - CompareForKernelVisit():
+    - Include dotsSize and dotsSmooth for decision on kernel visit.
+
 ## 2025-03-06 John Allison (openinventor-V11-03-02)
 - G4OpenInventorViewer:
   - Implement CompareForTransientsRedraw().

@@ -11,7 +11,7 @@ Environment variable "G4FORCE_RUN_MANAGER_TYPE" enabled with value == Serial. Fo
 
 
 **************************************************************
- Geant4 version Name: geant4-11-03-ref-06    (30-June-2025)
+ Geant4 version Name: geant4-11-04-ref-06    (30-June-2026)
                        Copyright : Geant4 Collaboration
                       References : NIM A 506 (2003), 250-303
                                  : IEEE-TNS 53 (2006), 270-278
@@ -27,7 +27,6 @@ You have successfully registered the following graphics systems.
 Registered graphics systems are:
   ASCIITree (ATree)
   DAWNFILE (DAWNFILE)
-  G4HepRepFile (HepRepFile)
   RayTracer (RT)
   VRML2FILE (VRML2FILE)
   gMocrenFile (gMocrenFile)
@@ -40,13 +39,12 @@ Registered graphics systems are:
   OpenGLStoredX (OGLSX, OGLSQt_FALLBACK, OGLSXm_FALLBACK)
   RayTracerX (RTX)
   RayTracerQt (RTQt)
-  Qt3D (Qt3D)
   TOOLSSG_X11_GLES (TSG_X11_GLES, TSGX11, TSG_XT_GLES_FALLBACK)
   TOOLSSG_X11_ZB (TSG_X11_ZB, TSGX11ZB)
   TOOLSSG_XT_GLES (TSG_XT_GLES, TSGXt, TSG_QT_GLES_FALLBACK)
   TOOLSSG_XT_ZB (TSG_XT_ZB, TSGXtZB)
   TOOLSSG_QT_GLES (TSG_QT_GLES, TSGQt, TSG, OGL)
-  TOOLSSG_QT_ZB (TSG_QT_ZB, TSGQtZB)
+  TOOLSSG_QT_ZB (TSG_QT_ZB, TSGQtZB, TSGZB)
 You may choose a graphics system (driver) with a parameter of
 the command "/vis/open" or "/vis/sceneHandler/create",
 or you may omit the driver parameter and choose at run time:
@@ -146,10 +144,11 @@ Lowest muon/hadron kinetic energy                  1 keV
 Use ICRU90 data                                    0
 Fluctuations of dE/dx are enabled                  1
 Type of fluctuation model for leptons and hadrons  Universal
-Use built-in Birks satuaration                     0
+Use built-in Birks saturation                      0
 Build CSDA range enabled                           0
 Use cut as a final range enabled                   0
 Enable angular generator interface                 0
+Enable parallel initialisation of physics tables   0
 Max kinetic energy for CSDA tables                 1 GeV
 Max kinetic energy for NIEL computation            0 eV 
 Linear loss limit                                  0.01
@@ -444,8 +443,8 @@ Threshold for very long decay time at rest        1e+60 y
 Type of pre-compound model                          0
 Type of pre-compound inverse x-section              1
 Pre-compound model active                           1
-Pre-compound excitation low energy                  100 keV
-Pre-compound excitation high energy                 30 MeV
+Pre-compound excitation low energy                  0.1 MeV 
+Pre-compound excitation high energy                 15 MeV 
 Angular generator for pre-compound model            1
 Use NeverGoBack option for pre-compound model       0
 Use SoftCutOff option for pre-compound model        0
@@ -459,13 +458,12 @@ Type of de-excitation inverse x-section             3
 Type of de-excitation factory                       Evaporation+GEM
 Number of de-excitation channels                    68
 Type of Fermi BreakUp model                         ModelVI
-Min excitation energy                               10 eV 
-Min energy per nucleon for multifragmentation       200 GeV
-Limit excitation energy for Fermi BreakUp           20 MeV
+Min excitation energy                               0.01 keV 
+Min energy per nucleon for multifragmentation       2e+05 MeV
 Level density (1/MeV)                               0.075
 Use simple level density model                      1
 Use discrete excitation energy of the residual      0
-Time limit for long lived isomeres                  1000 ps 
+Time limit for long lived isomeres                  1 ns 
 Isomer production flag                              1
 Internal e- conversion flag                         1
 Store e- internal conversion data                   1
@@ -557,7 +555,7 @@ muBrems:  for mu+  XStype:1  SubType=3
 muPairProd:  for mu+  XStype:1  SubType=4
       dE/dx and range tables from 100 eV  to 100 GeV in 180 bins
       Lambda tables from threshold to 100 GeV, 20 bins/decade, spline: 1
-      Sampling table 9x1001 from 0.85 GeV to 0.1 TeV 
+      Sampling table 9x1001, from 0.85 GeV to 0.1 TeV 
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
           muPairProd : Emin=    0 eV  Emax=  100 GeV  ModifiedMephi
 
@@ -585,7 +583,7 @@ muBrems:  for mu-  XStype:1  SubType=3
 muPairProd:  for mu-  XStype:1  SubType=4
       dE/dx and range tables from 100 eV  to 100 GeV in 180 bins
       Lambda tables from threshold to 100 GeV, 20 bins/decade, spline: 1
-      Sampling table 9x1001 from 0.85 GeV to 0.1 TeV 
+      Sampling table 9x1001, from 0.85 GeV to 0.1 TeV 
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
           muPairProd : Emin=    0 eV  Emax=  100 GeV  ModifiedMephi
 
@@ -642,6 +640,13 @@ hIoni:  for pi-  XStype:3  SubType=2
       ===== EM models for the G4Region  DefaultRegionForTheWorld ======
             ICRU73QO : Emin=    0 eV  Emax=297.505 keV
           BetheBloch : Emin=297.505 keV Emax=  100 GeV
+      ===== Limit on energy threshold has been applied 
+
+hBrems:  for pi-  XStype:1  SubType=3
+      dE/dx and range tables from 100 eV  to 100 GeV in 180 bins
+      Lambda tables from threshold to 100 GeV, 20 bins/decade, spline: 1
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+               hBrem : Emin=    0 eV  Emax=  100 GeV  ModifiedMephi
       ===== Limit on energy threshold has been applied 
 
 ========= Table of registered couples ============================
@@ -778,10 +783,10 @@ Setting was ignored.
 
      Primary Energy: 60 keV
      First hit in LXe: gamma
-     Number of hits in LXe: 63
-     Total energy in LXe: 60 keV
-     Average light collection time: 42.5145 ns 
-     Number of PMT hits (photoelectron equivalent): 47
+     Number of hits in LXe: 25
+     Total energy in LXe: 30.2187 keV
+     Average light collection time: 56.1399 ns 
+     Number of PMT hits (photoelectron equivalent): 31
      Event summary in file gamma_1000.out
 
 ---> End of event: 30
@@ -790,12 +795,7 @@ Setting was ignored.
 ---> Begin of event: 40
 
      Primary Energy: 60 keV
-     First hit in LXe: gamma
-     Number of hits in LXe: 51
-     Total energy in LXe: 60 keV
-     Average light collection time: 43.548 ns 
-     Number of PMT hits (photoelectron equivalent): 59
-     Event summary in file gamma_1000.out
+     Total energy in LXe: 0 eV 
 
 ---> End of event: 40
 
@@ -811,7 +811,12 @@ Setting was ignored.
 ---> Begin of event: 60
 
      Primary Energy: 60 keV
-     Total energy in LXe: 0 eV 
+     First hit in LXe: gamma
+     Number of hits in LXe: 85
+     Total energy in LXe: 60 keV
+     Average light collection time: 48.7528 ns 
+     Number of PMT hits (photoelectron equivalent): 58
+     Event summary in file gamma_1000.out
 
 ---> End of event: 60
 
@@ -819,7 +824,12 @@ Setting was ignored.
 ---> Begin of event: 70
 
      Primary Energy: 60 keV
-     Total energy in LXe: 0 eV 
+     First hit in LXe: gamma
+     Number of hits in LXe: 55
+     Total energy in LXe: 60 keV
+     Average light collection time: 45.2381 ns 
+     Number of PMT hits (photoelectron equivalent): 59
+     Event summary in file gamma_1000.out
 
 ---> End of event: 70
 
@@ -827,7 +837,12 @@ Setting was ignored.
 ---> Begin of event: 80
 
      Primary Energy: 60 keV
-     Total energy in LXe: 0 eV 
+     First hit in LXe: gamma
+     Number of hits in LXe: 90
+     Total energy in LXe: 60 keV
+     Average light collection time: 39.5232 ns 
+     Number of PMT hits (photoelectron equivalent): 71
+     Event summary in file gamma_1000.out
 
 ---> End of event: 80
 
@@ -835,7 +850,12 @@ Setting was ignored.
 ---> Begin of event: 90
 
      Primary Energy: 60 keV
-     Total energy in LXe: 0 eV 
+     First hit in LXe: gamma
+     Number of hits in LXe: 63
+     Total energy in LXe: 60 keV
+     Average light collection time: 44.8195 ns 
+     Number of PMT hits (photoelectron equivalent): 97
+     Event summary in file gamma_1000.out
 
 ---> End of event: 90
 
@@ -843,12 +863,7 @@ Setting was ignored.
 ---> Begin of event: 100
 
      Primary Energy: 60 keV
-     First hit in LXe: gamma
-     Number of hits in LXe: 30
-     Total energy in LXe: 30.2187 keV
-     Average light collection time: 54.9043 ns 
-     Number of PMT hits (photoelectron equivalent): 36
-     Event summary in file gamma_1000.out
+     Total energy in LXe: 0 eV 
 
 ---> End of event: 100
 
@@ -856,12 +871,7 @@ Setting was ignored.
 ---> Begin of event: 110
 
      Primary Energy: 60 keV
-     First hit in LXe: gamma
-     Number of hits in LXe: 52
-     Total energy in LXe: 60 keV
-     Average light collection time: 41.2768 ns 
-     Number of PMT hits (photoelectron equivalent): 72
-     Event summary in file gamma_1000.out
+     Total energy in LXe: 0 eV 
 
 ---> End of event: 110
 
@@ -870,10 +880,10 @@ Setting was ignored.
 
      Primary Energy: 60 keV
      First hit in LXe: gamma
-     Number of hits in LXe: 29
-     Total energy in LXe: 30.2187 keV
-     Average light collection time: 69.467 ns 
-     Number of PMT hits (photoelectron equivalent): 27
+     Number of hits in LXe: 65
+     Total energy in LXe: 60 keV
+     Average light collection time: 56.3459 ns 
+     Number of PMT hits (photoelectron equivalent): 70
      Event summary in file gamma_1000.out
 
 ---> End of event: 120
@@ -883,10 +893,10 @@ Setting was ignored.
 
      Primary Energy: 60 keV
      First hit in LXe: gamma
-     Number of hits in LXe: 20
-     Total energy in LXe: 30.5479 keV
-     Average light collection time: 66.6562 ns 
-     Number of PMT hits (photoelectron equivalent): 23
+     Number of hits in LXe: 28
+     Total energy in LXe: 30.2187 keV
+     Average light collection time: 41.0553 ns 
+     Number of PMT hits (photoelectron equivalent): 31
      Event summary in file gamma_1000.out
 
 ---> End of event: 130
@@ -895,12 +905,7 @@ Setting was ignored.
 ---> Begin of event: 140
 
      Primary Energy: 60 keV
-     First hit in LXe: gamma
-     Number of hits in LXe: 64
-     Total energy in LXe: 60 keV
-     Average light collection time: 39.5752 ns 
-     Number of PMT hits (photoelectron equivalent): 66
-     Event summary in file gamma_1000.out
+     Total energy in LXe: 0 eV 
 
 ---> End of event: 140
 
@@ -908,12 +913,7 @@ Setting was ignored.
 ---> Begin of event: 150
 
      Primary Energy: 60 keV
-     First hit in LXe: gamma
-     Number of hits in LXe: 24
-     Total energy in LXe: 30.2187 keV
-     Average light collection time: 49.9117 ns 
-     Number of PMT hits (photoelectron equivalent): 78
-     Event summary in file gamma_1000.out
+     Total energy in LXe: 0 eV 
 
 ---> End of event: 150
 
@@ -921,12 +921,7 @@ Setting was ignored.
 ---> Begin of event: 160
 
      Primary Energy: 60 keV
-     First hit in LXe: gamma
-     Number of hits in LXe: 20
-     Total energy in LXe: 30.2187 keV
-     Average light collection time: 49.891 ns 
-     Number of PMT hits (photoelectron equivalent): 20
-     Event summary in file gamma_1000.out
+     Total energy in LXe: 0 eV 
 
 ---> End of event: 160
 
@@ -943,10 +938,10 @@ Setting was ignored.
 
      Primary Energy: 60 keV
      First hit in LXe: gamma
-     Number of hits in LXe: 30
-     Total energy in LXe: 30.5479 keV
-     Average light collection time: 41.2845 ns 
-     Number of PMT hits (photoelectron equivalent): 30
+     Number of hits in LXe: 73
+     Total energy in LXe: 60 keV
+     Average light collection time: 34.0377 ns 
+     Number of PMT hits (photoelectron equivalent): 45
      Event summary in file gamma_1000.out
 
 ---> End of event: 180
@@ -955,12 +950,7 @@ Setting was ignored.
 ---> Begin of event: 190
 
      Primary Energy: 60 keV
-     First hit in LXe: gamma
-     Number of hits in LXe: 47
-     Total energy in LXe: 39.9974 keV
-     Average light collection time: 41.1909 ns 
-     Number of PMT hits (photoelectron equivalent): 29
-     Event summary in file gamma_1000.out
+     Total energy in LXe: 0 eV 
 
 ---> End of event: 190
 
@@ -968,12 +958,7 @@ Setting was ignored.
 ---> Begin of event: 200
 
      Primary Energy: 60 keV
-     First hit in LXe: gamma
-     Number of hits in LXe: 16
-     Total energy in LXe: 13.4452 keV
-     Average light collection time: 44.1654 ns 
-     Number of PMT hits (photoelectron equivalent): 14
-     Event summary in file gamma_1000.out
+     Total energy in LXe: 0 eV 
 
 ---> End of event: 200
 
@@ -981,7 +966,12 @@ Setting was ignored.
 ---> Begin of event: 210
 
      Primary Energy: 60 keV
-     Total energy in LXe: 0 eV 
+     First hit in LXe: gamma
+     Number of hits in LXe: 66
+     Total energy in LXe: 60 keV
+     Average light collection time: 45.5785 ns 
+     Number of PMT hits (photoelectron equivalent): 52
+     Event summary in file gamma_1000.out
 
 ---> End of event: 210
 
@@ -989,7 +979,12 @@ Setting was ignored.
 ---> Begin of event: 220
 
      Primary Energy: 60 keV
-     Total energy in LXe: 0 eV 
+     First hit in LXe: gamma
+     Number of hits in LXe: 54
+     Total energy in LXe: 60 keV
+     Average light collection time: 52.4227 ns 
+     Number of PMT hits (photoelectron equivalent): 56
+     Event summary in file gamma_1000.out
 
 ---> End of event: 220
 
@@ -997,7 +992,12 @@ Setting was ignored.
 ---> Begin of event: 230
 
      Primary Energy: 60 keV
-     Total energy in LXe: 0 eV 
+     First hit in LXe: gamma
+     Number of hits in LXe: 55
+     Total energy in LXe: 60 keV
+     Average light collection time: 48.6193 ns 
+     Number of PMT hits (photoelectron equivalent): 56
+     Event summary in file gamma_1000.out
 
 ---> End of event: 230
 
@@ -1006,10 +1006,10 @@ Setting was ignored.
 
      Primary Energy: 60 keV
      First hit in LXe: gamma
-     Number of hits in LXe: 68
+     Number of hits in LXe: 51
      Total energy in LXe: 60 keV
-     Average light collection time: 42.8095 ns 
-     Number of PMT hits (photoelectron equivalent): 71
+     Average light collection time: 48.7863 ns 
+     Number of PMT hits (photoelectron equivalent): 38
      Event summary in file gamma_1000.out
 
 ---> End of event: 240
@@ -1018,7 +1018,12 @@ Setting was ignored.
 ---> Begin of event: 250
 
      Primary Energy: 60 keV
-     Total energy in LXe: 0 eV 
+     First hit in LXe: gamma
+     Number of hits in LXe: 53
+     Total energy in LXe: 60 keV
+     Average light collection time: 39.1383 ns 
+     Number of PMT hits (photoelectron equivalent): 59
+     Event summary in file gamma_1000.out
 
 ---> End of event: 250
 
@@ -1043,10 +1048,10 @@ Setting was ignored.
 
      Primary Energy: 60 keV
      First hit in LXe: gamma
-     Number of hits in LXe: 66
+     Number of hits in LXe: 58
      Total energy in LXe: 60 keV
-     Average light collection time: 49.5928 ns 
-     Number of PMT hits (photoelectron equivalent): 56
+     Average light collection time: 38.7548 ns 
+     Number of PMT hits (photoelectron equivalent): 62
      Event summary in file gamma_1000.out
 
 ---> End of event: 280
@@ -1063,7 +1068,12 @@ Setting was ignored.
 ---> Begin of event: 300
 
      Primary Energy: 60 keV
-     Total energy in LXe: 0 eV 
+     First hit in LXe: gamma
+     Number of hits in LXe: 57
+     Total energy in LXe: 60 keV
+     Average light collection time: 48.5147 ns 
+     Number of PMT hits (photoelectron equivalent): 63
+     Event summary in file gamma_1000.out
 
 ---> End of event: 300
 
@@ -1071,12 +1081,7 @@ Setting was ignored.
 ---> Begin of event: 310
 
      Primary Energy: 60 keV
-     First hit in LXe: gamma
-     Number of hits in LXe: 32
-     Total energy in LXe: 30.2187 keV
-     Average light collection time: 40.1664 ns 
-     Number of PMT hits (photoelectron equivalent): 25
-     Event summary in file gamma_1000.out
+     Total energy in LXe: 0 eV 
 
 ---> End of event: 310
 
@@ -1084,12 +1089,7 @@ Setting was ignored.
 ---> Begin of event: 320
 
      Primary Energy: 60 keV
-     First hit in LXe: gamma
-     Number of hits in LXe: 49
-     Total energy in LXe: 60 keV
-     Average light collection time: 45.7056 ns 
-     Number of PMT hits (photoelectron equivalent): 60
-     Event summary in file gamma_1000.out
+     Total energy in LXe: 0 eV 
 
 ---> End of event: 320
 
@@ -1097,7 +1097,12 @@ Setting was ignored.
 ---> Begin of event: 330
 
      Primary Energy: 60 keV
-     Total energy in LXe: 0 eV 
+     First hit in LXe: gamma
+     Number of hits in LXe: 25
+     Total energy in LXe: 30.5479 keV
+     Average light collection time: 41.5376 ns 
+     Number of PMT hits (photoelectron equivalent): 29
+     Event summary in file gamma_1000.out
 
 ---> End of event: 330
 
@@ -1105,7 +1110,12 @@ Setting was ignored.
 ---> Begin of event: 340
 
      Primary Energy: 60 keV
-     Total energy in LXe: 0 eV 
+     First hit in LXe: gamma
+     Number of hits in LXe: 40
+     Total energy in LXe: 60 keV
+     Average light collection time: 48.4973 ns 
+     Number of PMT hits (photoelectron equivalent): 67
+     Event summary in file gamma_1000.out
 
 ---> End of event: 340
 
@@ -1129,7 +1139,12 @@ Setting was ignored.
 ---> Begin of event: 370
 
      Primary Energy: 60 keV
-     Total energy in LXe: 0 eV 
+     First hit in LXe: gamma
+     Number of hits in LXe: 12
+     Total energy in LXe: 12.7924 keV
+     Average light collection time: 66.8482 ns 
+     Number of PMT hits (photoelectron equivalent): 12
+     Event summary in file gamma_1000.out
 
 ---> End of event: 370
 
@@ -1137,12 +1152,7 @@ Setting was ignored.
 ---> Begin of event: 380
 
      Primary Energy: 60 keV
-     First hit in LXe: gamma
-     Number of hits in LXe: 73
-     Total energy in LXe: 60 keV
-     Average light collection time: 42.7548 ns 
-     Number of PMT hits (photoelectron equivalent): 63
-     Event summary in file gamma_1000.out
+     Total energy in LXe: 0 eV 
 
 ---> End of event: 380
 
@@ -1150,7 +1160,12 @@ Setting was ignored.
 ---> Begin of event: 390
 
      Primary Energy: 60 keV
-     Total energy in LXe: 0 eV 
+     First hit in LXe: gamma
+     Number of hits in LXe: 80
+     Total energy in LXe: 60 keV
+     Average light collection time: 47.8485 ns 
+     Number of PMT hits (photoelectron equivalent): 67
+     Event summary in file gamma_1000.out
 
 ---> End of event: 390
 
@@ -1158,11 +1173,11 @@ Setting was ignored.
 ---> Begin of event: 400
 
      Primary Energy: 60 keV
-     First hit in LXe: gamma
-     Number of hits in LXe: 53
-     Total energy in LXe: 60 keV
-     Average light collection time: 41.412 ns 
-     Number of PMT hits (photoelectron equivalent): 57
+     First hit in LXe: e-
+     Number of hits in LXe: 58
+     Total energy in LXe: 37.5363 keV
+     Average light collection time: 40.2265 ns 
+     Number of PMT hits (photoelectron equivalent): 33
      Event summary in file gamma_1000.out
 
 ---> End of event: 400
@@ -1171,7 +1186,12 @@ Setting was ignored.
 ---> Begin of event: 410
 
      Primary Energy: 60 keV
-     Total energy in LXe: 0 eV 
+     First hit in LXe: gamma
+     Number of hits in LXe: 57
+     Total energy in LXe: 60 keV
+     Average light collection time: 54.1334 ns 
+     Number of PMT hits (photoelectron equivalent): 52
+     Event summary in file gamma_1000.out
 
 ---> End of event: 410
 
@@ -1187,7 +1207,12 @@ Setting was ignored.
 ---> Begin of event: 430
 
      Primary Energy: 60 keV
-     Total energy in LXe: 0 eV 
+     First hit in LXe: gamma
+     Number of hits in LXe: 74
+     Total energy in LXe: 60 keV
+     Average light collection time: 47.6925 ns 
+     Number of PMT hits (photoelectron equivalent): 154
+     Event summary in file gamma_1000.out
 
 ---> End of event: 430
 
@@ -1195,12 +1220,7 @@ Setting was ignored.
 ---> Begin of event: 440
 
      Primary Energy: 60 keV
-     First hit in LXe: e-
-     Number of hits in LXe: 37
-     Total energy in LXe: 18.1742 keV
-     Average light collection time: 32.3379 ns 
-     Number of PMT hits (photoelectron equivalent): 20
-     Event summary in file gamma_1000.out
+     Total energy in LXe: 0 eV 
 
 ---> End of event: 440
 
@@ -1216,12 +1236,7 @@ Setting was ignored.
 ---> Begin of event: 460
 
      Primary Energy: 60 keV
-     First hit in LXe: gamma
-     Number of hits in LXe: 45
-     Total energy in LXe: 60 keV
-     Average light collection time: 50.3792 ns 
-     Number of PMT hits (photoelectron equivalent): 66
-     Event summary in file gamma_1000.out
+     Total energy in LXe: 0 eV 
 
 ---> End of event: 460
 
@@ -1229,12 +1244,7 @@ Setting was ignored.
 ---> Begin of event: 470
 
      Primary Energy: 60 keV
-     First hit in LXe: gamma
-     Number of hits in LXe: 46
-     Total energy in LXe: 60 keV
-     Average light collection time: 42.7526 ns 
-     Number of PMT hits (photoelectron equivalent): 52
-     Event summary in file gamma_1000.out
+     Total energy in LXe: 0 eV 
 
 ---> End of event: 470
 
@@ -1251,10 +1261,10 @@ Setting was ignored.
 
      Primary Energy: 60 keV
      First hit in LXe: gamma
-     Number of hits in LXe: 28
-     Total energy in LXe: 30.2187 keV
-     Average light collection time: 39.8683 ns 
-     Number of PMT hits (photoelectron equivalent): 33
+     Number of hits in LXe: 60
+     Total energy in LXe: 60 keV
+     Average light collection time: 41.6123 ns 
+     Number of PMT hits (photoelectron equivalent): 60
      Event summary in file gamma_1000.out
 
 ---> End of event: 490
@@ -1263,12 +1273,7 @@ Setting was ignored.
 ---> Begin of event: 500
 
      Primary Energy: 60 keV
-     First hit in LXe: gamma
-     Number of hits in LXe: 42
-     Total energy in LXe: 41.0989 keV
-     Average light collection time: 44.4851 ns 
-     Number of PMT hits (photoelectron equivalent): 114
-     Event summary in file gamma_1000.out
+     Total energy in LXe: 0 eV 
 
 ---> End of event: 500
 
@@ -1277,10 +1282,10 @@ Setting was ignored.
 
      Primary Energy: 60 keV
      First hit in LXe: gamma
-     Number of hits in LXe: 50
+     Number of hits in LXe: 45
      Total energy in LXe: 60 keV
-     Average light collection time: 52.0572 ns 
-     Number of PMT hits (photoelectron equivalent): 45
+     Average light collection time: 40.859 ns 
+     Number of PMT hits (photoelectron equivalent): 47
      Event summary in file gamma_1000.out
 
 ---> End of event: 510
@@ -1289,12 +1294,7 @@ Setting was ignored.
 ---> Begin of event: 520
 
      Primary Energy: 60 keV
-     First hit in LXe: gamma
-     Number of hits in LXe: 44
-     Total energy in LXe: 60 keV
-     Average light collection time: 42.3995 ns 
-     Number of PMT hits (photoelectron equivalent): 55
-     Event summary in file gamma_1000.out
+     Total energy in LXe: 0 eV 
 
 ---> End of event: 520
 
@@ -1302,7 +1302,12 @@ Setting was ignored.
 ---> Begin of event: 530
 
      Primary Energy: 60 keV
-     Total energy in LXe: 0 eV 
+     First hit in LXe: gamma
+     Number of hits in LXe: 64
+     Total energy in LXe: 60 keV
+     Average light collection time: 46.6614 ns 
+     Number of PMT hits (photoelectron equivalent): 59
+     Event summary in file gamma_1000.out
 
 ---> End of event: 530
 
@@ -1342,12 +1347,7 @@ Setting was ignored.
 ---> Begin of event: 580
 
      Primary Energy: 60 keV
-     First hit in LXe: gamma
-     Number of hits in LXe: 61
-     Total energy in LXe: 60 keV
-     Average light collection time: 57.7734 ns 
-     Number of PMT hits (photoelectron equivalent): 57
-     Event summary in file gamma_1000.out
+     Total energy in LXe: 0 eV 
 
 ---> End of event: 580
 
@@ -1355,12 +1355,7 @@ Setting was ignored.
 ---> Begin of event: 590
 
      Primary Energy: 60 keV
-     First hit in LXe: gamma
-     Number of hits in LXe: 47
-     Total energy in LXe: 60 keV
-     Average light collection time: 44.3563 ns 
-     Number of PMT hits (photoelectron equivalent): 64
-     Event summary in file gamma_1000.out
+     Total energy in LXe: 0 eV 
 
 ---> End of event: 590
 
@@ -1376,7 +1371,12 @@ Setting was ignored.
 ---> Begin of event: 610
 
      Primary Energy: 60 keV
-     Total energy in LXe: 0 eV 
+     First hit in LXe: gamma
+     Number of hits in LXe: 17
+     Total energy in LXe: 8.4805 keV
+     Average light collection time: 55.3404 ns 
+     Number of PMT hits (photoelectron equivalent): 8
+     Event summary in file gamma_1000.out
 
 ---> End of event: 610
 
@@ -1393,10 +1393,10 @@ Setting was ignored.
 
      Primary Energy: 60 keV
      First hit in LXe: gamma
-     Number of hits in LXe: 27
+     Number of hits in LXe: 34
      Total energy in LXe: 30.2187 keV
-     Average light collection time: 47.06 ns 
-     Number of PMT hits (photoelectron equivalent): 27
+     Average light collection time: 66.4174 ns 
+     Number of PMT hits (photoelectron equivalent): 29
      Event summary in file gamma_1000.out
 
 ---> End of event: 630
@@ -1421,7 +1421,12 @@ Setting was ignored.
 ---> Begin of event: 660
 
      Primary Energy: 60 keV
-     Total energy in LXe: 0 eV 
+     First hit in LXe: gamma
+     Number of hits in LXe: 49
+     Total energy in LXe: 60 keV
+     Average light collection time: 63.2134 ns 
+     Number of PMT hits (photoelectron equivalent): 74
+     Event summary in file gamma_1000.out
 
 ---> End of event: 660
 
@@ -1429,12 +1434,7 @@ Setting was ignored.
 ---> Begin of event: 670
 
      Primary Energy: 60 keV
-     First hit in LXe: gamma
-     Number of hits in LXe: 45
-     Total energy in LXe: 60 keV
-     Average light collection time: 43.9358 ns 
-     Number of PMT hits (photoelectron equivalent): 62
-     Event summary in file gamma_1000.out
+     Total energy in LXe: 0 eV 
 
 ---> End of event: 670
 
@@ -1442,7 +1442,12 @@ Setting was ignored.
 ---> Begin of event: 680
 
      Primary Energy: 60 keV
-     Total energy in LXe: 0 eV 
+     First hit in LXe: gamma
+     Number of hits in LXe: 61
+     Total energy in LXe: 60 keV
+     Average light collection time: 40.6947 ns 
+     Number of PMT hits (photoelectron equivalent): 37
+     Event summary in file gamma_1000.out
 
 ---> End of event: 680
 
@@ -1474,7 +1479,12 @@ Setting was ignored.
 ---> Begin of event: 720
 
      Primary Energy: 60 keV
-     Total energy in LXe: 0 eV 
+     First hit in LXe: gamma
+     Number of hits in LXe: 52
+     Total energy in LXe: 30.2187 keV
+     Average light collection time: 53.3686 ns 
+     Number of PMT hits (photoelectron equivalent): 34
+     Event summary in file gamma_1000.out
 
 ---> End of event: 720
 
@@ -1506,12 +1516,7 @@ Setting was ignored.
 ---> Begin of event: 760
 
      Primary Energy: 60 keV
-     First hit in LXe: gamma
-     Number of hits in LXe: 29
-     Total energy in LXe: 30.5479 keV
-     Average light collection time: 45.8688 ns 
-     Number of PMT hits (photoelectron equivalent): 80
-     Event summary in file gamma_1000.out
+     Total energy in LXe: 0 eV 
 
 ---> End of event: 760
 
@@ -1529,9 +1534,9 @@ Setting was ignored.
      Primary Energy: 60 keV
      First hit in LXe: gamma
      Number of hits in LXe: 22
-     Total energy in LXe: 25.4564 keV
-     Average light collection time: 53.854 ns 
-     Number of PMT hits (photoelectron equivalent): 26
+     Total energy in LXe: 30.2187 keV
+     Average light collection time: 46.2931 ns 
+     Number of PMT hits (photoelectron equivalent): 40
      Event summary in file gamma_1000.out
 
 ---> End of event: 780
@@ -1540,7 +1545,12 @@ Setting was ignored.
 ---> Begin of event: 790
 
      Primary Energy: 60 keV
-     Total energy in LXe: 0 eV 
+     First hit in LXe: gamma
+     Number of hits in LXe: 55
+     Total energy in LXe: 60 keV
+     Average light collection time: 43.031 ns 
+     Number of PMT hits (photoelectron equivalent): 58
+     Event summary in file gamma_1000.out
 
 ---> End of event: 790
 
@@ -1548,7 +1558,12 @@ Setting was ignored.
 ---> Begin of event: 800
 
      Primary Energy: 60 keV
-     Total energy in LXe: 0 eV 
+     First hit in LXe: gamma
+     Number of hits in LXe: 28
+     Total energy in LXe: 30.2187 keV
+     Average light collection time: 54.9541 ns 
+     Number of PMT hits (photoelectron equivalent): 160
+     Event summary in file gamma_1000.out
 
 ---> End of event: 800
 
@@ -1557,10 +1572,10 @@ Setting was ignored.
 
      Primary Energy: 60 keV
      First hit in LXe: gamma
-     Number of hits in LXe: 31
+     Number of hits in LXe: 27
      Total energy in LXe: 30.2187 keV
-     Average light collection time: 42.5683 ns 
-     Number of PMT hits (photoelectron equivalent): 30
+     Average light collection time: 41.5834 ns 
+     Number of PMT hits (photoelectron equivalent): 31
      Event summary in file gamma_1000.out
 
 ---> End of event: 810
@@ -1570,10 +1585,10 @@ Setting was ignored.
 
      Primary Energy: 60 keV
      First hit in LXe: gamma
-     Number of hits in LXe: 20
-     Total energy in LXe: 26.3706 keV
-     Average light collection time: 36.8862 ns 
-     Number of PMT hits (photoelectron equivalent): 24
+     Number of hits in LXe: 45
+     Total energy in LXe: 30.2187 keV
+     Average light collection time: 65.1644 ns 
+     Number of PMT hits (photoelectron equivalent): 10
      Event summary in file gamma_1000.out
 
 ---> End of event: 820
@@ -1582,7 +1597,12 @@ Setting was ignored.
 ---> Begin of event: 830
 
      Primary Energy: 60 keV
-     Total energy in LXe: 0 eV 
+     First hit in LXe: gamma
+     Number of hits in LXe: 32
+     Total energy in LXe: 40.7697 keV
+     Average light collection time: 44.3192 ns 
+     Number of PMT hits (photoelectron equivalent): 31
+     Event summary in file gamma_1000.out
 
 ---> End of event: 830
 
@@ -1598,7 +1618,12 @@ Setting was ignored.
 ---> Begin of event: 850
 
      Primary Energy: 60 keV
-     Total energy in LXe: 0 eV 
+     First hit in LXe: gamma
+     Number of hits in LXe: 51
+     Total energy in LXe: 60 keV
+     Average light collection time: 47.9904 ns 
+     Number of PMT hits (photoelectron equivalent): 80
+     Event summary in file gamma_1000.out
 
 ---> End of event: 850
 
@@ -1606,7 +1631,12 @@ Setting was ignored.
 ---> Begin of event: 860
 
      Primary Energy: 60 keV
-     Total energy in LXe: 0 eV 
+     First hit in LXe: gamma
+     Number of hits in LXe: 27
+     Total energy in LXe: 30.5479 keV
+     Average light collection time: 43.4686 ns 
+     Number of PMT hits (photoelectron equivalent): 25
+     Event summary in file gamma_1000.out
 
 ---> End of event: 860
 
@@ -1614,7 +1644,12 @@ Setting was ignored.
 ---> Begin of event: 870
 
      Primary Energy: 60 keV
-     Total energy in LXe: 0 eV 
+     First hit in LXe: gamma
+     Number of hits in LXe: 22
+     Total energy in LXe: 30.5479 keV
+     Average light collection time: 41.7426 ns 
+     Number of PMT hits (photoelectron equivalent): 38
+     Event summary in file gamma_1000.out
 
 ---> End of event: 870
 
@@ -1622,11 +1657,11 @@ Setting was ignored.
 ---> Begin of event: 880
 
      Primary Energy: 60 keV
-     First hit in LXe: gamma
-     Number of hits in LXe: 49
-     Total energy in LXe: 60 keV
-     Average light collection time: 39.0463 ns 
-     Number of PMT hits (photoelectron equivalent): 65
+     First hit in LXe: e-
+     Number of hits in LXe: 70
+     Total energy in LXe: 42.3216 keV
+     Average light collection time: 40.0616 ns 
+     Number of PMT hits (photoelectron equivalent): 39
      Event summary in file gamma_1000.out
 
 ---> End of event: 880
@@ -1635,7 +1670,12 @@ Setting was ignored.
 ---> Begin of event: 890
 
      Primary Energy: 60 keV
-     Total energy in LXe: 0 eV 
+     First hit in LXe: gamma
+     Number of hits in LXe: 65
+     Total energy in LXe: 60 keV
+     Average light collection time: 42.6484 ns 
+     Number of PMT hits (photoelectron equivalent): 111
+     Event summary in file gamma_1000.out
 
 ---> End of event: 890
 
@@ -1643,12 +1683,7 @@ Setting was ignored.
 ---> Begin of event: 900
 
      Primary Energy: 60 keV
-     First hit in LXe: gamma
-     Number of hits in LXe: 57
-     Total energy in LXe: 60 keV
-     Average light collection time: 42.1499 ns 
-     Number of PMT hits (photoelectron equivalent): 65
-     Event summary in file gamma_1000.out
+     Total energy in LXe: 0 eV 
 
 ---> End of event: 900
 
@@ -1672,7 +1707,12 @@ Setting was ignored.
 ---> Begin of event: 930
 
      Primary Energy: 60 keV
-     Total energy in LXe: 0 eV 
+     First hit in LXe: gamma
+     Number of hits in LXe: 53
+     Total energy in LXe: 60 keV
+     Average light collection time: 48.1482 ns 
+     Number of PMT hits (photoelectron equivalent): 51
+     Event summary in file gamma_1000.out
 
 ---> End of event: 930
 
@@ -1680,12 +1720,7 @@ Setting was ignored.
 ---> Begin of event: 940
 
      Primary Energy: 60 keV
-     First hit in LXe: gamma
-     Number of hits in LXe: 22
-     Total energy in LXe: 30.5479 keV
-     Average light collection time: 54.8618 ns 
-     Number of PMT hits (photoelectron equivalent): 32
-     Event summary in file gamma_1000.out
+     Total energy in LXe: 0 eV 
 
 ---> End of event: 940
 
@@ -1701,12 +1736,7 @@ Setting was ignored.
 ---> Begin of event: 960
 
      Primary Energy: 60 keV
-     First hit in LXe: gamma
-     Number of hits in LXe: 25
-     Total energy in LXe: 30.2187 keV
-     Average light collection time: 37.2923 ns 
-     Number of PMT hits (photoelectron equivalent): 19
-     Event summary in file gamma_1000.out
+     Total energy in LXe: 0 eV 
 
 ---> End of event: 960
 
@@ -1714,7 +1744,12 @@ Setting was ignored.
 ---> Begin of event: 970
 
      Primary Energy: 60 keV
-     Total energy in LXe: 0 eV 
+     First hit in LXe: gamma
+     Number of hits in LXe: 53
+     Total energy in LXe: 60 keV
+     Average light collection time: 42.2942 ns 
+     Number of PMT hits (photoelectron equivalent): 70
+     Event summary in file gamma_1000.out
 
 ---> End of event: 970
 
@@ -1730,12 +1765,7 @@ Setting was ignored.
 ---> Begin of event: 990
 
      Primary Energy: 60 keV
-     First hit in LXe: gamma
-     Number of hits in LXe: 67
-     Total energy in LXe: 60 keV
-     Average light collection time: 50.4536 ns 
-     Number of PMT hits (photoelectron equivalent): 79
-     Event summary in file gamma_1000.out
+     Total energy in LXe: 0 eV 
 
 ---> End of event: 990
 

@@ -26,43 +26,85 @@
 //
 // Class description:
 //
-// Modified midpoint method implementation, based on Boost odeint
+// Modified midpoint method implementation, based on Boost odeint.
 
-// Author: Dmitry Sorokin, Google Summer of Code 2016
-// Supervision: John Apostolakis, CERN
+// Author: Dmitry Sorokin (CERN, Google Summer of Code 2016), 07.10.2016
+// Supervision: John Apostolakis (CERN)
 // --------------------------------------------------------------------
 #ifndef G4MODIFIED_MIDPOINT_HH
 #define G4MODIFIED_MIDPOINT_HH
 
-#include "G4Types.hh"
 #include "G4EquationOfMotion.hh"
 #include "G4FieldTrack.hh"
+#include "G4Types.hh"
+
+/**
+ * @brief G4ModifiedMidpoint implements a midpoint method adapted from
+ * Boost odeint.
+ * @ingroup geometry_magneticfield
+ */
 
 class G4ModifiedMidpoint
 {
   public:
 
-    G4ModifiedMidpoint( G4EquationOfMotion* equation,
-                        G4int nvar = 6, G4int steps = 2 );
-   ~G4ModifiedMidpoint() = default;
+    /**
+     * Constructor for G4ModifiedMidpoint.
+     *  @param[in] equation Pointer to the provided equation of motion.
+     *  @param[in] nvar The number of integration variables.
+     *  @param[in] steps The minimum number of steps.
+     */
+    G4ModifiedMidpoint(G4EquationOfMotion* equation, G4int nvar = 6, G4int steps = 2);
 
-    void DoStep( const G4double yIn[], const G4double dydxIn[],
-                 G4double yOut[], G4double hstep) const;
+    /**
+     * Default Destructor.
+     */
+    ~G4ModifiedMidpoint() = default;
 
-    void DoStep( const G4double yIn[], const G4double dydxIn[],
-                 G4double yOut[], G4double hstep, G4double yMid[],
-                 G4double derivs[][G4FieldTrack::ncompSVEC]) const;
+    /**
+     * Computes one step.
+     *  @param[in] yIn Starting values array of integration variables.
+     *  @param[in] dydxIn Derivatives array in input.
+     *  @param[out] yOut Integration output.
+     *  @param[in] hstep The given step size.
+     */
+    void DoStep(const G4double yIn[], const G4double dydxIn[], G4double yOut[],
+                G4double hstep) const;
 
+    /**
+     * Computes one step, as above but using also intermediate values.
+     *  @param[in] yIn Starting values array of integration variables.
+     *  @param[in] dydxIn Derivatives array in input.
+     *  @param[out] yOut Integration output.
+     *  @param[in] hstep The given step size.
+     *  @param[in] yMid Mid point integration variables.
+     *  @param[in] derivs Intermediate derivatives.
+     */
+    void DoStep(const G4double yIn[], const G4double dydxIn[], G4double yOut[], G4double hstep,
+                G4double yMid[], G4double derivs[][G4FieldTrack::ncompSVEC]) const;
+
+    /**
+     * Setter and getter for steps.
+     */
     inline void SetSteps(G4int steps);
     inline G4int GetSteps() const;
 
+    /**
+     * Setter and getter for the equation of motion.
+     */
     inline void SetEquationOfMotion(G4EquationOfMotion* equation);
-    inline G4EquationOfMotion* GetEquationOfMotion();
+    inline G4EquationOfMotion* GetEquationOfMotion() const;
 
+    /**
+     * Returns the number of integration variables.
+     */
     inline G4int GetNumberOfVariables() const;
 
   private:
 
+    /**
+     * Utility for copying array content from 'src' to 'dst'.
+     */
     void copy(G4double dst[], const G4double src[]) const;
 
   private:

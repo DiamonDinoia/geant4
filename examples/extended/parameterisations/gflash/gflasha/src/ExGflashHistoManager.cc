@@ -23,19 +23,14 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-//
 /// \file ExGflashHistoManager.cc
-/// \brief Implementation of the ExGflasHistoManager class
-//
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+/// \brief Implementation of the ExGflashHistoManager class
 
 #include "ExGflashHistoManager.hh"
 
 #include "ExGflashDetectorConstruction.hh"
 
-#include "G4SystemOfUnits.hh"
-#include "G4UnitsTable.hh"
+#include "G4AnalysisManager.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 

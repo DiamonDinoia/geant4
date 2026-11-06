@@ -37,19 +37,20 @@
 //
 
 #include "G4VXRayModel.hh"
+
+#include "G4DynamicParticle.hh"
 #include "G4LogicalVolume.hh"
 #include "G4LossTableManager.hh"
-#include "G4ParticleDefinition.hh"
-#include "G4DynamicParticle.hh"
 #include "G4OpticalParameters.hh"
+#include "G4ParticleDefinition.hh"
 #include "G4Track.hh"
+
 #include <iostream>
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-G4VXRayModel::G4VXRayModel(const G4String& nam)
-  : pName(nam)
+G4VXRayModel::G4VXRayModel(const G4String& nam) : pName(nam)
 {
   Register();
 }
@@ -92,27 +93,60 @@ void G4VXRayModel::Register()
 
 G4double G4VXRayModel::Initialise(std::vector<const G4LogicalVolume*>* ptr)
 {
+  // definition of logical volumes
   pLogicalVolumes = ptr;
+  if (nullptr != ptr)
+  {
+    nVolumes = (G4int)(ptr->size());
+  }
   auto params = G4OpticalParameters::Instance();
+
+  // these parameters used by Cerenkov models
   pMaxBetaChange = params->GetCerenkovMaxBetaChange();
   pMaxPhotons = params->GetCerenkovMaxPhotonsPerStep();
-  pVerbose = params->GetCerenkovVerboseLevel();
 
-  pBetaMin = InitialiseModel();
+  // common initialisation
+  pVerbose = params->GetCerenkovVerboseLevel();
+  InitialiseModel();
+
+  // needed for Cerenkov process
   return pBetaMin;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-G4bool G4VXRayModel::StepLimit(const G4LogicalVolume* lv, const G4Track& track,
-			       G4double preStepBeta, G4double& limit)
+void G4VXRayModel::InitialiseModel() {}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+G4bool G4VXRayModel::StepLimit(std::size_t idx, const G4Track& track, G4double preStepBeta,
+                               G4double& limit)
 {
-  if (preStepBeta <= pBetaMin) { return false; }
-  pCurrentLV = lv;
+  if (preStepBeta <= pBetaMin)
+  {
+    return false;
+  }
+  pCurrentLV = nullptr;
+  if (idx < nVolumes)
+  {
+    pIndex = idx;
+    pCurrentLV = (*pLogicalVolumes)[idx];
+  }
   pCurrentTrack = &track;
   pPreStepBeta = preStepBeta;
   return StepLimitForVolume(limit);
 }
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+G4bool G4VXRayModel::StepLimitForVolume(G4double&)
+{
+  return false;
+}
+
+//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+void G4VXRayModel::SampleXRays(std::vector<G4Track*>&, const G4Step&) {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 

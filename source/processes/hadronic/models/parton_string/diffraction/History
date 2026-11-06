@@ -6,6 +6,25 @@ It must **not** be used as a substitute for writing good git commit messages!
 
 -------------------------------------------------------------------------------
 
+## 2026-06-14 Gabriele Cosmo (hadr-string-diff-V11-04-01)
+- G4FTFAnnihilation : protected the two- and three-string annihilation
+  kinematics against a floating-point exception caused by a small negative
+  roundoff in the squared decay momentum near threshold.
+  Fixes occasional FPE crashes detected on test64 with ftfp.in input macro.
+
+## 2026-06-08 Ben Morgan (hadr-string-diff-V11-04-00)
+- Add headers required for used declarations.
+
+## 2025-08-14 Alberto Ribon (hadr-string-diff-V11-03-00)
+- G4FTFModel, G4DiffractiveExcitation : introduced the classification of
+  quasi-elastic and diffractive interactions among the inelastic interactions
+  of the FTF string model.
+  In the G4FTFModel class, the boolean flags fIsQuasiElasticInteraction and
+  fIsDiffractiveInteraction - inherited from the base class
+  G4VHighEnergyGenerator - are used in the methods Init and ExciteParticipants.
+  In the class G4DiffractiveExcitation, an extra, boolean parameter is added
+  to the method ExciteParticipants to tag diffractive interactions.
+
 ## 2024-07-18 Alberto Ribon (hadr-string-diff-V11-02-00)
 - G4FTFParameters : renamed method SetElastis as SetElastic.
   This does not have any effect - the random sequence stays the same.
@@ -939,4 +958,3 @@ Bug was fixed in G4FTFModel.cc thank to A. Ribon
 24 Apr 2007 Gunter Folger  (hadr-string-diff-V08-02-00)
 -  merge in change done by ftf development.
 - Created History file.
-

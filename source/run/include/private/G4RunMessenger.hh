@@ -47,8 +47,8 @@
 
 // Original author: M.Asai, 1997
 // --------------------------------------------------------------------
-#ifndef G4RunMessenger_hh
-#define G4RunMessenger_hh 1
+#ifndef G4RUNMESSENGER_HH
+#define G4RUNMESSENGER_HH
 
 #include "G4UImessenger.hh"
 #include "globals.hh"
@@ -64,6 +64,7 @@ class G4UIcommand;
 class G4RunMessenger : public G4UImessenger
 {
   public:
+
     G4RunMessenger(G4RunManager* runMgr);
     ~G4RunMessenger() override;
 
@@ -71,6 +72,7 @@ class G4RunMessenger : public G4UImessenger
     G4String GetCurrentValue(G4UIcommand* command) override;
 
   private:
+
     G4RunManager* runManager = nullptr;
     G4String macroFileName = "***NULL***";  // internal use only!!!
 
@@ -92,6 +94,7 @@ class G4RunMessenger : public G4UImessenger
     G4UIcmdWithoutParameter* initCmd = nullptr;
     G4UIcmdWithoutParameter* geomCmd = nullptr;
     G4UIcmdWithABool* geomRebCmd = nullptr;
+    G4UIcmdWithoutParameter* undertakeOptCmd = nullptr;
     G4UIcmdWithoutParameter* physCmd = nullptr;
     G4UIcmdWithAnInteger* randEvtCmd = nullptr;
     G4UIcommand* procUICmds = nullptr;

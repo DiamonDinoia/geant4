@@ -55,13 +55,14 @@
 //
 //
 
+#include "G4fissionEvent.hh"
+
 #include <iostream>
 #include <sstream>
-#include "G4fissionEvent.hh"
 
 std::string itoa(const G4int& x);
 
-void G4fissionEvent::G4fissionerr(G4int iSever, std::string chSubNam, std::string chMsg)
+void G4fissionEvent::G4fissionerr(G4int iSever, const G4String& chSubNam, const G4String& chMsg)
 
 /*
   Description
@@ -79,26 +80,26 @@ void G4fissionEvent::G4fissionerr(G4int iSever, std::string chSubNam, std::strin
 */
 
 {
-   G4int doExit;
-   std::string ExitMsg;
- 
-   
-   if (iSever <= 5) {   /* warning */
-     doExit = 0;
-   }
-   else {
-     doExit = 1;
-   }
+  G4int doExit;
+  G4String ExitMsg;
 
-   ExitMsg = "Error in Function "+chSubNam+", Severity=" + itoa(iSever) + " : "+chMsg;
+  if (iSever <= 5)
+  { /* warning */
+    doExit = 0;
+  }
+  else
+  {
+    doExit = 1;
+  }
 
-   std::cerr << "Fission " << ExitMsg << std::endl;
-   if (doExit == 1) G4Exception("G4fissionEvent::G4fissionerr()", "601",
-                                FatalException, "Fatal Error");
+  ExitMsg = "Error in Function " + chSubNam + ", Severity=" + itoa(iSever) + " : " + chMsg;
 
-   return;
+  G4cerr << "Fission " << ExitMsg << G4endl;
+  if (doExit == 1)
+    G4Exception("G4fissionEvent::G4fissionerr()", "601", FatalException, "Fatal Error");
+
+  return;
 }
-
 
 std::string itoa(const G4int& x)
 {

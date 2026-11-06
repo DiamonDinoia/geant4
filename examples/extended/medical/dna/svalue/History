@@ -1,8 +1,19 @@
 # Example svalue History
 
 See `CONTRIBUTING.rst` for details of **required** info/format for each entry,
-which **must** added in reverse chronological order (newest at the top). It must **not**
-be used as a substitute for writing good git commit messages!
+which **must** added in reverse chronological order (newest at the top).
+It must **not** be used as a substitute for writing good git commit messages!
+
+-------------------------------------------------------------------------------
+
+## 2026-04-17 Sebastien Incerti (svalue-V11-04-00)
+- reduction of the number of DNA physics constructors in the perspective of Geant4 12
+
+## 2025-07-25 I. Hrivnacova (svalue-V11-03-03)
+- fixed Doxygen formatting
+
+## 2025-07-17 Sebastien Incerti (svalue-V11-03-02)
+- added missing optional include file in TrackingAction.hh
 
 ## 2025-01-22 Sebastien Incerti (svalue-V11-03-01)
 - added optional time threshold to iodine macros

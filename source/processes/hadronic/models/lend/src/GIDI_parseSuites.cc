@@ -216,7 +216,7 @@ Form *parseReactionType( std::string const &a_moniker, Construction::Settings co
     Form *form = nullptr;
 
     if( a_name == a_moniker ) {
-        Protare const &protare( *dynamic_cast<Protare const *>( a_parent->root( ) ) );
+        Protare const &protare( *static_cast<Protare const *>( a_parent->root( ) ) );
         form = new Reaction( a_construction, a_node, a_setupInfo, a_pops, a_internalPoPs, protare, a_styles ); }
     else {                                  // This should never happend.
         std::cout << "parseReactionType: Ignoring '" << a_moniker << "' unsupported form '" << a_name << "'." << std::endl;
@@ -373,7 +373,6 @@ Form *parseCrossSectionSuite( Construction::Settings const &a_construction, Suit
     if( ( a_construction.parseMode( ) == Construction::ParseMode::multiGroupOnly ) && ( a_name != GIDI_gridded1dChars ) ) return( nullptr );
     if( ( a_construction.parseMode( ) == Construction::ParseMode::MonteCarloContinuousEnergy ) && ( a_name != GIDI_Ys1dChars ) ) return( nullptr );
 
-// Form not parsed is CoulombPlusNuclearElastic.
     Form *form = nullptr;
 
     if( a_name == GIDI_resonancesWithBackgroundChars ) {
@@ -383,7 +382,7 @@ Form *parseCrossSectionSuite( Construction::Settings const &a_construction, Suit
     else if( a_name == GIDI_URR_probabilityTables1dChars ) {
         form = new Functions::URR_probabilityTables1d( a_construction, a_node, a_setupInfo, a_parent ); }
     else if( a_name == GIDI_CoulombPlusNuclearElasticChars ) {
-        }
+        form = new Functions::CoulombPlusNuclearElastic1d( a_construction, a_node, a_setupInfo, a_parent ); }
     else {
         form = data1dParse( a_construction, a_node, a_setupInfo, a_parent );
     }

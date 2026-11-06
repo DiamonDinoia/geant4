@@ -43,6 +43,16 @@
 #  include <qsurfaceformat.h>
 #endif
 
+#ifdef TOOLS_USE_GL_VERSION_3_2
+#  if QT_VERSION < 0x060000
+#    include <qgl.h>
+#  else
+#    ifndef G4VIS_USE_VTK_QT
+#      include <qsurfaceformat.h>
+#    endif
+#  endif
+#endif
+
 G4Qt* G4Qt::instance = nullptr;
 
 static G4bool QtInited = false;
@@ -59,7 +69,8 @@ G4Qt* G4Qt::getInstance(int a_argn, char** a_args, char* a_class)
 /***************************************************************************/
 /*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
 {
-  if (instance == nullptr) {
+  if (instance == nullptr)
+  {
     instance = new G4Qt(a_argn, a_args, a_class);
   }
   return instance;
@@ -75,25 +86,30 @@ G4Qt::G4Qt(int a_argn, char** a_args, char* /*a_class */
   externalApp = false;
 
   // Check if Qt already init in another external app
-  if (qApp) {
+  if (qApp)
+  {
     externalApp = true;
     QtInited = true;
     SetMainInteractor(qApp);
     SetArguments(a_argn, a_args);
   }
-  else {
-    if (! QtInited) {  // Qt should be Inited once !
+  else
+  {
+    if (!QtInited)
+    {  // Qt should be Inited once !
       // Then two cases :
       // - It is the first time we create G4UI  (argc!=0)
       //   -> Inited and register
       // - It is the first time we create G4VIS  (argc == 0)
       //   -> Inited and NOT register
 
-      if (a_argn != 0) {
+      if (a_argn != 0)
+      {
         argn = a_argn;
         args = a_args;
       }
-      else {  // argc = 0
+      else
+      {  // argc = 0
 
         // FIXME : That's not the good arguments, but I don't know how to get args from other
         // Interactor. Ex: How to get them from G4Xt ?
@@ -112,17 +128,38 @@ G4Qt::G4Qt(int a_argn, char** a_args, char* /*a_class */
 #ifdef G4VIS_USE_VTK_QT
       QSurfaceFormat::setDefaultFormat(QVTKOpenGLNativeWidget::defaultFormat());
 #endif
+
+#ifdef TOOLS_USE_GL_VERSION_3_2
+#  if QT_VERSION < 0x060000
+      QGLFormat format = QGLFormat::defaultFormat();
+      format.setVersion(3, 2);
+      format.setProfile(QGLFormat::CoreProfile);
+      QGLFormat::setDefaultFormat(format);
+#  else
+#    ifndef G4VIS_USE_VTK_QT
+      QSurfaceFormat format = QSurfaceFormat::defaultFormat();
+      format.setVersion(3, 2);
+      format.setProfile(QSurfaceFormat::CoreProfile);
+      QSurfaceFormat::setDefaultFormat(format);
+#    endif
+#  endif
+#endif
+
       new QApplication(*p_argn, args);
-      if (! qApp) {
+      if (!qApp)
+      {
         G4UImanager* UImanager = G4UImanager::GetUIpointer();
         G4int verbose = UImanager->GetVerboseLevel();
-        if (verbose >= 2) {
+        if (verbose >= 2)
+        {
           G4cout << "G4Qt : Unable to init Qt." << G4endl;
         }
       }
-      else {
+      else
+      {
         QtInited = true;
-        if (a_argn != 0) {
+        if (a_argn != 0)
+        {
           SetMainInteractor(qApp);
         }
         SetArguments(a_argn, a_args);
@@ -152,7 +189,8 @@ G4Qt::~G4Qt()
 /***************************************************************************/
 /*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
 {
-  if (this == instance) {
+  if (this == instance)
+  {
     instance = nullptr;
   }
 }
@@ -175,7 +213,7 @@ void G4Qt::FlushAndWaitExecution()
 /***************************************************************************/
 /*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
 {
-  if (! qApp) return;
+  if (!qApp) return;
   qApp->processEvents();
 }
 

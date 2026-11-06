@@ -23,6 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
+/// \file PrimaryKiller.hh
+/// \brief Definition of the PrimaryKiller class
+
 // This example is provided by the Geant4-DNA collaboration
 // Any report or published results obtained using the Geant4-DNA software
 // shall cite the following Geant4-DNA collaboration publication:
@@ -30,18 +33,14 @@
 // J. Comput. Phys. 274 (2014) 841-882
 // The Geant4-DNA web site is available at http://geant4-dna.org
 //
-//
-// $Id$
-//
-/// \file PrimaryKiller.hh
-/// \brief Definition of the PrimaryKiller class
 
 #ifndef CHEM6_PrimaryKiller_h
 #define CHEM6_PrimaryKiller_h 1
 
-#include <G4THitsMap.hh>
-#include <G4UImessenger.hh>
-#include <G4VPrimitiveScorer.hh>
+#include "G4THitsMap.hh"
+#include "G4UImessenger.hh"
+#include "G4VPrimitiveScorer.hh"
+#include "G4UnitsTable.hh"
 
 class G4UIcmdWithADoubleAndUnit;
 class G4UIcmdWith3VectorAndUnit;
@@ -53,50 +52,46 @@ class G4UIcmdWith3VectorAndUnit;
 //   - either after a given energy loss
 //   - or after the primary particle has reached a given energy
 
-class PrimaryKiller : public G4VPrimitiveScorer, public G4UImessenger
-{
-  private:
-    double fELoss;  // cumulated energy loss by the primary
+class PrimaryKiller final : public G4VPrimitiveScorer, public G4UImessenger {
+public:
+  explicit PrimaryKiller(const G4String &name, G4int depth = 0);
 
-    double fELossRange_Min;  // fELoss from which the primary is killed
-    double fELossRange_Max;  // fELoss from which the event is aborted
-    double fKineticE_Min;  // kinetic energy below which the primary is killed
-    G4ThreeVector fPhantomSize;
+  ~PrimaryKiller() override = default;
 
-    G4UIcmdWithADoubleAndUnit* fpELossUI;
-    G4UIcmdWithADoubleAndUnit* fpAbortEventIfELossUpperThan;
-    G4UIcmdWithADoubleAndUnit* fpMinKineticE;
-    G4UIcmdWith3VectorAndUnit* fpSizeUI;
+  /** Set energy under which the particle should be
+   killed*/
+  inline void SetEnergyThreshold(const G4double energy) { fKineticE_Min = energy; }
 
-  public:
-    PrimaryKiller(G4String name, G4int depth = 0);
+  /** Set the energy loss from which the primary is
+   killed*/
+  inline void SetMinLossEnergyLimit(double energy) { fELossRange_Min = energy; }
 
-    virtual ~PrimaryKiller();
+  /** Set the energy loss from which the event is
+   aborted*/
+  inline void SetMaxLossEnergyLimit(double energy) { fELossRange_Max = energy; }
 
-    /** Set energy under which the particle should be
-     killed*/
-    inline void SetEnergyThreshold(double energy) { fKineticE_Min = energy; }
+  /** Method related to G4UImessenger
+      used to control energy cuts through macro file
+   */
+  void SetNewValue(G4UIcommand *command, G4String newValue) override;
 
-    /** Set the energy loss from which the primary is
-     killed*/
-    inline void SetMinLossEnergyLimit(double energy) { fELossRange_Min = energy; }
+  void Initialize(G4HCofThisEvent *) override;
 
-    /** Set the energy loss from which the event is
-     aborted*/
-    inline void SetMaxLossEnergyLimit(double energy) { fELossRange_Max = energy; }
+protected:
+  G4bool ProcessHits(G4Step *, G4TouchableHistory *) override;
 
-    /** Method related to G4UImessenger
-        used to control energy cuts through macro file
-     */
-    virtual void SetNewValue(G4UIcommand* command, G4String newValue);
+private:
+  G4bool fKillPrimary = false; // true if fELossRange_Min is set less than
+                               // fELossRange_Max, meaning PrimaryKiller is activated
+  G4double fELoss = 0; // cumulated energy loss by the primary
+  G4double fELossRange_Min = DBL_MAX; // fELoss from which the primary is killed
+  G4double fELossRange_Max = DBL_MAX; // fELoss from which the event is aborted
+  G4double fKineticE_Min = 0; // kinetic energy below which the primary is killed
+  G4ThreeVector fPhantomSize = {1 * CLHEP::km, 1 * CLHEP::km, 1 * CLHEP::km};
 
-  protected:
-    virtual G4bool ProcessHits(G4Step*, G4TouchableHistory*);
-
-  public:
-    virtual void Initialize(G4HCofThisEvent*);
-    virtual void EndOfEvent(G4HCofThisEvent*);
-    virtual void DrawAll();
-    virtual void PrintAll();
+  std::unique_ptr<G4UIcmdWithADoubleAndUnit> fpELossUI;
+  std::unique_ptr<G4UIcmdWithADoubleAndUnit> fpAbortEventIfELossUpperThan;
+  std::unique_ptr<G4UIcmdWithADoubleAndUnit> fpMinKineticE;
+  std::unique_ptr<G4UIcmdWith3VectorAndUnit> fpSizeUI;
 };
 #endif

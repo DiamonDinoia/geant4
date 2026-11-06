@@ -23,9 +23,9 @@
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
 //
-// class G4VPVDivisionFactory Implementation file
+// G4VPVDivisionFactory Implementation file
 //
-// Author: Ivana Hrivnacova, 4.5.2004
+// Author: Ivana Hrivnacova (IJCLab, Orsay), 04.05.2004
 // ------------------------------------------------------------------------
 
 #include "G4VPVDivisionFactory.hh"
@@ -34,9 +34,9 @@ G4ThreadLocal G4VPVDivisionFactory* G4VPVDivisionFactory::fgInstance = nullptr;
 
 //_____________________________________________________________________________
 
-G4VPVDivisionFactory* G4VPVDivisionFactory::Instance() 
+G4VPVDivisionFactory* G4VPVDivisionFactory::Instance()
 {
   // Static singleton access method.
   // ---
   return fgInstance;
-}  
+}

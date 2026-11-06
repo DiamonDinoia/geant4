@@ -37,8 +37,8 @@
 
 // Original author: H.Kurashige (Kobe University), 9 January 1998
 // --------------------------------------------------------------------
-#ifndef G4VUserPhysicsList_hh
-#define G4VUserPhysicsList_hh 1
+#ifndef G4VUSERPHYSICSLIST_HH
+#define G4VUSERPHYSICSLIST_HH
 
 #include "G4ParticleDefinition.hh"
 #include "G4ParticleTable.hh"
@@ -60,6 +60,7 @@ class G4VProcess;
 class G4VUPLData
 {
   public:
+
     void initialize();
 
     G4ParticleTable::G4PTblDicIterator* _theParticleIterator = nullptr;
@@ -103,6 +104,7 @@ using G4VUserPhysicsListSubInstanceManager = G4VUPLManager;
 class G4VUserPhysicsList
 {
   public:
+
     G4VUserPhysicsList();
     virtual ~G4VUserPhysicsList();
     G4VUserPhysicsList(const G4VUserPhysicsList&);
@@ -242,6 +244,7 @@ class G4VUserPhysicsList
     virtual void TerminateWorker();
 
   protected:
+
     // User must invoke this method in his ConstructProcess()
     // implementation in order to enable particle transportation.
     void AddTransportation();
@@ -267,6 +270,7 @@ class G4VUserPhysicsList
     G4ParticleTable::G4PTblDicIterator* GetParticleIterator() const;
 
   protected:
+
     // The particle table has the complete List of existing particle types.
     G4ParticleTable* theParticleTable = nullptr;
 
@@ -305,7 +309,7 @@ inline void G4VUserPhysicsList::Construct()
   if (verboseLevel > 1) G4cout << "G4VUserPhysicsList::Construct()" << G4endl;
 #endif
 
-  if (G4Threading::IsMasterThread()) G4PhysicsModelCatalog::Initialize();
+  G4PhysicsModelCatalog::Initialize();
 
   InitializeProcessManager();
 

@@ -35,37 +35,19 @@
 //
 //----------------------------------------------------------------------------
 //
-#ifndef G4AntiBarionBuilder_h
-#define G4AntiBarionBuilder_h 1
+#ifndef G4ANTIBARIONBUILDER_HH
+#define G4ANTIBARIONBUILDER_HH
 
-#include "G4PhysicsBuilderInterface.hh"
 #include "globals.hh"
-#include <vector>
 
-class G4HadronInelasticProcess;
-class G4VAntiBarionBuilder;
-
-
-class G4AntiBarionBuilder : public G4PhysicsBuilderInterface
+class G4AntiBarionBuilder
 {
-  public: 
-    G4AntiBarionBuilder();
-    virtual ~G4AntiBarionBuilder() {}
+  public:
 
-    virtual void Build() final override;
-    virtual void RegisterMe(G4PhysicsBuilderInterface * aB) final override;
+    G4AntiBarionBuilder() = default;
+    ~G4AntiBarionBuilder() = default;
 
-  private:
-    G4HadronInelasticProcess* theAntiProtonInelastic;
-    G4HadronInelasticProcess* theAntiNeutronInelastic;
-    G4HadronInelasticProcess* theAntiDeuteronInelastic;
-    G4HadronInelasticProcess* theAntiTritonInelastic;
-    G4HadronInelasticProcess* theAntiHe3Inelastic;
-    G4HadronInelasticProcess* theAntiAlphaInelastic;
-     
-    std::vector<G4VAntiBarionBuilder* > theModelCollections;
-
+    void Build();
 };
 
 #endif
-

@@ -29,22 +29,24 @@
 // --------------------------------------------------------------------
 
 #include "G4ScaledSolid.hh"
-#include "G4BoundingEnvelope.hh"
 
+#include "G4AutoLock.hh"
+#include "G4BoundingEnvelope.hh"
+#include "G4Polyhedron.hh"
+#include "G4ScaleTransform.hh"
+#include "G4VGraphicsScene.hh"
 #include "G4VPVParameterisation.hh"
 
-#include "G4ScaleTransform.hh"
-
-#include "G4VGraphicsScene.hh"
-#include "G4Polyhedron.hh"
+namespace
+{
+G4RecursiveMutex scaledMutex = G4MUTEX_INITIALIZER;
+}
 
 ///////////////////////////////////////////////////////////////////
 //
 // Constructor
 //
-G4ScaledSolid::G4ScaledSolid( const G4String& pName,
-                                    G4VSolid* pSolid,
-                              const G4Scale3D& pScale )
+G4ScaledSolid::G4ScaledSolid(const G4String& pName, G4VSolid* pSolid, const G4Scale3D& pScale)
   : G4VSolid(pName), fPtrSolid(pSolid)
 {
   fScale = new G4ScaleTransform(pScale);
@@ -55,10 +57,7 @@ G4ScaledSolid::G4ScaledSolid( const G4String& pName,
 // Fake default constructor - sets only member data and allocates memory
 //                            for usage restricted to object persistency
 //
-G4ScaledSolid::G4ScaledSolid( __void__& a )
-  : G4VSolid(a)
-{
-}
+G4ScaledSolid::G4ScaledSolid(__void__& a) : G4VSolid(a) {}
 
 ///////////////////////////////////////////////////////////////////
 //
@@ -66,8 +65,10 @@ G4ScaledSolid::G4ScaledSolid( __void__& a )
 //
 G4ScaledSolid::~G4ScaledSolid()
 {
-  delete fpPolyhedron; fpPolyhedron = nullptr;
-  delete fScale; fScale = nullptr;
+  delete fpPolyhedron;
+  fpPolyhedron = nullptr;
+  delete fScale;
+  fScale = nullptr;
 }
 
 ///////////////////////////////////////////////////////////////
@@ -75,8 +76,10 @@ G4ScaledSolid::~G4ScaledSolid()
 // Copy constructor
 //
 G4ScaledSolid::G4ScaledSolid(const G4ScaledSolid& rhs)
-  : G4VSolid (rhs), fPtrSolid(rhs.fPtrSolid),
-    fCubicVolume(rhs.fCubicVolume), fSurfaceArea(rhs.fSurfaceArea)
+  : G4VSolid(rhs),
+    fPtrSolid(rhs.fPtrSolid),
+    fCubicVolume(rhs.fCubicVolume),
+    fSurfaceArea(rhs.fSurfaceArea)
 {
   fScale = new G4ScaleTransform(*(rhs.fScale));
 }
@@ -85,11 +88,14 @@ G4ScaledSolid::G4ScaledSolid(const G4ScaledSolid& rhs)
 //
 // Assignment operator
 //
-G4ScaledSolid& G4ScaledSolid::operator = (const G4ScaledSolid& rhs)
+G4ScaledSolid& G4ScaledSolid::operator=(const G4ScaledSolid& rhs)
 {
   // Check assignment to self
   //
-  if (this == &rhs) { return *this; }
+  if (this == &rhs)
+  {
+    return *this;
+  }
 
   // Copy base class data
   //
@@ -103,7 +109,8 @@ G4ScaledSolid& G4ScaledSolid::operator = (const G4ScaledSolid& rhs)
   fCubicVolume = rhs.fCubicVolume;
   fSurfaceArea = rhs.fSurfaceArea;
   fRebuildPolyhedron = false;
-  delete fpPolyhedron; fpPolyhedron = nullptr;
+  delete fpPolyhedron;
+  fpPolyhedron = nullptr;
 
   return *this;
 }
@@ -121,27 +128,23 @@ G4VSolid* G4ScaledSolid::GetUnscaledSolid() const
 //
 // Get bounding box
 //
-void G4ScaledSolid::BoundingLimits(G4ThreeVector& pMin,
-                                   G4ThreeVector& pMax) const
+void G4ScaledSolid::BoundingLimits(G4ThreeVector& pMin, G4ThreeVector& pMax) const
 {
-  G4ThreeVector bmin,bmax;
+  G4ThreeVector bmin, bmax;
   G4ThreeVector scale = fScale->GetScale();
- 
-  fPtrSolid->BoundingLimits(bmin,bmax);
-  pMin.set(bmin.x()*scale.x(),bmin.y()*scale.y(),bmin.z()*scale.z());
-  pMax.set(bmax.x()*scale.x(),bmax.y()*scale.y(),bmax.z()*scale.z());
+
+  fPtrSolid->BoundingLimits(bmin, bmax);
+  pMin.set(bmin.x() * scale.x(), bmin.y() * scale.y(), bmin.z() * scale.z());
+  pMax.set(bmax.x() * scale.x(), bmax.y() * scale.y(), bmax.z() * scale.z());
 
   // Check correctness of the bounding box
   //
   if (pMin.x() >= pMax.x() || pMin.y() >= pMax.y() || pMin.z() >= pMax.z())
   {
     std::ostringstream message;
-    message << "Bad bounding box (min >= max) for solid: "
-            << GetName() << " !"
-            << "\npMin = " << pMin
-           << "\npMax = " << pMax;
-    G4Exception("G4ScaledSolid::BoundingLimits()", "GeomMgt0001",
-                JustWarning, message);
+    message << "Bad bounding box (min >= max) for solid: " << GetName() << " !"
+            << "\npMin = " << pMin << "\npMax = " << pMax;
+    G4Exception("G4ScaledSolid::BoundingLimits()", "GeomMgt0001", JustWarning, message);
     DumpInfo();
   }
 }
@@ -150,27 +153,24 @@ void G4ScaledSolid::BoundingLimits(G4ThreeVector& pMin,
 //
 // Calculate extent under transform and specified limit
 //
-G4bool 
-G4ScaledSolid::CalculateExtent( const EAxis pAxis,
-                                const G4VoxelLimits& pVoxelLimit,
-                                const G4AffineTransform& pTransform,
-                                      G4double& pMin,
-                                      G4double& pMax ) const
+G4bool G4ScaledSolid::CalculateExtent(const EAxis pAxis, const G4VoxelLimits& pVoxelLimit,
+                                      const G4AffineTransform& pTransform, G4double& pMin,
+                                      G4double& pMax) const
 {
   // Find bounding box of unscaled solid
-  G4ThreeVector bmin,bmax;
-  fPtrSolid->BoundingLimits(bmin,bmax);
+  G4ThreeVector bmin, bmax;
+  fPtrSolid->BoundingLimits(bmin, bmax);
 
   // Set combined transformation
   G4Transform3D transform3D =
-    G4Transform3D(pTransform.NetRotation().inverse(),
-                  pTransform.NetTranslation())*GetScaleTransform();
+    G4Transform3D(pTransform.NetRotation().inverse(), pTransform.NetTranslation())
+    * GetScaleTransform();
 
   // Find extent
-  G4BoundingEnvelope bbox(bmin,bmax);
-  return bbox.CalculateExtent(pAxis,pVoxelLimit,transform3D,pMin,pMax);
+  G4BoundingEnvelope bbox(bmin, bmax);
+  return bbox.CalculateExtent(pAxis, pVoxelLimit, transform3D, pMin, pMax);
 }
- 
+
 /////////////////////////////////////////////////////
 //
 // Inside
@@ -184,8 +184,7 @@ EInside G4ScaledSolid::Inside(const G4ThreeVector& p) const
 //
 // SurfaceNormal
 //
-G4ThreeVector
-G4ScaledSolid::SurfaceNormal( const G4ThreeVector& p ) const
+G4ThreeVector G4ScaledSolid::SurfaceNormal(const G4ThreeVector& p) const
 {
   // Transform point to unscaled shape frame
   G4ThreeVector newPoint;
@@ -197,16 +196,14 @@ G4ScaledSolid::SurfaceNormal( const G4ThreeVector& p ) const
 
   // Convert normal to scaled frame
   fScale->InverseTransformNormal(newNormal, normal);
-  return normal/normal.mag();
+  return normal / normal.mag();
 }
 
 /////////////////////////////////////////////////////////////
 //
 // The same algorithm as in DistanceToIn(p)
 //
-G4double
-G4ScaledSolid::DistanceToIn( const G4ThreeVector& p,
-                             const G4ThreeVector& v ) const
+G4double G4ScaledSolid::DistanceToIn(const G4ThreeVector& p, const G4ThreeVector& v) const
 {
   // Transform point and direction to unscaled shape frame
   G4ThreeVector newPoint;
@@ -215,10 +212,10 @@ G4ScaledSolid::DistanceToIn( const G4ThreeVector& p,
   // Direction is un-normalized after scale transformation
   G4ThreeVector newDirection;
   fScale->Transform(v, newDirection);
-  newDirection = newDirection/newDirection.mag();
+  newDirection = newDirection / newDirection.mag();
 
   // Compute distance in unscaled system
-  G4double dist = fPtrSolid->DistanceToIn(newPoint,newDirection);
+  G4double dist = fPtrSolid->DistanceToIn(newPoint, newDirection);
 
   // Return converted distance to global
   return fScale->InverseTransformDistance(dist, newDirection);
@@ -228,8 +225,7 @@ G4ScaledSolid::DistanceToIn( const G4ThreeVector& p,
 //
 // Approximate nearest distance from the point p to the solid from outside
 //
-G4double
-G4ScaledSolid::DistanceToIn( const G4ThreeVector& p ) const
+G4double G4ScaledSolid::DistanceToIn(const G4ThreeVector& p) const
 {
   // Transform point to unscaled shape frame
   G4ThreeVector newPoint;
@@ -244,12 +240,9 @@ G4ScaledSolid::DistanceToIn( const G4ThreeVector& p ) const
 //
 // The same algorithm as DistanceToOut(p)
 //
-G4double
-G4ScaledSolid::DistanceToOut( const G4ThreeVector& p,
-                              const G4ThreeVector& v,
-                              const G4bool calcNorm,
-                                    G4bool *validNorm,
-                                    G4ThreeVector *n ) const
+G4double G4ScaledSolid::DistanceToOut(const G4ThreeVector& p, const G4ThreeVector& v,
+                                      const G4bool calcNorm, G4bool* validNorm,
+                                      G4ThreeVector* n) const
 {
   // Transform point and direction to unscaled shape frame
   G4ThreeVector newPoint;
@@ -258,16 +251,15 @@ G4ScaledSolid::DistanceToOut( const G4ThreeVector& p,
   // Direction is un-normalized after scale transformation
   G4ThreeVector newDirection;
   fScale->Transform(v, newDirection);
-  newDirection = newDirection/newDirection.mag();
+  newDirection = newDirection / newDirection.mag();
 
   // Compute distance in unscaled system
   G4ThreeVector solNorm;
-  G4double dist = fPtrSolid->DistanceToOut(newPoint,newDirection,
-                                           calcNorm,validNorm,&solNorm);
-  if(calcNorm)
+  G4double dist = fPtrSolid->DistanceToOut(newPoint, newDirection, calcNorm, validNorm, &solNorm);
+  if (calcNorm)
   {
     G4ThreeVector normal;
-    fScale->TransformNormal(solNorm, normal);
+    fScale->InverseTransformNormal(solNorm, normal);
     *n = normal.unit();
   }
 
@@ -279,8 +271,7 @@ G4ScaledSolid::DistanceToOut( const G4ThreeVector& p,
 //
 //  Approximate nearest distance from the point p to the solid from inside
 //
-G4double
-G4ScaledSolid::DistanceToOut( const G4ThreeVector& p ) const
+G4double G4ScaledSolid::DistanceToOut(const G4ThreeVector& p) const
 {
   // Transform point to unscaled shape frame
   G4ThreeVector newPoint;
@@ -289,21 +280,6 @@ G4ScaledSolid::DistanceToOut( const G4ThreeVector& p ) const
   // Compute unscaled safety, then scale it
   G4double dist = fPtrSolid->DistanceToOut(newPoint);
   return fScale->InverseTransformDistance(dist);
-}
-
-//////////////////////////////////////////////////////////////
-//
-// ComputeDimensions
-//
-void
-G4ScaledSolid::ComputeDimensions( G4VPVParameterisation*,
-                                  const G4int,
-                                  const G4VPhysicalVolume* ) 
-{
-  DumpInfo();
-  G4Exception("G4ScaledSolid::ComputeDimensions()",
-              "GeomSolids0001", FatalException,
-              "Method not applicable in this context!");
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -330,7 +306,7 @@ G4int G4ScaledSolid::GetNumOfConstituents() const
 //
 G4bool G4ScaledSolid::IsFaceted() const
 {
-  return fPtrSolid->IsFaceted();  
+  return fPtrSolid->IsFaceted();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -357,9 +333,7 @@ G4VSolid* G4ScaledSolid::Clone() const
 //
 G4Scale3D G4ScaledSolid::GetScaleTransform() const
 {
-  return { fScale->GetScale().x(),
-           fScale->GetScale().y(),
-           fScale->GetScale().z() };
+  return {fScale->GetScale().x(), fScale->GetScale().y(), fScale->GetScale().z()};
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -368,7 +342,7 @@ G4Scale3D G4ScaledSolid::GetScaleTransform() const
 //
 void G4ScaledSolid::SetScaleTransform(const G4Scale3D& scale)
 {
-  delete fScale; 
+  delete fScale;
   fScale = new G4ScaleTransform(scale);
   fRebuildPolyhedron = true;
 }
@@ -379,12 +353,12 @@ void G4ScaledSolid::SetScaleTransform(const G4Scale3D& scale)
 //
 G4double G4ScaledSolid::GetCubicVolume()
 {
-  if(fCubicVolume < 0.)
+  if (fCubicVolume < 0.)
   {
-    fCubicVolume = fPtrSolid->GetCubicVolume() *
-                   fScale->GetScale().x() *
-                   fScale->GetScale().y() *
-                   fScale->GetScale().z();
+    G4RecursiveAutoLock l(&scaledMutex);
+    fCubicVolume = fPtrSolid->GetCubicVolume() * fScale->GetScale().x() * fScale->GetScale().y()
+                   * fScale->GetScale().z();
+    l.unlock();
   }
   return fCubicVolume;
 }
@@ -395,9 +369,11 @@ G4double G4ScaledSolid::GetCubicVolume()
 //
 G4double G4ScaledSolid::GetSurfaceArea()
 {
-  if(fSurfaceArea < 0.)
+  if (fSurfaceArea < 0.)
   {
+    G4RecursiveAutoLock l(&scaledMutex);
     fSurfaceArea = G4VSolid::GetSurfaceArea();
+    l.unlock();
   }
   return fSurfaceArea;
 }
@@ -418,9 +394,8 @@ std::ostream& G4ScaledSolid::StreamInfo(std::ostream& os) const
   os << "===========================================================\n"
      << " Scaling: \n"
      << "    Scale transformation : \n"
-     << "           " << fScale->GetScale().x() << ", "
-                      << fScale->GetScale().y() << ", "
-                      << fScale->GetScale().z() << "\n"
+     << "           " << fScale->GetScale().x() << ", " << fScale->GetScale().y() << ", "
+     << fScale->GetScale().z() << "\n"
      << "===========================================================\n";
 
   return os;
@@ -430,18 +405,16 @@ std::ostream& G4ScaledSolid::StreamInfo(std::ostream& os) const
 //
 // DescribeYourselfTo
 //
-void 
-G4ScaledSolid::DescribeYourselfTo ( G4VGraphicsScene& scene ) const
+void G4ScaledSolid::DescribeYourselfTo(G4VGraphicsScene& scene) const
 {
-  scene.AddSolid (*this);
+  scene.AddSolid(*this);
 }
 
 //////////////////////////////////////////////////////////////////////////
 //
 // CreatePolyhedron
 //
-G4Polyhedron* 
-G4ScaledSolid::CreatePolyhedron () const
+G4Polyhedron* G4ScaledSolid::CreatePolyhedron() const
 {
   G4Polyhedron* polyhedron = fPtrSolid->CreatePolyhedron();
   if (polyhedron != nullptr)
@@ -451,8 +424,7 @@ G4ScaledSolid::CreatePolyhedron () const
   else
   {
     DumpInfo();
-    G4Exception("G4ScaledSolid::CreatePolyhedron()",
-                "GeomSolids2003", JustWarning,
+    G4Exception("G4ScaledSolid::CreatePolyhedron()", "GeomSolids2003", JustWarning,
                 "No G4Polyhedron for scaled solid");
   }
   return polyhedron;
@@ -462,15 +434,14 @@ G4ScaledSolid::CreatePolyhedron () const
 //
 // GetPolyhedron
 //
-G4Polyhedron* G4ScaledSolid::GetPolyhedron () const
+G4Polyhedron* G4ScaledSolid::GetPolyhedron() const
 {
-  if (fpPolyhedron == nullptr ||
-      fRebuildPolyhedron ||
-      fpPolyhedron->GetNumberOfRotationStepsAtTimeOfCreation() !=
-      fpPolyhedron->GetNumberOfRotationSteps())
-    {
-      fpPolyhedron = CreatePolyhedron();
-      fRebuildPolyhedron = false;
-    }
+  if (fpPolyhedron == nullptr || fRebuildPolyhedron
+      || fpPolyhedron->GetNumberOfRotationStepsAtTimeOfCreation()
+           != fpPolyhedron->GetNumberOfRotationSteps())
+  {
+    fpPolyhedron = CreatePolyhedron();
+    fRebuildPolyhedron = false;
+  }
   return fpPolyhedron;
 }
